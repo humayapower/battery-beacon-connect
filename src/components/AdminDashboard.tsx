@@ -1,21 +1,19 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Battery, Users, User, CreditCard, Home, Plus, Settings, LogOut } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 import BatteryTable from './BatteryTable';
 import PartnerTable from './PartnerTable';
 import CustomerTable from './CustomerTable';
 import TransactionTable from './TransactionTable';
+import CreatePartnerModal from './CreatePartnerModal';
 
-interface AdminDashboardProps {
-  onRoleChange: () => void;
-}
-
-const AdminDashboard = ({ onRoleChange }: AdminDashboardProps) => {
+const AdminDashboard = () => {
   const [activeSection, setActiveSection] = useState('overview');
+  const { signOut, user } = useAuth();
 
   const menuItems = [
     { title: "Overview", icon: Home, key: "overview" },
@@ -63,10 +61,10 @@ const AdminDashboard = ({ onRoleChange }: AdminDashboardProps) => {
           <Button 
             variant="outline" 
             className="w-full" 
-            onClick={onRoleChange}
+            onClick={signOut}
           >
             <LogOut className="w-4 h-4 mr-2" />
-            Switch Role
+            Sign Out
           </Button>
         </div>
       </SidebarContent>
@@ -136,10 +134,7 @@ const AdminDashboard = ({ onRoleChange }: AdminDashboardProps) => {
                     <Plus className="w-4 h-4 mr-2" />
                     Add New Battery
                   </Button>
-                  <Button className="w-full justify-start" variant="outline">
-                    <Users className="w-4 h-4 mr-2" />
-                    Register Partner
-                  </Button>
+                  <CreatePartnerModal />
                   <Button className="w-full justify-start" variant="outline">
                     <CreditCard className="w-4 h-4 mr-2" />
                     Process Payment
@@ -171,7 +166,7 @@ const AdminDashboard = ({ onRoleChange }: AdminDashboardProps) => {
             <div className="flex items-center justify-between">
               <SidebarTrigger />
               <div className="flex items-center space-x-4">
-                <span className="text-sm text-gray-600">Admin Portal</span>
+                <span className="text-sm text-gray-600">Welcome, {user?.user_metadata?.full_name || user?.email}</span>
                 <Badge className="bg-blue-100 text-blue-800">Administrator</Badge>
               </div>
             </div>

@@ -1,0 +1,119 @@
+
+import React, { useState } from 'react';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Plus } from 'lucide-react';
+import { useAdminFunctions } from '@/hooks/useAdminFunctions';
+import { useToast } from '@/hooks/use-toast';
+
+const CreatePartnerModal = () => {
+  const [open, setOpen] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [fullName, setFullName] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const { createPartner, isAdmin } = useAdminFunctions();
+  const { toast } = useToast();
+
+  if (!isAdmin) return null;
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+
+    try {
+      await createPartner(email, password, fullName);
+      toast({
+        title: "Partner created successfully",
+        description: `${fullName} has been added as a partner.`,
+      });
+      setOpen(false);
+      setEmail('');
+      setPassword('');
+      setFullName('');
+    } catch (err: any) {
+      setError(err.message || 'Failed to create partner');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button className="bg-green-600 hover:bg-green-700">
+          <Plus className="w-4 h-4 mr-2" />
+          Create Partner
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Create New Partner</DialogTitle>
+          <DialogDescription>
+            Add a new partner to the platform. They will receive login credentials to access their dashboard.
+          </DialogDescription>
+        </DialogHeader>
+        
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="partnerName">Full Name</Label>
+            <Input
+              id="partnerName"
+              type="text"
+              placeholder="Enter partner's full name"
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              required
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="partnerEmail">Email</Label>
+            <Input
+              id="partnerEmail"
+              type="email"
+              placeholder="Enter partner's email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="partnerPassword">Password</Label>
+            <Input
+              id="partnerPassword"
+              type="password"
+              placeholder="Enter temporary password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </div>
+
+          {error && (
+            <Alert variant="destructive">
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+
+          <div className="flex justify-end space-x-2">
+            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={loading}>
+              {loading ? 'Creating...' : 'Create Partner'}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+export default CreatePartnerModal;

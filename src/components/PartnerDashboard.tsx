@@ -1,10 +1,10 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Battery, User, CreditCard, Home, Plus, LogOut } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 import BatteryTable from './BatteryTable';
 import CustomerTable from './CustomerTable';
 import TransactionTable from './TransactionTable';
@@ -13,8 +13,9 @@ interface PartnerDashboardProps {
   onRoleChange: () => void;
 }
 
-const PartnerDashboard = ({ onRoleChange }: PartnerDashboardProps) => {
+const PartnerDashboard = () => {
   const [activeSection, setActiveSection] = useState('overview');
+  const { signOut, user } = useAuth();
 
   const menuItems = [
     { title: "Overview", icon: Home, key: "overview" },
@@ -59,10 +60,10 @@ const PartnerDashboard = ({ onRoleChange }: PartnerDashboardProps) => {
           <Button 
             variant="outline" 
             className="w-full" 
-            onClick={onRoleChange}
+            onClick={signOut}
           >
             <LogOut className="w-4 h-4 mr-2" />
-            Switch Role
+            Sign Out
           </Button>
         </div>
       </SidebarContent>
@@ -174,7 +175,7 @@ const PartnerDashboard = ({ onRoleChange }: PartnerDashboardProps) => {
             <div className="flex items-center justify-between">
               <SidebarTrigger />
               <div className="flex items-center space-x-4">
-                <span className="text-sm text-gray-600">Partner Portal</span>
+                <span className="text-sm text-gray-600">Welcome, {user?.user_metadata?.full_name || user?.email}</span>
                 <Badge className="bg-green-100 text-green-800">Partner</Badge>
               </div>
             </div>

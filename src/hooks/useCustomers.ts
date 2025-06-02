@@ -39,7 +39,7 @@ export const useCustomers = () => {
         .from('customers')
         .select(`
           *,
-          batteries:battery_id (
+          batteries!customers_battery_id_fkey (
             battery_id,
             model,
             capacity
@@ -59,7 +59,7 @@ export const useCustomers = () => {
         ...item,
         status: item.status as 'Active' | 'Pending' | 'Inactive',
         batteries: item.batteries || null
-      })) as Customer[];
+      }));
       
       setCustomers(transformedData);
     } catch (error: any) {
@@ -134,7 +134,7 @@ export const useCustomers = () => {
         .from('customers')
         .select(`
           *,
-          batteries:battery_id (
+          batteries!customers_battery_id_fkey (
             battery_id,
             model,
             capacity,
@@ -151,7 +151,7 @@ export const useCustomers = () => {
         ...data,
         status: data.status as 'Active' | 'Pending' | 'Inactive',
         batteries: data.batteries || null
-      } as Customer;
+      };
       
       return { success: true, data: transformedData };
     } catch (error: any) {

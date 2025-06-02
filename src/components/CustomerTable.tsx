@@ -1,22 +1,22 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Edit, CreditCard } from 'lucide-react';
+import { Edit, CreditCard, Eye } from 'lucide-react';
+import AddCustomerModal from './AddCustomerModal';
+import CustomerDetailsModal from './CustomerDetailsModal';
+import { useCustomers } from '@/hooks/useCustomers';
 
 interface CustomerTableProps {
   isAdmin: boolean;
 }
 
 const CustomerTable = ({ isAdmin }: CustomerTableProps) => {
-  const customers = [
-    { id: "C001", name: "John Smith", email: "john@email.com", phone: "+1-555-0123", partner: "TechCorp", batteryId: "BAT-002", status: "Active", lastPayment: "2024-05-28" },
-    { id: "C002", name: "Sarah Johnson", email: "sarah@email.com", phone: "+1-555-0124", partner: "GreenEnergy", batteryId: "BAT-005", status: "Active", lastPayment: "2024-05-25" },
-    { id: "C003", name: "Mike Davis", email: "mike@email.com", phone: "+1-555-0125", partner: "TechCorp", batteryId: "BAT-007", status: "Pending", lastPayment: "2024-05-20" },
-    { id: "C004", name: "Emily Chen", email: "emily@email.com", phone: "+1-555-0126", partner: "PowerSolutions", batteryId: "BAT-012", status: "Active", lastPayment: "2024-05-30" },
-  ];
+  const { customers, loading } = useCustomers();
+  const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -31,7 +31,28 @@ const CustomerTable = ({ isAdmin }: CustomerTableProps) => {
     }
   };
 
-  const filteredCustomers = isAdmin ? customers : customers.filter(customer => customer.partner === "TechCorp");
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return 'N/A';
+    return new Date(dateString).toLocaleDateString();
+  };
+
+  const handleViewDetails = (customerId: string) => {
+    setSelectedCustomerId(customerId);
+    setIsDetailsModalOpen(true);
+  };
+
+  const handleCloseDetails = () => {
+    setSelectedCustomerId(null);
+    setIsDetailsModalOpen(false);
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -42,23 +63,20 @@ const CustomerTable = ({ isAdmin }: CustomerTableProps) => {
             {isAdmin ? 'View all customers across partners' : 'Manage your customer relationships'}
           </p>
         </div>
-        <Button className="bg-blue-600 hover:bg-blue-700">
-          <Plus className="w-4 h-4 mr-2" />
-          Add Customer
-        </Button>
+        <AddCustomerModal />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <Card>
           <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-blue-600">{filteredCustomers.length}</div>
+            <div className="text-2xl font-bold text-blue-600">{customers.length}</div>
             <div className="text-sm text-gray-600">Total Customers</div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
             <div className="text-2xl font-bold text-green-600">
-              {filteredCustomers.filter(c => c.status === 'Active').length}
+              {customers.filter(c => c.status === 'Active').length}
             </div>
             <div className="text-sm text-gray-600">Active</div>
           </CardContent>
@@ -66,7 +84,7 @@ const CustomerTable = ({ isAdmin }: CustomerTableProps) => {
         <Card>
           <CardContent className="p-4 text-center">
             <div className="text-2xl font-bold text-yellow-600">
-              {filteredCustomers.filter(c => c.status === 'Pending').length}
+              {customers.filter(c => c.status === 'Pending').length}
             </div>
             <div className="text-sm text-gray-600">Pending</div>
           </CardContent>
@@ -78,55 +96,79 @@ const CustomerTable = ({ isAdmin }: CustomerTableProps) => {
           <CardTitle>Customer Directory</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Customer ID</TableHead>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Phone</TableHead>
-                  {isAdmin && <TableHead>Partner</TableHead>}
-                  <TableHead>Battery ID</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Last Payment</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredCustomers.map((customer) => (
-                  <TableRow key={customer.id} className="hover:bg-gray-50">
-                    <TableCell className="font-medium">{customer.id}</TableCell>
-                    <TableCell>{customer.name}</TableCell>
-                    <TableCell>{customer.email}</TableCell>
-                    <TableCell>{customer.phone}</TableCell>
-                    {isAdmin && <TableCell>{customer.partner}</TableCell>}
-                    <TableCell>{customer.batteryId}</TableCell>
-                    <TableCell>
-                      <Badge className={getStatusColor(customer.status)}>
-                        {customer.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{customer.lastPayment}</TableCell>
-                    <TableCell>
-                      <div className="flex space-x-2">
-                        <Button variant="outline" size="sm">
-                          <Edit className="w-3 h-3 mr-1" />
-                          Edit
-                        </Button>
-                        <Button variant="outline" size="sm">
-                          <CreditCard className="w-3 h-3 mr-1" />
-                          Payment
-                        </Button>
-                      </div>
-                    </TableCell>
+          {customers.length > 0 ? (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Customer ID</TableHead>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Phone</TableHead>
+                    <TableHead>Battery</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Join Date</TableHead>
+                    <TableHead>Actions</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+                </TableHeader>
+                <TableBody>
+                  {customers.map((customer) => (
+                    <TableRow key={customer.id} className="hover:bg-gray-50">
+                      <TableCell className="font-medium">{customer.customer_id}</TableCell>
+                      <TableCell>
+                        <button
+                          onClick={() => handleViewDetails(customer.id)}
+                          className="text-blue-600 hover:text-blue-800 font-medium"
+                        >
+                          {customer.name}
+                        </button>
+                      </TableCell>
+                      <TableCell>{customer.email}</TableCell>
+                      <TableCell>{customer.phone || 'N/A'}</TableCell>
+                      <TableCell>
+                        {customer.batteries?.battery_id || 'Unassigned'}
+                      </TableCell>
+                      <TableCell>
+                        <Badge className={getStatusColor(customer.status)}>
+                          {customer.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>{formatDate(customer.join_date)}</TableCell>
+                      <TableCell>
+                        <div className="flex space-x-2">
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleViewDetails(customer.id)}
+                          >
+                            <Eye className="w-3 h-3 mr-1" />
+                            View
+                          </Button>
+                          <Button variant="outline" size="sm">
+                            <Edit className="w-3 h-3 mr-1" />
+                            Edit
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-gray-600 mb-4">No customers found. Add your first customer to get started.</p>
+              <AddCustomerModal />
+            </div>
+          )}
         </CardContent>
       </Card>
+
+      <CustomerDetailsModal
+        customerId={selectedCustomerId}
+        isOpen={isDetailsModalOpen}
+        onClose={handleCloseDetails}
+      />
     </div>
   );
 };

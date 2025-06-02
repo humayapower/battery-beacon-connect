@@ -5,19 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Plus, CreditCard } from 'lucide-react';
+import { useTransactions } from '@/hooks/useTransactions';
 
 interface TransactionTableProps {
   isAdmin: boolean;
 }
 
 const TransactionTable = ({ isAdmin }: TransactionTableProps) => {
-  const transactions = [
-    { id: "TXN-001", date: "2024-05-30", customer: "John Smith", partner: "TechCorp", amount: "$450.00", type: "Monthly Lease", status: "Completed", batteryId: "BAT-002" },
-    { id: "TXN-002", date: "2024-05-28", customer: "Sarah Johnson", partner: "GreenEnergy", amount: "$520.00", type: "Monthly Lease", status: "Completed", batteryId: "BAT-005" },
-    { id: "TXN-003", date: "2024-05-25", customer: "Mike Davis", partner: "TechCorp", amount: "$450.00", type: "Monthly Lease", status: "Pending", batteryId: "BAT-007" },
-    { id: "TXN-004", date: "2024-05-23", customer: "Emily Chen", partner: "PowerSolutions", amount: "$680.00", type: "Monthly Lease", status: "Completed", batteryId: "BAT-012" },
-    { id: "TXN-005", date: "2024-05-20", customer: "John Smith", partner: "TechCorp", amount: "$150.00", type: "Maintenance Fee", status: "Completed", batteryId: "BAT-002" },
-  ];
+  const { transactions, loading } = useTransactions();
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -32,15 +27,29 @@ const TransactionTable = ({ isAdmin }: TransactionTableProps) => {
     }
   };
 
-  const filteredTransactions = isAdmin ? transactions : transactions.filter(transaction => transaction.partner === "TechCorp");
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString();
+  };
 
-  const totalRevenue = filteredTransactions
+  const formatCurrency = (amount: number) => {
+    return `$${amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
+  };
+
+  const totalRevenue = transactions
     .filter(t => t.status === 'Completed')
-    .reduce((sum, t) => sum + parseFloat(t.amount.replace('$', '').replace(',', '')), 0);
+    .reduce((sum, t) => sum + t.amount, 0);
 
-  const pendingAmount = filteredTransactions
+  const pendingAmount = transactions
     .filter(t => t.status === 'Pending')
-    .reduce((sum, t) => sum + parseFloat(t.amount.replace('$', '').replace(',', '')), 0);
+    .reduce((sum, t) => sum + t.amount, 0);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -60,26 +69,26 @@ const TransactionTable = ({ isAdmin }: TransactionTableProps) => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
         <Card>
           <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-green-600">${totalRevenue.toLocaleString()}</div>
+            <div className="text-2xl font-bold text-green-600">{formatCurrency(totalRevenue)}</div>
             <div className="text-sm text-gray-600">Total Revenue</div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-yellow-600">${pendingAmount.toLocaleString()}</div>
+            <div className="text-2xl font-bold text-yellow-600">{formatCurrency(pendingAmount)}</div>
             <div className="text-sm text-gray-600">Pending Payments</div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-blue-600">{filteredTransactions.length}</div>
+            <div className="text-2xl font-bold text-blue-600">{transactions.length}</div>
             <div className="text-sm text-gray-600">Total Transactions</div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
             <div className="text-2xl font-bold text-purple-600">
-              {filteredTransactions.filter(t => t.status === 'Completed').length}
+              {transactions.filter(t => t.status === 'Completed').length}
             </div>
             <div className="text-sm text-gray-600">Completed</div>
           </CardContent>
@@ -91,47 +100,55 @@ const TransactionTable = ({ isAdmin }: TransactionTableProps) => {
           <CardTitle>Transaction History</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Transaction ID</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Customer</TableHead>
-                  {isAdmin && <TableHead>Partner</TableHead>}
-                  <TableHead>Battery ID</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Amount</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredTransactions.map((transaction) => (
-                  <TableRow key={transaction.id} className="hover:bg-gray-50">
-                    <TableCell className="font-medium">{transaction.id}</TableCell>
-                    <TableCell>{transaction.date}</TableCell>
-                    <TableCell>{transaction.customer}</TableCell>
-                    {isAdmin && <TableCell>{transaction.partner}</TableCell>}
-                    <TableCell>{transaction.batteryId}</TableCell>
-                    <TableCell>{transaction.type}</TableCell>
-                    <TableCell className="font-semibold">{transaction.amount}</TableCell>
-                    <TableCell>
-                      <Badge className={getStatusColor(transaction.status)}>
-                        {transaction.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Button variant="outline" size="sm">
-                        <CreditCard className="w-3 h-3 mr-1" />
-                        View
-                      </Button>
-                    </TableCell>
+          {transactions.length > 0 ? (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Transaction ID</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Customer</TableHead>
+                    <TableHead>Battery</TableHead>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Amount</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Actions</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+                </TableHeader>
+                <TableBody>
+                  {transactions.map((transaction) => (
+                    <TableRow key={transaction.id} className="hover:bg-gray-50">
+                      <TableCell className="font-medium">{transaction.transaction_id}</TableCell>
+                      <TableCell>{formatDate(transaction.transaction_date)}</TableCell>
+                      <TableCell>{transaction.customers?.name || 'N/A'}</TableCell>
+                      <TableCell>{transaction.batteries?.battery_id || 'N/A'}</TableCell>
+                      <TableCell>{transaction.type}</TableCell>
+                      <TableCell className="font-semibold">{formatCurrency(transaction.amount)}</TableCell>
+                      <TableCell>
+                        <Badge className={getStatusColor(transaction.status)}>
+                          {transaction.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Button variant="outline" size="sm">
+                          <CreditCard className="w-3 h-3 mr-1" />
+                          View
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-gray-600 mb-4">No transactions found. Record your first transaction to get started.</p>
+              <Button className="bg-blue-600 hover:bg-blue-700">
+                <Plus className="w-4 h-4 mr-2" />
+                Record Payment
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

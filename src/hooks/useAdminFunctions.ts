@@ -11,15 +11,22 @@ export const useAdminFunctions = () => {
     }
 
     try {
-      // Sign up the user
-      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+      // Use regular signup instead of admin.createUser
+      const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
-        user_metadata: { full_name: fullName },
-        email_confirm: true
+        options: {
+          data: {
+            full_name: fullName,
+          },
+        },
       });
 
       if (authError) throw authError;
+
+      if (!authData.user) {
+        throw new Error('Failed to create user');
+      }
 
       // Assign partner role
       const { error: roleError } = await supabase

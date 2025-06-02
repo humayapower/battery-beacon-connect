@@ -30,7 +30,7 @@ const CreatePartnerModal = () => {
       await createPartner(email, password, fullName);
       toast({
         title: "Partner created successfully",
-        description: `${fullName} has been added as a partner.`,
+        description: `${fullName} has been added as a partner. They will need to check their email to confirm their account.`,
       });
       setOpen(false);
       setEmail('');
@@ -55,7 +55,7 @@ const CreatePartnerModal = () => {
         <DialogHeader>
           <DialogTitle>Create New Partner</DialogTitle>
           <DialogDescription>
-            Add a new partner to the platform. They will receive login credentials to access their dashboard.
+            Add a new partner to the platform. They will receive an email confirmation to activate their account.
           </DialogDescription>
         </DialogHeader>
         

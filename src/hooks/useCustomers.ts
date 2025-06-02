@@ -53,7 +53,7 @@ export const useCustomers = () => {
       const { data, error } = await query.order('created_at', { ascending: false });
       
       if (error) throw error;
-      setCustomers(data || []);
+      setCustomers((data || []) as Customer[]);
     } catch (error: any) {
       toast({
         title: "Error fetching customers",
@@ -137,7 +137,7 @@ export const useCustomers = () => {
         .single();
 
       if (error) throw error;
-      return { success: true, data };
+      return { success: true, data: data as Customer };
     } catch (error: any) {
       toast({
         title: "Error fetching customer details",

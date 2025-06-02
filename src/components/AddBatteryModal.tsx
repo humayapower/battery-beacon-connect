@@ -7,16 +7,29 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Plus } from 'lucide-react';
-import { useBatteries } from '@/hooks/useBatteries';
+import { useBatteries, Battery } from '@/hooks/useBatteries';
 import { useAuth } from '@/contexts/AuthContext';
+
+type BatteryStatus = 'Available' | 'Assigned' | 'Maintenance';
+
+interface BatteryFormData {
+  battery_id: string;
+  model: string;
+  capacity: string;
+  status: BatteryStatus;
+  location: string;
+  purchase_date: string;
+  warranty_expiry: string;
+  last_maintenance: string;
+}
 
 const AddBatteryModal = () => {
   const [open, setOpen] = useState(false);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<BatteryFormData>({
     battery_id: '',
     model: '',
     capacity: '',
-    status: 'Available' as const,
+    status: 'Available',
     location: '',
     purchase_date: '',
     warranty_expiry: '',
@@ -33,7 +46,7 @@ const AddBatteryModal = () => {
     setLoading(true);
 
     try {
-      const batteryData = {
+      const batteryData: Omit<Battery, 'id' | 'created_at' | 'updated_at'> = {
         ...formData,
         partner_id: userRole === 'admin' ? null : user?.id || null,
         purchase_date: formData.purchase_date || null,
@@ -124,7 +137,7 @@ const AddBatteryModal = () => {
               <Label htmlFor="status">Status *</Label>
               <Select
                 value={formData.status}
-                onValueChange={(value: 'Available' | 'Assigned' | 'Maintenance') => 
+                onValueChange={(value: BatteryStatus) => 
                   setFormData(prev => ({ ...prev, status: value }))
                 }
               >

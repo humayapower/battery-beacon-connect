@@ -37,7 +37,7 @@ export const useBatteries = () => {
       const { data, error } = await query.order('created_at', { ascending: false });
       
       if (error) throw error;
-      setBatteries(data || []);
+      setBatteries((data || []) as Battery[]);
     } catch (error: any) {
       toast({
         title: "Error fetching batteries",
@@ -59,7 +59,7 @@ export const useBatteries = () => {
 
       if (error) throw error;
       
-      setBatteries(prev => [data, ...prev]);
+      setBatteries(prev => [data as Battery, ...prev]);
       toast({
         title: "Battery added successfully",
         description: `Battery ${batteryData.battery_id} has been added.`,
@@ -88,7 +88,7 @@ export const useBatteries = () => {
       if (error) throw error;
       
       setBatteries(prev => prev.map(battery => 
-        battery.id === id ? { ...battery, ...data } : battery
+        battery.id === id ? { ...battery, ...data } as Battery : battery
       ));
       
       toast({

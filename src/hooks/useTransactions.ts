@@ -56,7 +56,7 @@ export const useTransactions = () => {
       const { data, error } = await query.order('transaction_date', { ascending: false });
       
       if (error) throw error;
-      setTransactions(data || []);
+      setTransactions((data || []) as Transaction[]);
     } catch (error: any) {
       toast({
         title: "Error fetching transactions",

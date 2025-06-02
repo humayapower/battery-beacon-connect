@@ -8,20 +8,33 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Plus } from 'lucide-react';
-import { useCustomers } from '@/hooks/useCustomers';
+import { useCustomers, Customer } from '@/hooks/useCustomers';
 import { useBatteries } from '@/hooks/useBatteries';
 import { useAuth } from '@/contexts/AuthContext';
 
+type CustomerStatus = 'Active' | 'Pending' | 'Inactive';
+
+interface CustomerFormData {
+  customer_id: string;
+  name: string;
+  email: string;
+  phone: string;
+  address: string;
+  battery_id: string;
+  status: CustomerStatus;
+  monthly_fee: string;
+}
+
 const AddCustomerModal = () => {
   const [open, setOpen] = useState(false);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<CustomerFormData>({
     customer_id: '',
     name: '',
     email: '',
     phone: '',
     address: '',
     battery_id: '',
-    status: 'Pending' as const,
+    status: 'Pending',
     monthly_fee: '',
   });
   const [error, setError] = useState('');
@@ -52,13 +65,15 @@ const AddCustomerModal = () => {
     setLoading(true);
 
     try {
-      const customerData = {
+      const customerData: Omit<Customer, 'id' | 'created_at' | 'updated_at' | 'batteries'> = {
         ...formData,
         partner_id: userRole === 'admin' ? null : user?.id || null,
         battery_id: formData.battery_id || null,
         phone: formData.phone || null,
         address: formData.address || null,
         monthly_fee: formData.monthly_fee ? parseFloat(formData.monthly_fee) : null,
+        join_date: new Date().toISOString().split('T')[0],
+        last_payment_date: null,
       };
 
       const result = await addCustomer(customerData);
@@ -186,7 +201,7 @@ const AddCustomerModal = () => {
               <Label htmlFor="status">Status *</Label>
               <Select
                 value={formData.status}
-                onValueChange={(value: 'Active' | 'Pending' | 'Inactive') => 
+                onValueChange={(value: CustomerStatus) => 
                   setFormData(prev => ({ ...prev, status: value }))
                 }
               >

@@ -23,7 +23,7 @@ export interface Customer {
     battery_id: string;
     model: string;
     capacity: string;
-  };
+  } | null;
 }
 
 export const useCustomers = () => {
@@ -53,7 +53,15 @@ export const useCustomers = () => {
       const { data, error } = await query.order('created_at', { ascending: false });
       
       if (error) throw error;
-      setCustomers((data || []) as Customer[]);
+      
+      // Transform the data to match our Customer interface
+      const transformedData = (data || []).map(item => ({
+        ...item,
+        status: item.status as 'Active' | 'Pending' | 'Inactive',
+        batteries: item.batteries || null
+      })) as Customer[];
+      
+      setCustomers(transformedData);
     } catch (error: any) {
       toast({
         title: "Error fetching customers",
@@ -137,7 +145,15 @@ export const useCustomers = () => {
         .single();
 
       if (error) throw error;
-      return { success: true, data: data as Customer };
+      
+      // Transform the data to match our Customer interface
+      const transformedData = {
+        ...data,
+        status: data.status as 'Active' | 'Pending' | 'Inactive',
+        batteries: data.batteries || null
+      } as Customer;
+      
+      return { success: true, data: transformedData };
     } catch (error: any) {
       toast({
         title: "Error fetching customer details",

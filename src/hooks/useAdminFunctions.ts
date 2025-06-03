@@ -5,7 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 export const useAdminFunctions = () => {
   const { userRole } = useAuth();
 
-  const createPartner = async (email: string, password: string, fullName: string) => {
+  const createPartner = async (email: string, password: string, fullName: string, phone?: string, username?: string) => {
     if (userRole !== 'admin') {
       throw new Error('Only admins can create partners');
     }
@@ -18,7 +18,10 @@ export const useAdminFunctions = () => {
         options: {
           data: {
             full_name: fullName,
+            phone: phone || null,
+            username: username || null,
           },
+          emailRedirectTo: undefined, // No email verification for partners
         },
       });
 

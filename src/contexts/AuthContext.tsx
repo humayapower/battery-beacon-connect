@@ -8,8 +8,9 @@ interface AuthContextType {
   session: Session | null;
   userRole: string | null;
   loading: boolean;
-  signUp: (email: string, password: string, fullName: string) => Promise<{ error: any }>;
-  signIn: (email: string, password: string) => Promise<{ error: any }>;
+  signUp: (email: string, password: string, fullName: string, phone?: string, username?: string) => Promise<{ error: any }>;
+  signIn: (identifier: string, password: string) => Promise<{ error: any }>;
+  signInPartner: (identifier: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
 }
 
@@ -87,7 +88,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => subscription.unsubscribe();
   }, []);
 
-  const signUp = async (email: string, password: string, fullName: string) => {
+  const signUp = async (email: string, password: string, fullName: string, phone?: string, username?: string) => {
     const redirectUrl = `${window.location.origin}/`;
     
     const { error } = await supabase.auth.signUp({
@@ -97,6 +98,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         emailRedirectTo: redirectUrl,
         data: {
           full_name: fullName,
+          phone: phone || null,
+          username: username || null,
         },
       },
     });
@@ -107,6 +110,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signIn = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({
       email,
+      password,
+    });
+    
+    return { error };
+  };
+
+  const signInPartner = async (identifier: string, password: string) => {
+    // For partners, try to find their email by phone or username
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('email')
+      .or(`phone.eq.${identifier},username.eq.${identifier}`)
+      .single();
+
+    if (profileError || !profile?.email) {
+      return { error: { message: 'Invalid phone number or username' } };
+    }
+
+    const { error } = await supabase.auth.signInWithPassword({
+      email: profile.email,
       password,
     });
     
@@ -126,6 +149,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     loading,
     signUp,
     signIn,
+    signInPartner,
     signOut,
   };
 

@@ -16,6 +16,8 @@ interface CreatePartnerModalProps {
 const CreatePartnerModal = ({ onPartnerCreated }: CreatePartnerModalProps) => {
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [error, setError] = useState('');
@@ -36,8 +38,8 @@ const CreatePartnerModal = ({ onPartnerCreated }: CreatePartnerModalProps) => {
       return;
     }
 
-    if (!email.trim()) {
-      setError('Email is required');
+    if (!phone.trim() && !username.trim()) {
+      setError('Either phone number or username is required');
       setLoading(false);
       return;
     }
@@ -48,14 +50,19 @@ const CreatePartnerModal = ({ onPartnerCreated }: CreatePartnerModalProps) => {
       return;
     }
 
+    // Create a temporary email if none provided
+    const partnerEmail = email.trim() || `${username || phone}@temp.partner.local`;
+
     try {
-      await createPartner(email, password, fullName);
+      await createPartner(partnerEmail, password, fullName, phone, username);
       toast({
         title: "Partner created successfully",
-        description: `${fullName} has been added as a partner. They will need to check their email to confirm their account.`,
+        description: `${fullName} has been added as a partner. They can now log in using their ${phone ? 'phone number' : 'username'}.`,
       });
       setOpen(false);
       setEmail('');
+      setPhone('');
+      setUsername('');
       setPassword('');
       setFullName('');
       onPartnerCreated?.();
@@ -81,7 +88,7 @@ const CreatePartnerModal = ({ onPartnerCreated }: CreatePartnerModalProps) => {
             <span>Create New Partner</span>
           </DialogTitle>
           <DialogDescription>
-            Add a new partner to the platform. They will receive an email confirmation to activate their account.
+            Add a new partner to the platform. They will be able to log in using their phone number or username.
           </DialogDescription>
         </DialogHeader>
         
@@ -98,22 +105,47 @@ const CreatePartnerModal = ({ onPartnerCreated }: CreatePartnerModalProps) => {
               disabled={loading}
             />
           </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="partnerPhone">Phone Number</Label>
+              <Input
+                id="partnerPhone"
+                type="tel"
+                placeholder="Enter phone number"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                disabled={loading}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="partnerUsername">Username</Label>
+              <Input
+                id="partnerUsername"
+                type="text"
+                placeholder="Enter username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                disabled={loading}
+              />
+            </div>
+          </div>
           
           <div className="space-y-2">
-            <Label htmlFor="partnerEmail">Email Address *</Label>
+            <Label htmlFor="partnerEmail">Email Address (Optional)</Label>
             <Input
               id="partnerEmail"
               type="email"
-              placeholder="Enter partner's email"
+              placeholder="Enter partner's email (optional)"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              required
               disabled={loading}
             />
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="partnerPassword">Temporary Password *</Label>
+            <Label htmlFor="partnerPassword">Password *</Label>
             <Input
               id="partnerPassword"
               type="password"
@@ -126,6 +158,13 @@ const CreatePartnerModal = ({ onPartnerCreated }: CreatePartnerModalProps) => {
             />
             <p className="text-xs text-gray-500">
               The partner can change this password after logging in.
+            </p>
+          </div>
+
+          <div className="bg-blue-50 p-3 rounded-md">
+            <p className="text-sm text-blue-800">
+              <strong>Note:</strong> Either phone number or username is required for partner login. 
+              Email verification is not required for partners.
             </p>
           </div>
 

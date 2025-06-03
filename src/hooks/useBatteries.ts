@@ -6,9 +6,15 @@ import { useToast } from '@/hooks/use-toast';
 
 export interface Battery {
   id: string;
-  battery_id: string;
+  serial_number: string;
   model: string;
+  model_name: 'Maxcharge' | 'Fluxon' | 'Extragrid' | null;
+  model_number: string | null;
+  manufacturing_date: string | null;
+  voltage: number | null;
   capacity: string;
+  imei_number: string | null;
+  sim_number: string | null;
   status: 'Available' | 'Assigned' | 'Maintenance';
   partner_id: string | null;
   last_maintenance: string | null;
@@ -62,7 +68,7 @@ export const useBatteries = () => {
       setBatteries(prev => [data as Battery, ...prev]);
       toast({
         title: "Battery added successfully",
-        description: `Battery ${batteryData.battery_id} has been added.`,
+        description: `Battery ${batteryData.serial_number} has been added.`,
       });
       
       return { success: true, data };

@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Edit } from 'lucide-react';
+import { Edit, Eye } from 'lucide-react';
 import AddBatteryModal from './AddBatteryModal';
 import { useBatteries } from '@/hooks/useBatteries';
 
@@ -88,30 +88,44 @@ const BatteryTable = ({ isAdmin }: BatteryTableProps) => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Battery ID</TableHead>
+                    <TableHead>Serial Number</TableHead>
                     <TableHead>Model</TableHead>
+                    <TableHead>Model Name</TableHead>
                     <TableHead>Capacity</TableHead>
+                    <TableHead>Voltage</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Location</TableHead>
-                    <TableHead>Last Maintenance</TableHead>
+                    <TableHead>Mfg. Date</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {batteries.map((battery) => (
                     <TableRow key={battery.id} className="hover:bg-gray-50">
-                      <TableCell className="font-medium">{battery.battery_id}</TableCell>
+                      <TableCell className="font-medium">{battery.serial_number}</TableCell>
                       <TableCell>{battery.model}</TableCell>
+                      <TableCell>
+                        {battery.model_name && (
+                          <Badge variant="outline" className="text-xs">
+                            {battery.model_name}
+                          </Badge>
+                        )}
+                      </TableCell>
                       <TableCell>{battery.capacity}</TableCell>
+                      <TableCell>{battery.voltage ? `${battery.voltage}V` : 'N/A'}</TableCell>
                       <TableCell>
                         <Badge className={getStatusColor(battery.status)}>
                           {battery.status}
                         </Badge>
                       </TableCell>
                       <TableCell>{battery.location || 'N/A'}</TableCell>
-                      <TableCell>{formatDate(battery.last_maintenance)}</TableCell>
+                      <TableCell>{formatDate(battery.manufacturing_date)}</TableCell>
                       <TableCell>
                         <div className="flex space-x-2">
+                          <Button variant="outline" size="sm">
+                            <Eye className="w-3 h-3 mr-1" />
+                            View
+                          </Button>
                           <Button variant="outline" size="sm">
                             <Edit className="w-3 h-3 mr-1" />
                             Edit

@@ -11,45 +11,63 @@ export type Database = {
     Tables: {
       batteries: {
         Row: {
-          battery_id: string
           capacity: string
           created_at: string | null
           id: string
+          imei_number: string | null
           last_maintenance: string | null
           location: string | null
+          manufacturing_date: string | null
           model: string
+          model_name: string | null
+          model_number: string | null
           partner_id: string | null
           purchase_date: string | null
+          serial_number: string
+          sim_number: string | null
           status: string
           updated_at: string | null
+          voltage: number | null
           warranty_expiry: string | null
         }
         Insert: {
-          battery_id: string
           capacity: string
           created_at?: string | null
           id?: string
+          imei_number?: string | null
           last_maintenance?: string | null
           location?: string | null
+          manufacturing_date?: string | null
           model: string
+          model_name?: string | null
+          model_number?: string | null
           partner_id?: string | null
           purchase_date?: string | null
+          serial_number: string
+          sim_number?: string | null
           status: string
           updated_at?: string | null
+          voltage?: number | null
           warranty_expiry?: string | null
         }
         Update: {
-          battery_id?: string
           capacity?: string
           created_at?: string | null
           id?: string
+          imei_number?: string | null
           last_maintenance?: string | null
           location?: string | null
+          manufacturing_date?: string | null
           model?: string
+          model_name?: string | null
+          model_number?: string | null
           partner_id?: string | null
           purchase_date?: string | null
+          serial_number?: string
+          sim_number?: string | null
           status?: string
           updated_at?: string | null
+          voltage?: number | null
           warranty_expiry?: string | null
         }
         Relationships: []
@@ -123,24 +141,30 @@ export type Database = {
       profiles: {
         Row: {
           created_at: string
-          email: string
+          email: string | null
           full_name: string | null
           id: string
+          phone: string | null
           updated_at: string
+          username: string | null
         }
         Insert: {
           created_at?: string
-          email: string
+          email?: string | null
           full_name?: string | null
           id: string
+          phone?: string | null
           updated_at?: string
+          username?: string | null
         }
         Update: {
           created_at?: string
-          email?: string
+          email?: string | null
           full_name?: string | null
           id?: string
+          phone?: string | null
           updated_at?: string
+          username?: string | null
         }
         Relationships: []
       }

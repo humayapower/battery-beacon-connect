@@ -48,6 +48,11 @@ export interface Customer {
   join_date?: string;
   last_payment_date?: string;
   status: 'active' | 'inactive' | 'suspended';
+  customer_photo_url?: string;
+  id_type?: 'aadhaar' | 'pan';
+  aadhaar_front_url?: string;
+  aadhaar_back_url?: string;
+  pan_card_url?: string;
   created_at: string;
   updated_at: string;
 }

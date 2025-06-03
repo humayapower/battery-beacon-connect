@@ -92,15 +92,21 @@ export type Database = {
       }
       customers: {
         Row: {
+          aadhaar_back_url: string | null
+          aadhaar_front_url: string | null
           address: string | null
           battery_id: string | null
           created_at: string
           customer_id: string | null
+          customer_photo_url: string | null
           email: string | null
           id: string
+          id_type: string | null
           join_date: string | null
+          last_payment_date: string | null
           monthly_amount: number | null
           name: string
+          pan_card_url: string | null
           partner_id: string | null
           payment_type: string
           phone: string
@@ -108,15 +114,21 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          aadhaar_back_url?: string | null
+          aadhaar_front_url?: string | null
           address?: string | null
           battery_id?: string | null
           created_at?: string
           customer_id?: string | null
+          customer_photo_url?: string | null
           email?: string | null
           id?: string
+          id_type?: string | null
           join_date?: string | null
+          last_payment_date?: string | null
           monthly_amount?: number | null
           name: string
+          pan_card_url?: string | null
           partner_id?: string | null
           payment_type: string
           phone: string
@@ -124,15 +136,21 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          aadhaar_back_url?: string | null
+          aadhaar_front_url?: string | null
           address?: string | null
           battery_id?: string | null
           created_at?: string
           customer_id?: string | null
+          customer_photo_url?: string | null
           email?: string | null
           id?: string
+          id_type?: string | null
           join_date?: string | null
+          last_payment_date?: string | null
           monthly_amount?: number | null
           name?: string
+          pan_card_url?: string | null
           partner_id?: string | null
           payment_type?: string
           phone?: string

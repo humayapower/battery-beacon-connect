@@ -41,7 +41,7 @@ export const useCustomers = () => {
       
       if (error) throw error;
       
-      setCustomers(data || []);
+      setCustomers((data || []) as CustomerWithBattery[]);
     } catch (error: any) {
       toast({
         title: "Error fetching customers",
@@ -53,7 +53,7 @@ export const useCustomers = () => {
     }
   };
 
-  const addCustomer = async (customerData: Omit<Customer, 'id' | 'created_at' | 'updated_at'>) => {
+  const addCustomer = async (customerData: Omit<CustomerWithBattery, 'id' | 'created_at' | 'updated_at' | 'batteries'>) => {
     try {
       const { data, error } = await supabase
         .from('customers')
@@ -126,7 +126,7 @@ export const useCustomers = () => {
 
       if (error) throw error;
       
-      return { success: true, data };
+      return { success: true, data: data as CustomerWithBattery };
     } catch (error: any) {
       toast({
         title: "Error fetching customer details",
@@ -153,4 +153,4 @@ export const useCustomers = () => {
   };
 };
 
-export type { CustomerWithBattery as Customer };
+export type { CustomerWithBattery };

@@ -46,7 +46,16 @@ export const useTransactions = () => {
       const { data, error } = await query.order('transaction_date', { ascending: false });
       
       if (error) throw error;
-      setTransactions((data || []) as TransactionWithRelations[]);
+      
+      // Map the data to include the expected properties
+      const mappedData = (data || []).map(transaction => ({
+        ...transaction,
+        transaction_id: transaction.id,
+        type: transaction.transaction_type,
+        status: transaction.payment_status
+      })) as TransactionWithRelations[];
+      
+      setTransactions(mappedData);
     } catch (error: any) {
       toast({
         title: "Error fetching transactions",
@@ -99,4 +108,4 @@ export const useTransactions = () => {
   };
 };
 
-export type { TransactionWithRelations as Transaction };
+export type { TransactionWithRelations };

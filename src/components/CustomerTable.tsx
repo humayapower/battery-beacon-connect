@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -20,11 +19,11 @@ const CustomerTable = ({ isAdmin }: CustomerTableProps) => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'Active':
+      case 'active':
         return 'bg-green-100 text-green-800';
-      case 'Pending':
+      case 'suspended':
         return 'bg-yellow-100 text-yellow-800';
-      case 'Inactive':
+      case 'inactive':
         return 'bg-red-100 text-red-800';
       default:
         return 'bg-gray-100 text-gray-800';
@@ -76,7 +75,7 @@ const CustomerTable = ({ isAdmin }: CustomerTableProps) => {
         <Card>
           <CardContent className="p-4 text-center">
             <div className="text-2xl font-bold text-green-600">
-              {customers.filter(c => c.status === 'Active').length}
+              {customers.filter(c => c.status === 'active').length}
             </div>
             <div className="text-sm text-gray-600">Active</div>
           </CardContent>
@@ -84,9 +83,9 @@ const CustomerTable = ({ isAdmin }: CustomerTableProps) => {
         <Card>
           <CardContent className="p-4 text-center">
             <div className="text-2xl font-bold text-yellow-600">
-              {customers.filter(c => c.status === 'Pending').length}
+              {customers.filter(c => c.status === 'suspended').length}
             </div>
-            <div className="text-sm text-gray-600">Pending</div>
+            <div className="text-sm text-gray-600">Suspended</div>
           </CardContent>
         </Card>
       </div>
@@ -101,7 +100,6 @@ const CustomerTable = ({ isAdmin }: CustomerTableProps) => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Customer ID</TableHead>
                     <TableHead>Name</TableHead>
                     <TableHead>Email</TableHead>
                     <TableHead>Phone</TableHead>
@@ -114,7 +112,6 @@ const CustomerTable = ({ isAdmin }: CustomerTableProps) => {
                 <TableBody>
                   {customers.map((customer) => (
                     <TableRow key={customer.id} className="hover:bg-gray-50">
-                      <TableCell className="font-medium">{customer.customer_id}</TableCell>
                       <TableCell>
                         <button
                           onClick={() => handleViewDetails(customer.id)}

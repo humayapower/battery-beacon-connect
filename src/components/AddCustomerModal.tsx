@@ -44,7 +44,7 @@ const AddCustomerModal = () => {
   const { user, userRole } = useAuth();
 
   const availableBatteries = batteries.filter(battery => 
-    battery.status === 'Available' && 
+    battery.status === 'available' && 
     (userRole === 'admin' || battery.partner_id === user?.id)
   );
 
@@ -65,15 +65,18 @@ const AddCustomerModal = () => {
     setLoading(true);
 
     try {
-      const customerData: Omit<Customer, 'id' | 'created_at' | 'updated_at' | 'batteries'> = {
-        ...formData,
+      const customerData: Omit<Customer, 'id' | 'created_at' | 'updated_at'> = {
+        customer_id: formData.customer_id,
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone || '',
+        address: formData.address || null,
+        payment_type: 'monthly_rent',
         partner_id: userRole === 'admin' ? null : user?.id || null,
         battery_id: formData.battery_id === 'none' ? null : formData.battery_id || null,
-        phone: formData.phone || null,
-        address: formData.address || null,
-        monthly_fee: formData.monthly_fee ? parseFloat(formData.monthly_fee) : null,
+        monthly_amount: formData.monthly_fee ? parseFloat(formData.monthly_fee) : null,
         join_date: new Date().toISOString().split('T')[0],
-        last_payment_date: null,
+        status: formData.status.toLowerCase() as 'active' | 'inactive' | 'suspended',
       };
 
       const result = await addCustomer(customerData);

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -17,11 +16,11 @@ const BatteryTable = ({ isAdmin }: BatteryTableProps) => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'Available':
+      case 'available':
         return 'bg-green-100 text-green-800';
-      case 'Assigned':
+      case 'assigned':
         return 'bg-blue-100 text-blue-800';
-      case 'Maintenance':
+      case 'maintenance':
         return 'bg-orange-100 text-orange-800';
       default:
         return 'bg-gray-100 text-gray-800';
@@ -63,7 +62,7 @@ const BatteryTable = ({ isAdmin }: BatteryTableProps) => {
         <Card>
           <CardContent className="p-4 text-center">
             <div className="text-2xl font-bold text-green-600">
-              {batteries.filter(b => b.status === 'Available').length}
+              {batteries.filter(b => b.status === 'available').length}
             </div>
             <div className="text-sm text-gray-600">Available</div>
           </CardContent>
@@ -71,7 +70,7 @@ const BatteryTable = ({ isAdmin }: BatteryTableProps) => {
         <Card>
           <CardContent className="p-4 text-center">
             <div className="text-2xl font-bold text-orange-600">
-              {batteries.filter(b => b.status === 'Maintenance').length}
+              {batteries.filter(b => b.status === 'maintenance').length}
             </div>
             <div className="text-sm text-gray-600">In Maintenance</div>
           </CardContent>
@@ -90,7 +89,6 @@ const BatteryTable = ({ isAdmin }: BatteryTableProps) => {
                   <TableRow>
                     <TableHead>Serial Number</TableHead>
                     <TableHead>Model</TableHead>
-                    <TableHead>Model Name</TableHead>
                     <TableHead>Capacity</TableHead>
                     <TableHead>Voltage</TableHead>
                     <TableHead>Status</TableHead>
@@ -104,13 +102,6 @@ const BatteryTable = ({ isAdmin }: BatteryTableProps) => {
                     <TableRow key={battery.id} className="hover:bg-gray-50">
                       <TableCell className="font-medium">{battery.serial_number}</TableCell>
                       <TableCell>{battery.model}</TableCell>
-                      <TableCell>
-                        {battery.model_name && (
-                          <Badge variant="outline" className="text-xs">
-                            {battery.model_name}
-                          </Badge>
-                        )}
-                      </TableCell>
                       <TableCell>{battery.capacity}</TableCell>
                       <TableCell>{battery.voltage ? `${battery.voltage}V` : 'N/A'}</TableCell>
                       <TableCell>

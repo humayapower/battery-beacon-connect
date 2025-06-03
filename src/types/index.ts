@@ -15,6 +15,7 @@ export interface Battery {
   id: string;
   serial_number: string;
   model: string;
+  model_name?: string;
   capacity: string;
   voltage?: number;
   manufacturing_date?: string;
@@ -32,15 +33,18 @@ export interface Battery {
 
 export interface Customer {
   id: string;
+  customer_id?: string;
   name: string;
   phone: string;
   email?: string;
   address?: string;
   payment_type: 'emi' | 'monthly_rent' | 'one_time_purchase';
   monthly_amount?: number;
+  monthly_fee?: number;
   partner_id?: string;
   battery_id?: string;
   join_date?: string;
+  last_payment_date?: string;
   status: 'active' | 'inactive' | 'suspended';
   created_at: string;
   updated_at: string;
@@ -48,15 +52,19 @@ export interface Customer {
 
 export interface Transaction {
   id: string;
+  transaction_id?: string;
   customer_id: string;
   partner_id?: string;
   battery_id?: string;
   transaction_type: 'emi' | 'rent' | 'purchase' | 'maintenance' | 'deposit';
+  type?: string;
   amount: number;
   payment_status: 'paid' | 'partial' | 'due' | 'overdue';
+  status?: string;
   transaction_date: string;
   due_date?: string;
   remarks?: string;
+  description?: string;
   created_at: string;
   updated_at: string;
 }

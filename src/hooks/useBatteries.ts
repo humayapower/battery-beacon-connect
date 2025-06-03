@@ -158,3 +158,5 @@ export const useBatteries = () => {
     refetch: fetchBatteries,
   };
 };
+
+export { Battery };

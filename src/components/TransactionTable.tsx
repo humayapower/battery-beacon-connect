@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,11 +15,13 @@ const TransactionTable = ({ isAdmin }: TransactionTableProps) => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'Completed':
+      case 'paid':
         return 'bg-green-100 text-green-800';
-      case 'Pending':
+      case 'partial':
         return 'bg-yellow-100 text-yellow-800';
-      case 'Failed':
+      case 'due':
+        return 'bg-orange-100 text-orange-800';
+      case 'overdue':
         return 'bg-red-100 text-red-800';
       default:
         return 'bg-gray-100 text-gray-800';
@@ -36,11 +37,11 @@ const TransactionTable = ({ isAdmin }: TransactionTableProps) => {
   };
 
   const totalRevenue = transactions
-    .filter(t => t.status === 'Completed')
+    .filter(t => t.payment_status === 'paid')
     .reduce((sum, t) => sum + t.amount, 0);
 
   const pendingAmount = transactions
-    .filter(t => t.status === 'Pending')
+    .filter(t => t.payment_status === 'partial' || t.payment_status === 'due')
     .reduce((sum, t) => sum + t.amount, 0);
 
   if (loading) {
@@ -88,7 +89,7 @@ const TransactionTable = ({ isAdmin }: TransactionTableProps) => {
         <Card>
           <CardContent className="p-4 text-center">
             <div className="text-2xl font-bold text-purple-600">
-              {transactions.filter(t => t.status === 'Completed').length}
+              {transactions.filter(t => t.payment_status === 'paid').length}
             </div>
             <div className="text-sm text-gray-600">Completed</div>
           </CardContent>
@@ -118,15 +119,15 @@ const TransactionTable = ({ isAdmin }: TransactionTableProps) => {
                 <TableBody>
                   {transactions.map((transaction) => (
                     <TableRow key={transaction.id} className="hover:bg-gray-50">
-                      <TableCell className="font-medium">{transaction.transaction_id}</TableCell>
+                      <TableCell className="font-medium">{transaction.id}</TableCell>
                       <TableCell>{formatDate(transaction.transaction_date)}</TableCell>
                       <TableCell>{transaction.customers?.name || 'N/A'}</TableCell>
                       <TableCell>{transaction.batteries?.serial_number || 'N/A'}</TableCell>
-                      <TableCell>{transaction.type}</TableCell>
+                      <TableCell>{transaction.transaction_type}</TableCell>
                       <TableCell className="font-semibold">{formatCurrency(transaction.amount)}</TableCell>
                       <TableCell>
-                        <Badge className={getStatusColor(transaction.status)}>
-                          {transaction.status}
+                        <Badge className={getStatusColor(transaction.payment_status)}>
+                          {transaction.payment_status}
                         </Badge>
                       </TableCell>
                       <TableCell>

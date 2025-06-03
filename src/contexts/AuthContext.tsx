@@ -55,15 +55,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const hashedPassword = await hashPassword(password);
       console.log('Password hash generated:', hashedPassword);
       
-      // Try to authenticate using the partners table directly
-      const response = await fetch('https://mloblwqwsefhossgwvzt.supabase.co/rest/v1/partners', {
-        method: 'GET',
+      // Use the new authenticate_user function with the users table
+      const response = await fetch('https://mloblwqwsefhossgwvzt.supabase.co/rest/v1/rpc/authenticate_user', {
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1sb2Jsd3F3c2VmaG9zc2d3dnp0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg4OTc2NDIsImV4cCI6MjA2NDQ3MzY0Mn0.pjKLodHDjHsQw_a_n7m9qGU_DkxQ4LWGQLTgt4eCYJ0',
-          'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1sb2Jsd3F3c2VmaG9zc2d3dnp0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg4OTc2NDIsImV4cCI6MjA2NDQ3MzY0Mn0.pjKLodHDjHsQw_a_n7m9qGU_DkxQ4LWGQLTgt4eCYJ0',
-          'Prefer': 'return=representation'
-        }
+          'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1sb2Jsd3F3c2VmaG9zc2d3dnp0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg4OTc2NDIsImV4cCI6MjA2NDQ3MzY0Mn0.pjKLodHDjHsQw_a_n7m9qGU_DkxQ4LWGQLTgt4eCYJ0'
+        },
+        body: JSON.stringify({
+          p_username: username,
+          p_password_hash: hashedPassword
+        })
       });
 
       console.log('Response status:', response.status);
@@ -73,52 +76,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return { error: { message: 'Authentication failed' } };
       }
 
-      const partners = await response.json();
-      console.log('Partners data:', partners);
+      const data = await response.json();
+      console.log('Authentication response:', data);
 
-      // Find the user with matching username and password hash
-      const authenticatedUser = partners.find((partner: any) => 
-        partner.username === username && partner.password_hash === hashedPassword
-      );
-
-      console.log('Authenticated user:', authenticatedUser);
-
-      if (!authenticatedUser) {
-        // Special case for admin with password 'admin'
-        if (username === 'admin' && password === 'admin') {
-          const adminUser = partners.find((partner: any) => partner.username === 'admin');
-          if (adminUser) {
-            console.log('Found admin user, creating session...');
-            const userData: User = {
-              id: adminUser.id,
-              name: adminUser.name,
-              phone: adminUser.phone,
-              username: adminUser.username,
-              address: adminUser.address,
-              role: 'admin'
-            };
-
-            setUser(userData);
-            setUserRole('admin');
-            localStorage.setItem('auth_user', JSON.stringify(userData));
-            
-            return { error: null };
-          }
-        }
+      if (!data || data.length === 0) {
         return { error: { message: 'Invalid username or password' } };
       }
 
       const userData: User = {
-        id: authenticatedUser.id,
-        name: authenticatedUser.name,
-        phone: authenticatedUser.phone,
-        username: authenticatedUser.username,
-        address: authenticatedUser.address,
-        role: authenticatedUser.username === 'admin' ? 'admin' : 'partner'
+        id: data[0].id,
+        name: data[0].name,
+        phone: data[0].phone,
+        username: data[0].username,
+        address: data[0].address,
+        role: data[0].role
       };
 
       setUser(userData);
-      setUserRole(userData.role);
+      setUserRole(data[0].role);
       localStorage.setItem('auth_user', JSON.stringify(userData));
       
       return { error: null };

@@ -14,7 +14,7 @@ export const usePartners = () => {
     try {
       setLoading(true);
       
-      const response = await fetch('/rest/v1/rpc/get_partners_with_counts', {
+      const response = await fetch('https://mloblwqwsefhossgwvzt.supabase.co/rest/v1/rpc/get_partners_with_counts', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -42,7 +42,7 @@ export const usePartners = () => {
 
   const deletePartner = async (partnerId: string) => {
     try {
-      const response = await fetch(`/rest/v1/partners?id=eq.${partnerId}`, {
+      const response = await fetch(`https://mloblwqwsefhossgwvzt.supabase.co/rest/v1/users?id=eq.${partnerId}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',

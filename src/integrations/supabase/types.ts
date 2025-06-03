@@ -69,7 +69,7 @@ export type Database = {
             foreignKeyName: "batteries_partner_id_fkey"
             columns: ["partner_id"]
             isOneToOne: false
-            referencedRelation: "partners"
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
           {
@@ -86,6 +86,7 @@ export type Database = {
           address: string | null
           battery_id: string | null
           created_at: string
+          customer_id: string | null
           email: string | null
           id: string
           join_date: string | null
@@ -101,6 +102,7 @@ export type Database = {
           address?: string | null
           battery_id?: string | null
           created_at?: string
+          customer_id?: string | null
           email?: string | null
           id?: string
           join_date?: string | null
@@ -116,6 +118,7 @@ export type Database = {
           address?: string | null
           battery_id?: string | null
           created_at?: string
+          customer_id?: string | null
           email?: string | null
           id?: string
           join_date?: string | null
@@ -139,7 +142,7 @@ export type Database = {
             foreignKeyName: "customers_partner_id_fkey"
             columns: ["partner_id"]
             isOneToOne: false
-            referencedRelation: "partners"
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]
@@ -239,10 +242,46 @@ export type Database = {
             foreignKeyName: "transactions_partner_id_fkey"
             columns: ["partner_id"]
             isOneToOne: false
-            referencedRelation: "partners"
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]
+      }
+      users: {
+        Row: {
+          address: string | null
+          created_at: string
+          id: string
+          name: string
+          password_hash: string
+          phone: string
+          role: string
+          updated_at: string
+          username: string
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          password_hash: string
+          phone: string
+          role: string
+          updated_at?: string
+          username: string
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          password_hash?: string
+          phone?: string
+          role?: string
+          updated_at?: string
+          username?: string
+        }
+        Relationships: []
       }
     }
     Views: {
@@ -260,12 +299,13 @@ export type Database = {
           role: string
         }[]
       }
-      create_partner: {
+      create_user: {
         Args: {
           p_name: string
           p_phone: string
           p_username: string
           p_password_hash: string
+          p_role: string
           p_address?: string
         }
         Returns: string

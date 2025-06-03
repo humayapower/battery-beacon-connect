@@ -28,7 +28,7 @@ export const useAdminFunctions = () => {
     try {
       const passwordHash = await hashPassword(password);
 
-      const response = await fetch('/rest/v1/rpc/create_partner', {
+      const response = await fetch('https://mloblwqwsefhossgwvzt.supabase.co/rest/v1/rpc/create_user', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -39,6 +39,7 @@ export const useAdminFunctions = () => {
           p_phone: phone,
           p_username: username,
           p_password_hash: passwordHash,
+          p_role: 'partner',
           p_address: address || null
         })
       });
@@ -72,7 +73,7 @@ export const useAdminFunctions = () => {
         delete updateData.password;
       }
 
-      const response = await fetch(`/rest/v1/partners?id=eq.${partnerId}`, {
+      const response = await fetch(`https://mloblwqwsefhossgwvzt.supabase.co/rest/v1/users?id=eq.${partnerId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',

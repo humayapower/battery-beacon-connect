@@ -130,7 +130,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       // Create the same dummy email format used during creation
-      const dummyEmail = `${username.replace(/[^a-zA-Z0-9]/g, '')}.partner@internal.local`;
+      const sanitizedUsername = username.replace(/[^a-zA-Z0-9]/g, '');
+      const dummyEmail = `${sanitizedUsername}.partner@example.com`;
 
       const { error } = await supabase.auth.signInWithPassword({
         email: dummyEmail,

@@ -40,8 +40,9 @@ export const useAdminFunctions = () => {
         throw new Error('Phone number already exists');
       }
 
-      // Create a dummy email that follows email format but isn't real
-      const dummyEmail = `${username.replace(/[^a-zA-Z0-9]/g, '')}.partner@internal.local`;
+      // Create a dummy email using a valid domain format
+      const sanitizedUsername = username.replace(/[^a-zA-Z0-9]/g, '');
+      const dummyEmail = `${sanitizedUsername}.partner@example.com`;
 
       // Use regular signup with dummy email
       const { data: authData, error: authError } = await supabase.auth.signUp({

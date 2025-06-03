@@ -51,13 +51,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signIn = async (username: string, password: string) => {
     try {
+      console.log('Attempting login with username:', username);
       const hashedPassword = await hashPassword(password);
+      console.log('Password hash:', hashedPassword);
       
-      const response = await fetch('/rest/v1/rpc/authenticate_user', {
+      const response = await fetch('https://mloblwqwsefhossgwvzt.supabase.co/rest/v1/rpc/authenticate_user', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1sb2Jsd3F3c2VmaG9zc2d3dnp0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg4OTc2NDIsImV4cCI6MjA2NDQ3MzY0Mn0.pjKLodHDjHsQw_a_n7m9qGU_DkxQ4LWGQLTgt4eCYJ0'
+          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1sb2Jsd3F3c2VmaG9zc2d3dnp0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg4OTc2NDIsImV4cCI6MjA2NDQ3MzY0Mn0.pjKLodHDjHsQw_a_n7m9qGU_DkxQ4LWGQLTgt4eCYJ0',
+          'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1sb2Jsd3F3c2VmaG9zc2d3dnp0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg4OTc2NDIsImV4cCI6MjA2NDQ3MzY0Mn0.pjKLodHDjHsQw_a_n7m9qGU_DkxQ4LWGQLTgt4eCYJ0'
         },
         body: JSON.stringify({
           p_username: username,
@@ -65,9 +68,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         })
       });
 
-      const data = await response.json();
+      console.log('Response status:', response.status);
+      console.log('Response headers:', response.headers);
 
-      if (!response.ok || !data || data.length === 0) {
+      if (!response.ok) {
+        console.error('Response not ok:', response.status, response.statusText);
+        return { error: { message: 'Authentication failed' } };
+      }
+
+      const contentType = response.headers.get('content-type');
+      console.log('Content type:', contentType);
+
+      if (!contentType || !contentType.includes('application/json')) {
+        console.error('Response is not JSON:', contentType);
+        return { error: { message: 'Invalid response format' } };
+      }
+
+      const data = await response.json();
+      console.log('Authentication response:', data);
+
+      if (!data || data.length === 0) {
         return { error: { message: 'Invalid username or password' } };
       }
 
@@ -86,7 +106,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       return { error: null };
     } catch (error) {
-      return { error: { message: 'Login failed' } };
+      console.error('Login error:', error);
+      return { error: { message: 'Login failed. Please try again.' } };
     }
   };
 

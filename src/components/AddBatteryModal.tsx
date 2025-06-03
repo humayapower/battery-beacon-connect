@@ -10,7 +10,6 @@ import { Plus, Battery as BatteryIcon } from 'lucide-react';
 import { useBatteries, Battery } from '@/hooks/useBatteries';
 import { useAuth } from '@/contexts/AuthContext';
 
-type BatteryStatus = 'Available' | 'Assigned' | 'Maintenance';
 type ModelName = 'Maxcharge' | 'Fluxon' | 'Extragrid';
 
 interface BatteryFormData {
@@ -23,11 +22,8 @@ interface BatteryFormData {
   capacity: string;
   imei_number: string;
   sim_number: string;
-  status: BatteryStatus;
-  location: string;
-  purchase_date: string;
+  warranty_period: string;
   warranty_expiry: string;
-  last_maintenance: string;
 }
 
 const AddBatteryModal = () => {
@@ -42,11 +38,8 @@ const AddBatteryModal = () => {
     capacity: '',
     imei_number: '',
     sim_number: '',
-    status: 'Available',
-    location: '',
-    purchase_date: '',
+    warranty_period: '',
     warranty_expiry: '',
-    last_maintenance: '',
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -87,12 +80,10 @@ const AddBatteryModal = () => {
         capacity: formData.capacity,
         imei_number: formData.imei_number || null,
         sim_number: formData.sim_number || null,
-        status: formData.status,
+        status: 'Available', // Automatically set to Available
         partner_id: userRole === 'admin' ? null : user?.id || null,
-        purchase_date: formData.purchase_date || null,
+        warranty_period: formData.warranty_period ? parseInt(formData.warranty_period) : null,
         warranty_expiry: formData.warranty_expiry || null,
-        last_maintenance: formData.last_maintenance || null,
-        location: formData.location || null,
       };
 
       const result = await addBattery(batteryData);
@@ -109,11 +100,8 @@ const AddBatteryModal = () => {
           capacity: '',
           imei_number: '',
           sim_number: '',
-          status: 'Available',
-          location: '',
-          purchase_date: '',
+          warranty_period: '',
           warranty_expiry: '',
-          last_maintenance: '',
         });
       }
     } catch (err: any) {
@@ -138,7 +126,7 @@ const AddBatteryModal = () => {
             <span>Add New Battery</span>
           </DialogTitle>
           <DialogDescription>
-            Enter all battery information. Required fields are marked with *.
+            Enter battery information. Required fields are marked with *. Status will be automatically set to "Available".
           </DialogDescription>
         </DialogHeader>
         
@@ -208,7 +196,7 @@ const AddBatteryModal = () => {
           {/* Technical Specifications */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-gray-900">Technical Specifications</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="voltage">Voltage (V)</Label>
                 <Input
@@ -229,25 +217,6 @@ const AddBatteryModal = () => {
                   value={formData.manufacturing_date}
                   onChange={(e) => setFormData(prev => ({ ...prev, manufacturing_date: e.target.value }))}
                 />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="status">Status *</Label>
-                <Select
-                  value={formData.status}
-                  onValueChange={(value: BatteryStatus) => 
-                    setFormData(prev => ({ ...prev, status: value }))
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Available">Available</SelectItem>
-                    <SelectItem value="Assigned">Assigned</SelectItem>
-                    <SelectItem value="Maintenance">Maintenance</SelectItem>
-                  </SelectContent>
-                </Select>
               </div>
             </div>
           </div>
@@ -278,50 +247,30 @@ const AddBatteryModal = () => {
                 />
               </div>
             </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="location">Location</Label>
-              <Input
-                id="location"
-                type="text"
-                placeholder="e.g., Warehouse A, Shelf 3"
-                value={formData.location}
-                onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
-              />
-            </div>
           </div>
 
-          {/* Dates & Maintenance */}
+          {/* Warranty Information */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900">Dates & Maintenance</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <h3 className="text-lg font-semibold text-gray-900">Warranty Information</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="purchase_date">Purchase Date</Label>
+                <Label htmlFor="warranty_period">Warranty Period (months)</Label>
                 <Input
-                  id="purchase_date"
-                  type="date"
-                  value={formData.purchase_date}
-                  onChange={(e) => setFormData(prev => ({ ...prev, purchase_date: e.target.value }))}
+                  id="warranty_period"
+                  type="number"
+                  placeholder="e.g., 24"
+                  value={formData.warranty_period}
+                  onChange={(e) => setFormData(prev => ({ ...prev, warranty_period: e.target.value }))}
                 />
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="warranty_expiry">Warranty Expiry</Label>
+                <Label htmlFor="warranty_expiry">Warranty Expiry Date</Label>
                 <Input
                   id="warranty_expiry"
                   type="date"
                   value={formData.warranty_expiry}
                   onChange={(e) => setFormData(prev => ({ ...prev, warranty_expiry: e.target.value }))}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="last_maintenance">Last Maintenance</Label>
-                <Input
-                  id="last_maintenance"
-                  type="date"
-                  value={formData.last_maintenance}
-                  onChange={(e) => setFormData(prev => ({ ...prev, last_maintenance: e.target.value }))}
                 />
               </div>
             </div>

@@ -17,10 +17,8 @@ export interface Battery {
   sim_number: string | null;
   status: 'Available' | 'Assigned' | 'Maintenance';
   partner_id: string | null;
-  last_maintenance: string | null;
-  purchase_date: string | null;
   warranty_expiry: string | null;
-  location: string | null;
+  warranty_period: number | null;
   created_at: string;
   updated_at: string;
 }

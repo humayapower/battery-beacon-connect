@@ -94,7 +94,7 @@ const BatteryTable = ({ isAdmin }: BatteryTableProps) => {
                     <TableHead>Capacity</TableHead>
                     <TableHead>Voltage</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead>Location</TableHead>
+                    <TableHead>Warranty Period</TableHead>
                     <TableHead>Mfg. Date</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
@@ -118,7 +118,7 @@ const BatteryTable = ({ isAdmin }: BatteryTableProps) => {
                           {battery.status}
                         </Badge>
                       </TableCell>
-                      <TableCell>{battery.location || 'N/A'}</TableCell>
+                      <TableCell>{battery.warranty_period ? `${battery.warranty_period} months` : 'N/A'}</TableCell>
                       <TableCell>{formatDate(battery.manufacturing_date)}</TableCell>
                       <TableCell>
                         <div className="flex space-x-2">

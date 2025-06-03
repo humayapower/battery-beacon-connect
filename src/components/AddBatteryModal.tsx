@@ -47,11 +47,27 @@ const AddBatteryModal = () => {
     return null;
   }
 
+  const resetForm = () => {
+    setFormData({
+      serial_number: '',
+      model_name: '',
+      model_number: '',
+      manufacturing_date: '',
+      voltage: '',
+      capacity: '',
+      imei_number: '',
+      sim_number: '',
+      warranty_period: '',
+    });
+    setError('');
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
+    // Validation
     if (!formData.serial_number.trim()) {
       setError('Serial number is required');
       setLoading(false);
@@ -70,8 +86,8 @@ const AddBatteryModal = () => {
       return;
     }
 
-    if (!formData.capacity.trim()) {
-      setError('Capacity is required');
+    if (!formData.manufacturing_date) {
+      setError('Manufacturing date is required');
       setLoading(false);
       return;
     }
@@ -82,20 +98,44 @@ const AddBatteryModal = () => {
       return;
     }
 
+    if (!formData.capacity.trim()) {
+      setError('Capacity is required');
+      setLoading(false);
+      return;
+    }
+
+    if (!formData.imei_number.trim()) {
+      setError('IMEI number is required');
+      setLoading(false);
+      return;
+    }
+
+    if (!formData.sim_number.trim()) {
+      setError('SIM number is required');
+      setLoading(false);
+      return;
+    }
+
+    if (!formData.warranty_period.trim()) {
+      setError('Warranty period is required');
+      setLoading(false);
+      return;
+    }
+
     try {
       const batteryData: Omit<Battery, 'id' | 'created_at' | 'updated_at'> = {
-        serial_number: formData.serial_number,
-        model: formData.model_name,
-        model_name: formData.model_name as ModelName,
-        manufacturing_date: formData.manufacturing_date || null,
-        voltage: formData.voltage ? parseFloat(formData.voltage) : null,
-        capacity: formData.capacity,
-        imei_number: formData.imei_number || null,
-        sim_number: formData.sim_number || null,
+        serial_number: formData.serial_number.trim(),
+        model: formData.model_number.trim(), // Use model_number for the model field
+        model_name: formData.model_name,
+        manufacturing_date: formData.manufacturing_date,
+        voltage: parseFloat(formData.voltage),
+        capacity: formData.capacity.trim(),
+        imei_number: formData.imei_number.trim(),
+        sim_number: formData.sim_number.trim(),
         status: 'available',
         partner_id: null, // Unassigned to any partner initially
         customer_id: null, // Unassigned to any customer initially
-        warranty_period: formData.warranty_period ? parseInt(formData.warranty_period) : null,
+        warranty_period: parseInt(formData.warranty_period),
         warranty_expiry: null,
         location: null,
         purchase_date: null,
@@ -106,17 +146,7 @@ const AddBatteryModal = () => {
       
       if (result.success) {
         setOpen(false);
-        setFormData({
-          serial_number: '',
-          model_name: '',
-          model_number: '',
-          manufacturing_date: '',
-          voltage: '',
-          capacity: '',
-          imei_number: '',
-          sim_number: '',
-          warranty_period: '',
-        });
+        resetForm();
       }
     } catch (err: any) {
       setError(err.message || 'Failed to add battery');
@@ -125,8 +155,15 @@ const AddBatteryModal = () => {
     }
   };
 
+  const handleOpenChange = (isOpen: boolean) => {
+    setOpen(isOpen);
+    if (!isOpen) {
+      resetForm();
+    }
+  };
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button className="bg-blue-600 hover:bg-blue-700">
           <Plus className="w-4 h-4 mr-2" />
@@ -221,9 +258,8 @@ const AddBatteryModal = () => {
               <Label htmlFor="capacity">Capacity (Ah) *</Label>
               <Input
                 id="capacity"
-                type="number"
-                step="0.1"
-                placeholder="e.g., 100"
+                type="text"
+                placeholder="e.g., 100Ah"
                 value={formData.capacity}
                 onChange={(e) => setFormData(prev => ({ ...prev, capacity: e.target.value }))}
                 required

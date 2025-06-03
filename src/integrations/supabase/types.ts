@@ -15,13 +15,16 @@ export type Database = {
           created_at: string
           customer_id: string | null
           id: string
+          imei_number: string | null
           last_maintenance: string | null
           location: string | null
           manufacturing_date: string | null
           model: string
+          model_name: string | null
           partner_id: string | null
           purchase_date: string | null
           serial_number: string
+          sim_number: string | null
           status: string
           updated_at: string
           voltage: number | null
@@ -33,13 +36,16 @@ export type Database = {
           created_at?: string
           customer_id?: string | null
           id?: string
+          imei_number?: string | null
           last_maintenance?: string | null
           location?: string | null
           manufacturing_date?: string | null
           model: string
+          model_name?: string | null
           partner_id?: string | null
           purchase_date?: string | null
           serial_number: string
+          sim_number?: string | null
           status?: string
           updated_at?: string
           voltage?: number | null
@@ -51,13 +57,16 @@ export type Database = {
           created_at?: string
           customer_id?: string | null
           id?: string
+          imei_number?: string | null
           last_maintenance?: string | null
           location?: string | null
           manufacturing_date?: string | null
           model?: string
+          model_name?: string | null
           partner_id?: string | null
           purchase_date?: string | null
           serial_number?: string
+          sim_number?: string | null
           status?: string
           updated_at?: string
           voltage?: number | null

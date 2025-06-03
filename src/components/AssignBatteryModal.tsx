@@ -35,6 +35,12 @@ const AssignBatteryModal = () => {
     setUnassignedBatteries(unassigned);
   }, [batteries]);
 
+  const resetForm = () => {
+    setSelectedBattery('');
+    setSelectedPartner('');
+    setError('');
+  };
+
   const handleAssign = async () => {
     if (!selectedBattery || !selectedPartner) {
       setError('Please select both a battery and a partner');
@@ -57,8 +63,7 @@ const AssignBatteryModal = () => {
         });
         
         setOpen(false);
-        setSelectedBattery('');
-        setSelectedPartner('');
+        resetForm();
         refetch(); // Refresh the battery list
       }
     } catch (err: any) {
@@ -68,8 +73,15 @@ const AssignBatteryModal = () => {
     }
   };
 
+  const handleOpenChange = (isOpen: boolean) => {
+    setOpen(isOpen);
+    if (!isOpen) {
+      resetForm();
+    }
+  };
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button variant="outline" className="bg-green-50 hover:bg-green-100 text-green-700 border-green-200">
           <UserPlus className="w-4 h-4 mr-2" />

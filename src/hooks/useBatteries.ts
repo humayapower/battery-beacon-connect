@@ -18,6 +18,7 @@ export const useBatteries = () => {
         id,
         serial_number,
         model,
+        model_name,
         manufacturing_date,
         voltage,
         capacity,
@@ -29,6 +30,8 @@ export const useBatteries = () => {
         purchase_date,
         last_maintenance,
         location,
+        imei_number,
+        sim_number,
         created_at,
         updated_at
       `);
@@ -61,6 +64,7 @@ export const useBatteries = () => {
           id,
           serial_number,
           model,
+          model_name,
           manufacturing_date,
           voltage,
           capacity,
@@ -72,6 +76,8 @@ export const useBatteries = () => {
           purchase_date,
           last_maintenance,
           location,
+          imei_number,
+          sim_number,
           created_at,
           updated_at
         `)
@@ -106,6 +112,7 @@ export const useBatteries = () => {
           id,
           serial_number,
           model,
+          model_name,
           manufacturing_date,
           voltage,
           capacity,
@@ -117,6 +124,8 @@ export const useBatteries = () => {
           purchase_date,
           last_maintenance,
           location,
+          imei_number,
+          sim_number,
           created_at,
           updated_at
         `)

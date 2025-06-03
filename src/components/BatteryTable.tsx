@@ -51,7 +51,10 @@ const BatteryTable = ({ isAdmin }: BatteryTableProps) => {
             {isAdmin ? 'Manage battery inventory across all partners' : 'View and manage your assigned batteries'}
           </p>
         </div>
-        <AddBatteryModal />
+        <div className="flex space-x-2">
+          {isAdmin && <AddBatteryModal />}
+          {isAdmin && <AssignBatteryModal />}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
@@ -90,11 +93,14 @@ const BatteryTable = ({ isAdmin }: BatteryTableProps) => {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Serial Number</TableHead>
-                    <TableHead>Model</TableHead>
+                    <TableHead>Model Name</TableHead>
+                    <TableHead>Model Number</TableHead>
                     <TableHead>Capacity</TableHead>
                     <TableHead>Voltage</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead>Warranty Period</TableHead>
+                    <TableHead>IMEI</TableHead>
+                    <TableHead>SIM</TableHead>
+                    <TableHead>Warranty</TableHead>
                     <TableHead>Mfg. Date</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
@@ -103,6 +109,11 @@ const BatteryTable = ({ isAdmin }: BatteryTableProps) => {
                   {batteries.map((battery) => (
                     <TableRow key={battery.id} className="hover:bg-gray-50">
                       <TableCell className="font-medium">{battery.serial_number}</TableCell>
+                      <TableCell>
+                        <Badge variant="outline">
+                          {battery.model_name || 'N/A'}
+                        </Badge>
+                      </TableCell>
                       <TableCell>{battery.model}</TableCell>
                       <TableCell>{battery.capacity}</TableCell>
                       <TableCell>{battery.voltage ? `${battery.voltage}V` : 'N/A'}</TableCell>
@@ -111,6 +122,8 @@ const BatteryTable = ({ isAdmin }: BatteryTableProps) => {
                           {battery.status}
                         </Badge>
                       </TableCell>
+                      <TableCell className="text-xs">{battery.imei_number || 'N/A'}</TableCell>
+                      <TableCell className="text-xs">{battery.sim_number || 'N/A'}</TableCell>
                       <TableCell>{battery.warranty_period ? `${battery.warranty_period} months` : 'N/A'}</TableCell>
                       <TableCell>{formatDate(battery.manufacturing_date)}</TableCell>
                       <TableCell>
@@ -132,8 +145,8 @@ const BatteryTable = ({ isAdmin }: BatteryTableProps) => {
             </div>
           ) : (
             <div className="text-center py-8">
-              <p className="text-gray-600 mb-4">No batteries found. Add your first battery to get started.</p>
-              <AddBatteryModal />
+              <p className="text-gray-600 mb-4">No batteries found. {isAdmin ? 'Add your first battery to get started.' : 'No batteries have been assigned to you yet.'}</p>
+              {isAdmin && <AddBatteryModal />}
             </div>
           )}
         </CardContent>

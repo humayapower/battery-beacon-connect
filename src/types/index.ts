@@ -27,6 +27,8 @@ export interface Battery {
   status: 'available' | 'assigned' | 'maintenance';
   partner_id?: string;
   customer_id?: string;
+  imei_number?: string;
+  sim_number?: string;
   created_at: string;
   updated_at: string;
 }

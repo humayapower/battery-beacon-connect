@@ -4,7 +4,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import { Calendar, Mail, Phone, MapPin, CreditCard, Battery, User, X } from 'lucide-react';
 import { useCustomers, Customer } from '@/hooks/useCustomers';
 import { useTransactions } from '@/hooks/useTransactions';
@@ -42,11 +41,11 @@ const CustomerDetailsModal = ({ customerId, isOpen, onClose }: CustomerDetailsMo
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'Active':
+      case 'active':
         return 'bg-green-100 text-green-800';
-      case 'Pending':
+      case 'suspended':
         return 'bg-yellow-100 text-yellow-800';
-      case 'Inactive':
+      case 'inactive':
         return 'bg-red-100 text-red-800';
       default:
         return 'bg-gray-100 text-gray-800';
@@ -90,7 +89,7 @@ const CustomerDetailsModal = ({ customerId, isOpen, onClose }: CustomerDetailsMo
                 <div className="flex items-center justify-between">
                   <div>
                     <CardTitle className="text-2xl">{customer.name}</CardTitle>
-                    <CardDescription>Customer ID: {customer.customer_id}</CardDescription>
+                    <CardDescription>Customer ID: {customer.id}</CardDescription>
                   </div>
                   <Badge className={getStatusColor(customer.status)}>
                     {customer.status}
@@ -102,16 +101,16 @@ const CustomerDetailsModal = ({ customerId, isOpen, onClose }: CustomerDetailsMo
                   <div className="space-y-4">
                     <h3 className="font-semibold text-lg">Contact Information</h3>
                     <div className="space-y-3">
-                      <div className="flex items-center space-x-3">
-                        <Mail className="w-4 h-4 text-gray-500" />
-                        <span>{customer.email}</span>
-                      </div>
-                      {customer.phone && (
+                      {customer.email && (
                         <div className="flex items-center space-x-3">
-                          <Phone className="w-4 h-4 text-gray-500" />
-                          <span>{customer.phone}</span>
+                          <Mail className="w-4 h-4 text-gray-500" />
+                          <span>{customer.email}</span>
                         </div>
                       )}
+                      <div className="flex items-center space-x-3">
+                        <Phone className="w-4 h-4 text-gray-500" />
+                        <span>{customer.phone}</span>
+                      </div>
                       {customer.address && (
                         <div className="flex items-start space-x-3">
                           <MapPin className="w-4 h-4 text-gray-500 mt-1" />
@@ -133,13 +132,12 @@ const CustomerDetailsModal = ({ customerId, isOpen, onClose }: CustomerDetailsMo
                       <div className="flex items-center space-x-3">
                         <CreditCard className="w-4 h-4 text-gray-500" />
                         <span className="text-sm">
-                          <span className="font-medium">Monthly Fee:</span> {formatCurrency(customer.monthly_fee)}
+                          <span className="font-medium">Monthly Amount:</span> {formatCurrency(customer.monthly_amount)}
                         </span>
                       </div>
                       <div className="flex items-center space-x-3">
-                        <Calendar className="w-4 h-4 text-gray-500" />
                         <span className="text-sm">
-                          <span className="font-medium">Last Payment:</span> {formatDate(customer.last_payment_date)}
+                          <span className="font-medium">Payment Type:</span> {customer.payment_type}
                         </span>
                       </div>
                     </div>
@@ -191,16 +189,16 @@ const CustomerDetailsModal = ({ customerId, isOpen, onClose }: CustomerDetailsMo
                       <div key={transaction.id} className="flex items-center justify-between p-3 border rounded-lg">
                         <div className="flex items-center space-x-3">
                           <div>
-                            <p className="font-medium">{transaction.transaction_id}</p>
-                            <p className="text-sm text-gray-600">{transaction.type}</p>
+                            <p className="font-medium">{transaction.id}</p>
+                            <p className="text-sm text-gray-600">{transaction.transaction_type}</p>
                           </div>
                         </div>
                         <div className="text-right">
                           <p className="font-medium">${transaction.amount.toFixed(2)}</p>
                           <p className="text-sm text-gray-600">{formatDate(transaction.transaction_date)}</p>
                         </div>
-                        <Badge className={getStatusColor(transaction.status)}>
-                          {transaction.status}
+                        <Badge className={getStatusColor(transaction.payment_status)}>
+                          {transaction.payment_status}
                         </Badge>
                       </div>
                     ))}

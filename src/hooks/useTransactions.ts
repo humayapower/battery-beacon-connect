@@ -3,19 +3,9 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { Transaction } from '@/types';
 
-export interface Transaction {
-  id: string;
-  transaction_id: string;
-  customer_id: string | null;
-  battery_id: string | null;
-  partner_id: string | null;
-  amount: number;
-  type: 'Payment' | 'Refund' | 'Fee' | 'Maintenance';
-  status: 'Completed' | 'Pending' | 'Failed';
-  description: string | null;
-  transaction_date: string;
-  created_at: string;
+interface TransactionWithRelations extends Transaction {
   customers?: {
     name: string;
     email: string;
@@ -27,7 +17,7 @@ export interface Transaction {
 }
 
 export const useTransactions = () => {
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [transactions, setTransactions] = useState<TransactionWithRelations[]>([]);
   const [loading, setLoading] = useState(true);
   const { userRole, user } = useAuth();
   const { toast } = useToast();
@@ -56,7 +46,7 @@ export const useTransactions = () => {
       const { data, error } = await query.order('transaction_date', { ascending: false });
       
       if (error) throw error;
-      setTransactions((data || []) as Transaction[]);
+      setTransactions((data || []) as TransactionWithRelations[]);
     } catch (error: any) {
       toast({
         title: "Error fetching transactions",
@@ -68,7 +58,7 @@ export const useTransactions = () => {
     }
   };
 
-  const addTransaction = async (transactionData: Omit<Transaction, 'id' | 'created_at' | 'customers' | 'batteries'>) => {
+  const addTransaction = async (transactionData: Omit<Transaction, 'id' | 'created_at' | 'updated_at'>) => {
     try {
       const { data, error } = await supabase
         .from('transactions')
@@ -81,7 +71,7 @@ export const useTransactions = () => {
       await fetchTransactions(); // Refetch to get the related data
       toast({
         title: "Transaction recorded successfully",
-        description: `Transaction ${transactionData.transaction_id} has been recorded.`,
+        description: `Transaction has been recorded.`,
       });
       
       return { success: true, data };
@@ -108,3 +98,5 @@ export const useTransactions = () => {
     refetch: fetchTransactions,
   };
 };
+
+export type { TransactionWithRelations as Transaction };

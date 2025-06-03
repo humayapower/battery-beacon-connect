@@ -3,22 +3,9 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { Customer } from '@/types';
 
-export interface Customer {
-  id: string;
-  customer_id: string;
-  name: string;
-  email: string;
-  phone: string | null;
-  address: string | null;
-  partner_id: string | null;
-  battery_id: string | null;
-  status: 'Active' | 'Pending' | 'Inactive';
-  join_date: string | null;
-  last_payment_date: string | null;
-  monthly_fee: number | null;
-  created_at: string;
-  updated_at: string;
+interface CustomerWithBattery extends Customer {
   batteries?: {
     serial_number: string;
     model: string;
@@ -27,7 +14,7 @@ export interface Customer {
 }
 
 export const useCustomers = () => {
-  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [customers, setCustomers] = useState<CustomerWithBattery[]>([]);
   const [loading, setLoading] = useState(true);
   const { userRole, user } = useAuth();
   const { toast } = useToast();
@@ -54,14 +41,7 @@ export const useCustomers = () => {
       
       if (error) throw error;
       
-      // Transform the data to match our Customer interface
-      const transformedData = (data || []).map(item => ({
-        ...item,
-        status: item.status as 'Active' | 'Pending' | 'Inactive',
-        batteries: item.batteries || null
-      }));
-      
-      setCustomers(transformedData);
+      setCustomers(data || []);
     } catch (error: any) {
       toast({
         title: "Error fetching customers",
@@ -73,7 +53,7 @@ export const useCustomers = () => {
     }
   };
 
-  const addCustomer = async (customerData: Omit<Customer, 'id' | 'created_at' | 'updated_at' | 'batteries'>) => {
+  const addCustomer = async (customerData: Omit<Customer, 'id' | 'created_at' | 'updated_at'>) => {
     try {
       const { data, error } = await supabase
         .from('customers')
@@ -146,14 +126,7 @@ export const useCustomers = () => {
 
       if (error) throw error;
       
-      // Transform the data to match our Customer interface
-      const transformedData = {
-        ...data,
-        status: data.status as 'Active' | 'Pending' | 'Inactive',
-        batteries: data.batteries || null
-      };
-      
-      return { success: true, data: transformedData };
+      return { success: true, data };
     } catch (error: any) {
       toast({
         title: "Error fetching customer details",
@@ -179,3 +152,5 @@ export const useCustomers = () => {
     refetch: fetchCustomers,
   };
 };
+
+export type { CustomerWithBattery as Customer };

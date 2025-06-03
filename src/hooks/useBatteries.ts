@@ -3,25 +3,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-
-export interface Battery {
-  id: string;
-  serial_number: string;
-  model: string;
-  model_name: 'Maxcharge' | 'Fluxon' | 'Extragrid' | null;
-  model_number: string | null;
-  manufacturing_date: string | null;
-  voltage: number | null;
-  capacity: string;
-  imei_number: string | null;
-  sim_number: string | null;
-  status: 'Available' | 'Assigned' | 'Maintenance';
-  partner_id: string | null;
-  warranty_expiry: string | null;
-  warranty_period: number | null;
-  created_at: string;
-  updated_at: string;
-}
+import { Battery } from '@/types';
 
 export const useBatteries = () => {
   const [batteries, setBatteries] = useState<Battery[]>([]);
@@ -36,17 +18,17 @@ export const useBatteries = () => {
         id,
         serial_number,
         model,
-        model_name,
-        model_number,
         manufacturing_date,
         voltage,
         capacity,
-        imei_number,
-        sim_number,
         status,
         partner_id,
+        customer_id,
         warranty_expiry,
         warranty_period,
+        purchase_date,
+        last_maintenance,
+        location,
         created_at,
         updated_at
       `);
@@ -79,17 +61,17 @@ export const useBatteries = () => {
           id,
           serial_number,
           model,
-          model_name,
-          model_number,
           manufacturing_date,
           voltage,
           capacity,
-          imei_number,
-          sim_number,
           status,
           partner_id,
+          customer_id,
           warranty_expiry,
           warranty_period,
+          purchase_date,
+          last_maintenance,
+          location,
           created_at,
           updated_at
         `)
@@ -124,17 +106,17 @@ export const useBatteries = () => {
           id,
           serial_number,
           model,
-          model_name,
-          model_number,
           manufacturing_date,
           voltage,
           capacity,
-          imei_number,
-          sim_number,
           status,
           partner_id,
+          customer_id,
           warranty_expiry,
           warranty_period,
+          purchase_date,
+          last_maintenance,
+          location,
           created_at,
           updated_at
         `)

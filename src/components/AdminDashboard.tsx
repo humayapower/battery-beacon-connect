@@ -1,8 +1,9 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar";
 import { Battery, Users, User, CreditCard, Home, Plus, Settings, LogOut } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import BatteryTable from './BatteryTable';
@@ -37,7 +38,7 @@ const AdminDashboard = () => {
     <Sidebar>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel className="text-lg font-semibold text-gray-800 mb-4">
+          <SidebarGroupLabel className="text-lg font-semibold text-gray-800 mb-4 px-2">
             Admin Dashboard
           </SidebarGroupLabel>
           <SidebarGroupContent>
@@ -48,10 +49,11 @@ const AdminDashboard = () => {
                     asChild 
                     isActive={activeSection === item.key}
                     onClick={() => setActiveSection(item.key)}
+                    className="w-full justify-start"
                   >
-                    <button className="flex items-center space-x-3 w-full">
-                      <item.icon className="w-5 h-5" />
-                      <span>{item.title}</span>
+                    <button className="flex items-center space-x-3 w-full p-3 text-left">
+                      <item.icon className="w-5 h-5 flex-shrink-0" />
+                      <span className="truncate">{item.title}</span>
                     </button>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -62,11 +64,11 @@ const AdminDashboard = () => {
         <div className="mt-auto p-4">
           <Button 
             variant="outline" 
-            className="w-full" 
+            className="w-full justify-start" 
             onClick={signOut}
           >
             <LogOut className="w-4 h-4 mr-2" />
-            Sign Out
+            <span className="truncate">Sign Out</span>
           </Button>
         </div>
       </SidebarContent>
@@ -77,24 +79,24 @@ const AdminDashboard = () => {
     switch (activeSection) {
       case 'overview':
         return (
-          <div className="space-y-6">
+          <div className="space-y-4 lg:space-y-6">
             <div>
-              <h2 className="text-3xl font-bold text-gray-900 mb-2">Dashboard Overview</h2>
-              <p className="text-gray-600">Welcome back! Here's what's happening with your battery management platform.</p>
+              <h2 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">Dashboard Overview</h2>
+              <p className="text-sm lg:text-base text-gray-600">Welcome back! Here's what's happening with your battery management platform.</p>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
               {stats.map((stat, index) => (
                 <Card key={index} className="hover:shadow-md transition-shadow">
-                  <CardContent className="p-6">
+                  <CardContent className="p-4 lg:p-6">
                     <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-gray-600">{stat.title}</p>
-                        <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-                        <p className="text-sm text-green-600">{stat.change} from last month</p>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs lg:text-sm font-medium text-gray-600 truncate">{stat.title}</p>
+                        <p className="text-lg lg:text-2xl font-bold text-gray-900">{stat.value}</p>
+                        <p className="text-xs lg:text-sm text-green-600">{stat.change} from last month</p>
                       </div>
-                      <div className={`p-3 rounded-full ${stat.color}`}>
-                        <stat.icon className="w-6 h-6 text-white" />
+                      <div className={`p-2 lg:p-3 rounded-full ${stat.color} flex-shrink-0 ml-3`}>
+                        <stat.icon className="w-4 h-4 lg:w-6 lg:h-6 text-white" />
                       </div>
                     </div>
                   </CardContent>
@@ -102,24 +104,24 @@ const AdminDashboard = () => {
               ))}
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 lg:gap-6">
               <Card>
                 <CardHeader>
-                  <CardTitle>Recent Activity</CardTitle>
-                  <CardDescription>Latest updates across the platform</CardDescription>
+                  <CardTitle className="text-lg lg:text-xl">Recent Activity</CardTitle>
+                  <CardDescription className="text-sm lg:text-base">Latest updates across the platform</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    <div className="flex items-center space-x-3">
-                      <Badge className="bg-green-100 text-green-800">New</Badge>
+                  <div className="space-y-3 lg:space-y-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-3">
+                      <Badge className="bg-green-100 text-green-800 w-fit">New</Badge>
                       <span className="text-sm">Partner "TechCorp" added 15 new batteries</span>
                     </div>
-                    <div className="flex items-center space-x-3">
-                      <Badge className="bg-blue-100 text-blue-800">Update</Badge>
+                    <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-3">
+                      <Badge className="bg-blue-100 text-blue-800 w-fit">Update</Badge>
                       <span className="text-sm">Customer payment of $2,450 received</span>
                     </div>
-                    <div className="flex items-center space-x-3">
-                      <Badge className="bg-orange-100 text-orange-800">Maintenance</Badge>
+                    <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-3">
+                      <Badge className="bg-orange-100 text-orange-800 w-fit">Maintenance</Badge>
                       <span className="text-sm">3 batteries scheduled for service</span>
                     </div>
                   </div>
@@ -128,8 +130,8 @@ const AdminDashboard = () => {
 
               <Card>
                 <CardHeader>
-                  <CardTitle>Quick Actions</CardTitle>
-                  <CardDescription>Common admin tasks and shortcuts</CardDescription>
+                  <CardTitle className="text-lg lg:text-xl">Quick Actions</CardTitle>
+                  <CardDescription className="text-sm lg:text-base">Common admin tasks and shortcuts</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <AddBatteryModal />
@@ -161,20 +163,20 @@ const AdminDashboard = () => {
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-gray-50">
         <AppSidebar />
-        <main className="flex-1">
-          <div className="border-b bg-white px-6 py-4">
+        <SidebarInset className="flex-1">
+          <div className="border-b bg-white px-4 lg:px-6 py-3 lg:py-4">
             <div className="flex items-center justify-between">
-              <SidebarTrigger />
-              <div className="flex items-center space-x-4">
-                <span className="text-sm text-gray-600">Welcome, {user?.name || user?.username}</span>
-                <Badge className="bg-blue-100 text-blue-800">Administrator</Badge>
+              <SidebarTrigger className="lg:hidden" />
+              <div className="flex items-center space-x-2 lg:space-x-4 ml-auto">
+                <span className="text-xs lg:text-sm text-gray-600 truncate">Welcome, {user?.name || user?.username}</span>
+                <Badge className="bg-blue-100 text-blue-800 text-xs">Admin</Badge>
               </div>
             </div>
           </div>
-          <div className="p-6">
+          <div className="p-4 lg:p-6 overflow-auto">
             {renderContent()}
           </div>
-        </main>
+        </SidebarInset>
       </div>
     </SidebarProvider>
   );

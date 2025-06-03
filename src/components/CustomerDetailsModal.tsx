@@ -160,8 +160,8 @@ const CustomerDetailsModal = ({ customerId, isOpen, onClose }: CustomerDetailsMo
                 <CardContent>
                   <div className="grid grid-cols-3 gap-4">
                     <div>
-                      <span className="font-medium">Battery ID:</span>
-                      <p className="text-sm text-gray-600">{customer.batteries.battery_id}</p>
+                      <span className="font-medium">Serial Number:</span>
+                      <p className="text-sm text-gray-600">{customer.batteries.serial_number}</p>
                     </div>
                     <div>
                       <span className="font-medium">Model:</span>

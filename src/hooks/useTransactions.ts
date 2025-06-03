@@ -21,7 +21,7 @@ export interface Transaction {
     email: string;
   };
   batteries?: {
-    battery_id: string;
+    serial_number: string;
     model: string;
   };
 }
@@ -44,7 +44,7 @@ export const useTransactions = () => {
             email
           ),
           batteries:battery_id (
-            battery_id,
+            serial_number,
             model
           )
         `);

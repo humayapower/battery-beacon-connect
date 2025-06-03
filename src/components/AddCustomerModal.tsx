@@ -190,7 +190,7 @@ const AddCustomerModal = () => {
                   <SelectItem value="">No battery assigned</SelectItem>
                   {availableBatteries.map((battery) => (
                     <SelectItem key={battery.id} value={battery.id}>
-                      {battery.battery_id} - {battery.model} ({battery.capacity})
+                      {battery.serial_number} - {battery.model} ({battery.capacity})
                     </SelectItem>
                   ))}
                 </SelectContent>

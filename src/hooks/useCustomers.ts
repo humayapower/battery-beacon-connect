@@ -20,7 +20,7 @@ export interface Customer {
   created_at: string;
   updated_at: string;
   batteries?: {
-    battery_id: string;
+    serial_number: string;
     model: string;
     capacity: string;
   } | null;
@@ -40,7 +40,7 @@ export const useCustomers = () => {
         .select(`
           *,
           batteries!customers_battery_id_fkey (
-            battery_id,
+            serial_number,
             model,
             capacity
           )
@@ -135,7 +135,7 @@ export const useCustomers = () => {
         .select(`
           *,
           batteries!customers_battery_id_fkey (
-            battery_id,
+            serial_number,
             model,
             capacity,
             status

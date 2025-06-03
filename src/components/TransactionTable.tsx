@@ -121,7 +121,7 @@ const TransactionTable = ({ isAdmin }: TransactionTableProps) => {
                       <TableCell className="font-medium">{transaction.transaction_id}</TableCell>
                       <TableCell>{formatDate(transaction.transaction_date)}</TableCell>
                       <TableCell>{transaction.customers?.name || 'N/A'}</TableCell>
-                      <TableCell>{transaction.batteries?.battery_id || 'N/A'}</TableCell>
+                      <TableCell>{transaction.batteries?.serial_number || 'N/A'}</TableCell>
                       <TableCell>{transaction.type}</TableCell>
                       <TableCell className="font-semibold">{formatCurrency(transaction.amount)}</TableCell>
                       <TableCell>

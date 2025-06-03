@@ -126,7 +126,7 @@ const CustomerTable = ({ isAdmin }: CustomerTableProps) => {
                       <TableCell>{customer.email}</TableCell>
                       <TableCell>{customer.phone || 'N/A'}</TableCell>
                       <TableCell>
-                        {customer.batteries?.battery_id || 'Unassigned'}
+                        {customer.batteries?.serial_number || 'Unassigned'}
                       </TableCell>
                       <TableCell>
                         <Badge className={getStatusColor(customer.status)}>

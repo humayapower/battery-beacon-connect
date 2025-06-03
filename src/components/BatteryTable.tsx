@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -5,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Edit, Eye } from 'lucide-react';
 import AddBatteryModal from './AddBatteryModal';
+import AssignBatteryModal from './AssignBatteryModal';
 import { useBatteries } from '@/hooks/useBatteries';
 
 interface BatteryTableProps {

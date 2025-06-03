@@ -10,6 +10,8 @@ import PartnerTable from './PartnerTable';
 import CustomerTable from './CustomerTable';
 import TransactionTable from './TransactionTable';
 import CreatePartnerModal from './CreatePartnerModal';
+import AssignBatteryModal from './AssignBatteryModal';
+import AddBatteryModal from './AddBatteryModal';
 
 const AdminDashboard = () => {
   const [activeSection, setActiveSection] = useState('overview');
@@ -127,13 +129,11 @@ const AdminDashboard = () => {
               <Card>
                 <CardHeader>
                   <CardTitle>Quick Actions</CardTitle>
-                  <CardDescription>Common tasks and shortcuts</CardDescription>
+                  <CardDescription>Common admin tasks and shortcuts</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  <Button className="w-full justify-start" variant="outline">
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add New Battery
-                  </Button>
+                  <AddBatteryModal />
+                  <AssignBatteryModal />
                   <CreatePartnerModal />
                   <Button className="w-full justify-start" variant="outline">
                     <CreditCard className="w-4 h-4 mr-2" />

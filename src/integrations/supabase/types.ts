@@ -12,117 +12,120 @@ export type Database = {
       batteries: {
         Row: {
           capacity: string
-          created_at: string | null
+          created_at: string
+          customer_id: string | null
           id: string
-          imei_number: string | null
           last_maintenance: string | null
           location: string | null
           manufacturing_date: string | null
           model: string
-          model_name: string | null
-          model_number: string | null
           partner_id: string | null
           purchase_date: string | null
           serial_number: string
-          sim_number: string | null
           status: string
-          updated_at: string | null
+          updated_at: string
           voltage: number | null
           warranty_expiry: string | null
           warranty_period: number | null
         }
         Insert: {
           capacity: string
-          created_at?: string | null
+          created_at?: string
+          customer_id?: string | null
           id?: string
-          imei_number?: string | null
           last_maintenance?: string | null
           location?: string | null
           manufacturing_date?: string | null
           model: string
-          model_name?: string | null
-          model_number?: string | null
           partner_id?: string | null
           purchase_date?: string | null
           serial_number: string
-          sim_number?: string | null
-          status: string
-          updated_at?: string | null
+          status?: string
+          updated_at?: string
           voltage?: number | null
           warranty_expiry?: string | null
           warranty_period?: number | null
         }
         Update: {
           capacity?: string
-          created_at?: string | null
+          created_at?: string
+          customer_id?: string | null
           id?: string
-          imei_number?: string | null
           last_maintenance?: string | null
           location?: string | null
           manufacturing_date?: string | null
           model?: string
-          model_name?: string | null
-          model_number?: string | null
           partner_id?: string | null
           purchase_date?: string | null
           serial_number?: string
-          sim_number?: string | null
           status?: string
-          updated_at?: string | null
+          updated_at?: string
           voltage?: number | null
           warranty_expiry?: string | null
           warranty_period?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "batteries_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_batteries_customer"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       customers: {
         Row: {
           address: string | null
           battery_id: string | null
-          created_at: string | null
-          customer_id: string
-          email: string
+          created_at: string
+          email: string | null
           id: string
           join_date: string | null
-          last_payment_date: string | null
-          monthly_fee: number | null
+          monthly_amount: number | null
           name: string
           partner_id: string | null
-          phone: string | null
+          payment_type: string
+          phone: string
           status: string
-          updated_at: string | null
+          updated_at: string
         }
         Insert: {
           address?: string | null
           battery_id?: string | null
-          created_at?: string | null
-          customer_id: string
-          email: string
+          created_at?: string
+          email?: string | null
           id?: string
           join_date?: string | null
-          last_payment_date?: string | null
-          monthly_fee?: number | null
+          monthly_amount?: number | null
           name: string
           partner_id?: string | null
-          phone?: string | null
-          status: string
-          updated_at?: string | null
+          payment_type: string
+          phone: string
+          status?: string
+          updated_at?: string
         }
         Update: {
           address?: string | null
           battery_id?: string | null
-          created_at?: string | null
-          customer_id?: string
-          email?: string
+          created_at?: string
+          email?: string | null
           id?: string
           join_date?: string | null
-          last_payment_date?: string | null
-          monthly_fee?: number | null
+          monthly_amount?: number | null
           name?: string
           partner_id?: string | null
-          phone?: string | null
+          payment_type?: string
+          phone?: string
           status?: string
-          updated_at?: string | null
+          updated_at?: string
         }
         Relationships: [
           {
@@ -133,41 +136,44 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "fk_customers_battery"
-            columns: ["battery_id"]
+            foreignKeyName: "customers_partner_id_fkey"
+            columns: ["partner_id"]
             isOneToOne: false
-            referencedRelation: "batteries"
+            referencedRelation: "partners"
             referencedColumns: ["id"]
           },
         ]
       }
-      profiles: {
+      partners: {
         Row: {
+          address: string | null
           created_at: string
-          email: string | null
-          full_name: string | null
           id: string
-          phone: string | null
+          name: string
+          password_hash: string
+          phone: string
           updated_at: string
-          username: string | null
+          username: string
         }
         Insert: {
+          address?: string | null
           created_at?: string
-          email?: string | null
-          full_name?: string | null
-          id: string
-          phone?: string | null
+          id?: string
+          name: string
+          password_hash: string
+          phone: string
           updated_at?: string
-          username?: string | null
+          username: string
         }
         Update: {
+          address?: string | null
           created_at?: string
-          email?: string | null
-          full_name?: string | null
           id?: string
-          phone?: string | null
+          name?: string
+          password_hash?: string
+          phone?: string
           updated_at?: string
-          username?: string | null
+          username?: string
         }
         Relationships: []
       }
@@ -175,41 +181,44 @@ export type Database = {
         Row: {
           amount: number
           battery_id: string | null
-          created_at: string | null
-          customer_id: string | null
-          description: string | null
+          created_at: string
+          customer_id: string
+          due_date: string | null
           id: string
           partner_id: string | null
-          status: string
+          payment_status: string
+          remarks: string | null
           transaction_date: string | null
-          transaction_id: string
-          type: string
+          transaction_type: string
+          updated_at: string
         }
         Insert: {
           amount: number
           battery_id?: string | null
-          created_at?: string | null
-          customer_id?: string | null
-          description?: string | null
+          created_at?: string
+          customer_id: string
+          due_date?: string | null
           id?: string
           partner_id?: string | null
-          status: string
+          payment_status?: string
+          remarks?: string | null
           transaction_date?: string | null
-          transaction_id: string
-          type: string
+          transaction_type: string
+          updated_at?: string
         }
         Update: {
           amount?: number
           battery_id?: string | null
-          created_at?: string | null
-          customer_id?: string | null
-          description?: string | null
+          created_at?: string
+          customer_id?: string
+          due_date?: string | null
           id?: string
           partner_id?: string | null
-          status?: string
+          payment_status?: string
+          remarks?: string | null
           transaction_date?: string | null
-          transaction_id?: string
-          type?: string
+          transaction_type?: string
+          updated_at?: string
         }
         Relationships: [
           {
@@ -226,34 +235,55 @@ export type Database = {
             referencedRelation: "customers"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "transactions_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
         ]
-      }
-      user_roles: {
-        Row: {
-          created_at: string
-          id: string
-          role: Database["public"]["Enums"]["user_role"]
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          role: Database["public"]["Enums"]["user_role"]
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          role?: Database["public"]["Enums"]["user_role"]
-          user_id?: string
-        }
-        Relationships: []
       }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      authenticate_user: {
+        Args: { p_username: string; p_password_hash: string }
+        Returns: {
+          id: string
+          name: string
+          phone: string
+          username: string
+          address: string
+          role: string
+        }[]
+      }
+      create_partner: {
+        Args: {
+          p_name: string
+          p_phone: string
+          p_username: string
+          p_password_hash: string
+          p_address?: string
+        }
+        Returns: string
+      }
+      get_partners_with_counts: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          id: string
+          name: string
+          phone: string
+          username: string
+          address: string
+          created_at: string
+          updated_at: string
+          battery_count: number
+          customer_count: number
+        }[]
+      }
       has_role: {
         Args: {
           _user_id: string

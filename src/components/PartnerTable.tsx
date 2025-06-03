@@ -3,8 +3,11 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Users, Battery, UserCheck, Clock } from 'lucide-react';
+import { Users, Battery, UserCheck, Eye } from 'lucide-react';
+import { Button } from "@/components/ui/button";
 import CreatePartnerModal from './CreatePartnerModal';
+import EditPartnerModal from './EditPartnerModal';
+import DeletePartnerModal from './DeletePartnerModal';
 import { usePartners } from '@/hooks/usePartners';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -134,13 +137,14 @@ const PartnerTable = () => {
                     <TableHead>Customers</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Join Date</TableHead>
+                    <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {partners.map((partner) => (
                     <TableRow key={partner.id} className="hover:bg-gray-50">
                       <TableCell className="font-medium">
-                        {partner.full_name || 'No name provided'}
+                        {partner.name}
                       </TableCell>
                       <TableCell>{partner.username}</TableCell>
                       <TableCell>{partner.phone}</TableCell>
@@ -163,6 +167,22 @@ const PartnerTable = () => {
                       </TableCell>
                       <TableCell>
                         {new Date(partner.created_at).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center space-x-2">
+                          <Button variant="outline" size="sm">
+                            <Eye className="w-4 h-4 mr-1" />
+                            View
+                          </Button>
+                          <EditPartnerModal 
+                            partner={partner} 
+                            onPartnerUpdated={refetch} 
+                          />
+                          <DeletePartnerModal 
+                            partner={partner} 
+                            onPartnerDeleted={refetch} 
+                          />
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}

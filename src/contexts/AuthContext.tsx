@@ -1,23 +1,12 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-
-interface User {
-  id: string;
-  username: string;
-  full_name: string;
-  phone: string;
-  address?: string;
-  additional_details?: string;
-  role: string;
-}
+import { User } from '@/types';
 
 interface AuthContextType {
   user: User | null;
   userRole: string | null;
   loading: boolean;
-  signUp: (email: string, password: string, fullName: string, phone?: string, username?: string) => Promise<{ error: any }>;
-  signIn: (identifier: string, password: string) => Promise<{ error: any }>;
-  signInPartner: (username: string, password: string) => Promise<{ error: any }>;
+  signIn: (username: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
 }
 
@@ -47,71 +36,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     // Check for existing session in localStorage
-    const storedUser = localStorage.getItem('local_auth_user');
+    const storedUser = localStorage.getItem('auth_user');
     if (storedUser) {
       try {
         const userData = JSON.parse(storedUser);
         setUser(userData);
         setUserRole(userData.role);
       } catch (error) {
-        localStorage.removeItem('local_auth_user');
+        localStorage.removeItem('auth_user');
       }
     }
     setLoading(false);
   }, []);
 
-  const signUp = async (email: string, password: string, fullName: string, phone?: string, username?: string) => {
-    // This is kept for compatibility but we'll use local auth
-    return { error: { message: 'Please use admin panel to create accounts' } };
-  };
-
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (username: string, password: string) => {
     try {
       const hashedPassword = await hashPassword(password);
       
-      // Use raw SQL query to avoid TypeScript issues with local_auth table
-      const { data, error } = await fetch('/rest/v1/rpc/authenticate_user', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1sb2Jsd3F3c2VmaG9zc2d3dnp0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg4OTc2NDIsImV4cCI6MjA2NDQ3MzY0Mn0.pjKLodHDjHsQw_a_n7m9qGU_DkxQ4LWGQLTgt4eCYJ0'
-        },
-        body: JSON.stringify({
-          p_username: email,
-          p_password_hash: hashedPassword
-        })
-      }).then(res => res.json());
-
-      if (error || !data) {
-        return { error: { message: 'Invalid credentials' } };
-      }
-
-      const userData: User = {
-        id: data.id,
-        username: data.username,
-        full_name: data.full_name,
-        phone: data.phone,
-        address: data.address,
-        additional_details: data.additional_details,
-        role: data.role
-      };
-
-      setUser(userData);
-      setUserRole(data.role);
-      localStorage.setItem('local_auth_user', JSON.stringify(userData));
-      
-      return { error: null };
-    } catch (error) {
-      return { error: { message: 'Login failed' } };
-    }
-  };
-
-  const signInPartner = async (username: string, password: string) => {
-    try {
-      const hashedPassword = await hashPassword(password);
-      
-      // Use raw SQL query to avoid TypeScript issues with local_auth table
-      const { data, error } = await fetch('/rest/v1/rpc/authenticate_user', {
+      const response = await fetch('/rest/v1/rpc/authenticate_user', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -121,36 +63,37 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           p_username: username,
           p_password_hash: hashedPassword
         })
-      }).then(res => res.json());
+      });
 
-      if (error || !data) {
+      const data = await response.json();
+
+      if (!response.ok || !data || data.length === 0) {
         return { error: { message: 'Invalid username or password' } };
       }
 
       const userData: User = {
-        id: data.id,
-        username: data.username,
-        full_name: data.full_name,
-        phone: data.phone,
-        address: data.address,
-        additional_details: data.additional_details,
-        role: data.role
+        id: data[0].id,
+        name: data[0].name,
+        phone: data[0].phone,
+        username: data[0].username,
+        address: data[0].address,
+        role: data[0].role
       };
 
       setUser(userData);
-      setUserRole(data.role);
-      localStorage.setItem('local_auth_user', JSON.stringify(userData));
+      setUserRole(data[0].role);
+      localStorage.setItem('auth_user', JSON.stringify(userData));
       
       return { error: null };
     } catch (error) {
-      return { error: { message: 'Invalid username or password' } };
+      return { error: { message: 'Login failed' } };
     }
   };
 
   const signOut = async () => {
     setUser(null);
     setUserRole(null);
-    localStorage.removeItem('local_auth_user');
+    localStorage.removeItem('auth_user');
     window.location.href = '/auth';
   };
 
@@ -158,9 +101,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     user,
     userRole,
     loading,
-    signUp,
     signIn,
-    signInPartner,
     signOut,
   };
 

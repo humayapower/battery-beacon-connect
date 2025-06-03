@@ -16,12 +16,11 @@ interface CreatePartnerModalProps {
 
 const CreatePartnerModal = ({ onPartnerCreated }: CreatePartnerModalProps) => {
   const [open, setOpen] = useState(false);
-  const [fullName, setFullName] = useState('');
+  const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('123456');
   const [address, setAddress] = useState('');
-  const [additionalDetails, setAdditionalDetails] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { createPartner, isAdmin } = useAdminFunctions();
@@ -35,8 +34,8 @@ const CreatePartnerModal = ({ onPartnerCreated }: CreatePartnerModalProps) => {
     setLoading(true);
 
     // Validation
-    if (!fullName.trim()) {
-      setError('Full name is required');
+    if (!name.trim()) {
+      setError('Name is required');
       setLoading(false);
       return;
     }
@@ -61,27 +60,25 @@ const CreatePartnerModal = ({ onPartnerCreated }: CreatePartnerModalProps) => {
 
     try {
       await createPartner(
-        fullName.trim(),
+        name.trim(),
         phone.trim(),
         username.trim(),
         password.trim(),
-        address.trim() || undefined,
-        additionalDetails.trim() || undefined
+        address.trim() || undefined
       );
       
       toast({
         title: "Partner created successfully",
-        description: `${fullName} has been added as a partner. They can now log in using their username.`,
+        description: `${name} has been added as a partner. They can now log in using their username.`,
       });
       
       setOpen(false);
       // Reset form
-      setFullName('');
+      setName('');
       setPhone('');
       setUsername('');
       setPassword('123456');
       setAddress('');
-      setAdditionalDetails('');
       onPartnerCreated?.();
     } catch (err: any) {
       setError(err.message || 'Failed to create partner');
@@ -111,13 +108,13 @@ const CreatePartnerModal = ({ onPartnerCreated }: CreatePartnerModalProps) => {
         
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="partnerName">Full Name *</Label>
+            <Label htmlFor="partnerName">Name *</Label>
             <Input
               id="partnerName"
               type="text"
-              placeholder="Enter partner's full name"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
+              placeholder="Enter partner's name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
               required
               disabled={loading}
             />
@@ -163,9 +160,6 @@ const CreatePartnerModal = ({ onPartnerCreated }: CreatePartnerModalProps) => {
               minLength={6}
               disabled={loading}
             />
-            <p className="text-xs text-gray-500">
-              Default password is 123456. Partner can change this after logging in.
-            </p>
           </div>
 
           <div className="space-y-2">
@@ -180,21 +174,9 @@ const CreatePartnerModal = ({ onPartnerCreated }: CreatePartnerModalProps) => {
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="additionalDetails">Additional Details (Optional)</Label>
-            <Textarea
-              id="additionalDetails"
-              placeholder="Any custom notes or description"
-              value={additionalDetails}
-              onChange={(e) => setAdditionalDetails(e.target.value)}
-              disabled={loading}
-              rows={2}
-            />
-          </div>
-
           <div className="bg-blue-50 p-3 rounded-md">
             <p className="text-sm text-blue-800">
-              <strong>Note:</strong> Partners will log in using their username and password only. 
+              <strong>Note:</strong> Partners will log in using their username and password. 
               Phone numbers and usernames must be unique across the platform.
             </p>
           </div>

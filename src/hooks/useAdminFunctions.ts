@@ -1,5 +1,6 @@
 
 import { useAuth } from '@/contexts/AuthContext';
+import { Partner } from '@/types';
 
 // Simple hash function for passwords (in production, use bcrypt or similar)
 const hashPassword = async (password: string): Promise<string> => {
@@ -14,22 +15,19 @@ export const useAdminFunctions = () => {
   const { userRole } = useAuth();
 
   const createPartner = async (
-    fullName: string, 
+    name: string, 
     phone: string, 
     username: string, 
     password: string = '123456',
-    address?: string,
-    additionalDetails?: string
+    address?: string
   ) => {
     if (userRole !== 'admin') {
       throw new Error('Only admins can create partners');
     }
 
     try {
-      // Hash the password
       const passwordHash = await hashPassword(password);
 
-      // Use raw fetch to avoid TypeScript issues with local_auth table
       const response = await fetch('/rest/v1/rpc/create_partner', {
         method: 'POST',
         headers: {
@@ -37,12 +35,11 @@ export const useAdminFunctions = () => {
           'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1sb2Jsd3F3c2VmaG9zc2d3dnp0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg4OTc2NDIsImV4cCI6MjA2NDQ3MzY0Mn0.pjKLodHDjHsQw_a_n7m9qGU_DkxQ4LWGQLTgt4eCYJ0'
         },
         body: JSON.stringify({
+          p_name: name,
+          p_phone: phone,
           p_username: username,
           p_password_hash: passwordHash,
-          p_full_name: fullName,
-          p_phone: phone,
-          p_address: address || null,
-          p_additional_details: additionalDetails || null
+          p_address: address || null
         })
       });
 
@@ -52,15 +49,54 @@ export const useAdminFunctions = () => {
         throw new Error(data.message || 'Failed to create partner');
       }
 
-      return { success: true, user: data };
+      return { success: true, data };
     } catch (error) {
       console.error('Error creating partner:', error);
       throw error;
     }
   };
 
+  const updatePartner = async (
+    partnerId: string,
+    updates: Partial<Pick<Partner, 'name' | 'phone' | 'address'>> & { password?: string }
+  ) => {
+    if (userRole !== 'admin') {
+      throw new Error('Only admins can update partners');
+    }
+
+    try {
+      const updateData: any = { ...updates };
+      
+      if (updates.password) {
+        updateData.password_hash = await hashPassword(updates.password);
+        delete updateData.password;
+      }
+
+      const response = await fetch(`/rest/v1/partners?id=eq.${partnerId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1sb2Jsd3F3c2VmaG9zc2d3dnp0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg4OTc2NDIsImV4cCI6MjA2NDQ3MzY0Mn0.pjKLodHDjHsQw_a_n7m9qGU_DkxQ4LWGQLTgt4eCYJ0',
+          'Prefer': 'return=representation'
+        },
+        body: JSON.stringify(updateData)
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update partner');
+      }
+
+      const data = await response.json();
+      return { success: true, data };
+    } catch (error) {
+      console.error('Error updating partner:', error);
+      throw error;
+    }
+  };
+
   return {
     createPartner,
+    updatePartner,
     isAdmin: userRole === 'admin'
   };
 };

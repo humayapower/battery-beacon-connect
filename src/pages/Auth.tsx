@@ -5,23 +5,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
+import { Shield, Users } from 'lucide-react';
 
 const Auth = () => {
-  const [isSignUp, setIsSignUp] = useState(false);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [fullName, setFullName] = useState('');
-  const [phone, setPhone] = useState('');
   const [username, setUsername] = useState('');
-  const [partnerUsername, setPartnerUsername] = useState('');
-  const [partnerPassword, setPartnerPassword] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { signIn, signInPartner, signUp, user } = useAuth();
+  const { signIn, user } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -30,50 +24,25 @@ const Auth = () => {
     }
   }, [user, navigate]);
 
-  const handleRegularSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
-    try {
-      let result;
-      if (isSignUp) {
-        if (!fullName.trim()) {
-          setError('Full name is required');
-          setLoading(false);
-          return;
-        }
-        result = await signUp(email, password, fullName, phone, username);
-      } else {
-        result = await signIn(email, password);
-      }
-
-      if (result.error) {
-        setError(result.error.message);
-      } else if (isSignUp) {
-        setError('');
-        alert('Check your email for a confirmation link!');
-      }
-    } catch (err) {
-      setError('An unexpected error occurred');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handlePartnerSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
-
-    if (!partnerUsername.trim()) {
+    if (!username.trim()) {
       setError('Username is required');
       setLoading(false);
       return;
     }
 
+    if (!password.trim()) {
+      setError('Password is required');
+      setLoading(false);
+      return;
+    }
+
     try {
-      const result = await signInPartner(partnerUsername, partnerPassword);
+      const result = await signIn(username.trim(), password);
       if (result.error) {
         setError(result.error.message);
       }
@@ -86,70 +55,37 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-gray-100 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl">Battery Management Platform</CardTitle>
-          <CardDescription>
-            Access your account or sign in as a partner
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Tabs defaultValue="regular" className="space-y-4">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="regular">Regular Login</TabsTrigger>
-              <TabsTrigger value="partner">Partner Login</TabsTrigger>
-            </TabsList>
+      <div className="w-full max-w-4xl">
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">
+            Battery Management Platform
+          </h1>
+          <p className="text-xl text-gray-600">
+            Sign in to access your dashboard
+          </p>
+        </div>
 
-            <TabsContent value="regular">
-              <form onSubmit={handleRegularSubmit} className="space-y-4">
-                {isSignUp && (
-                  <>
-                    <div className="space-y-2">
-                      <Label htmlFor="fullName">Full Name</Label>
-                      <Input
-                        id="fullName"
-                        type="text"
-                        placeholder="Enter your full name"
-                        value={fullName}
-                        onChange={(e) => setFullName(e.target.value)}
-                        required={isSignUp}
-                      />
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-2">
-                      <div className="space-y-2">
-                        <Label htmlFor="phone">Phone (Optional)</Label>
-                        <Input
-                          id="phone"
-                          type="tel"
-                          placeholder="Phone number"
-                          value={phone}
-                          onChange={(e) => setPhone(e.target.value)}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="username">Username (Optional)</Label>
-                        <Input
-                          id="username"
-                          type="text"
-                          placeholder="Username"
-                          value={username}
-                          onChange={(e) => setUsername(e.target.value)}
-                        />
-                      </div>
-                    </div>
-                  </>
-                )}
-                
+        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+          {/* Login Form */}
+          <Card className="w-full">
+            <CardHeader className="text-center">
+              <CardTitle className="text-2xl">Sign In</CardTitle>
+              <CardDescription>
+                Enter your username and password to continue
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="username">Username</Label>
                   <Input
-                    id="email"
-                    type="email"
-                    placeholder="Enter your email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    id="username"
+                    type="text"
+                    placeholder="Enter your username"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
                     required
+                    disabled={loading}
                   />
                 </div>
                 
@@ -162,77 +98,77 @@ const Auth = () => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
+                    disabled={loading}
                   />
                 </div>
 
                 <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? 'Loading...' : (isSignUp ? 'Sign Up' : 'Sign In')}
+                  {loading ? 'Signing In...' : 'Sign In'}
                 </Button>
 
-                <div className="text-center">
-                  <Button
-                    variant="link"
-                    type="button"
-                    onClick={() => {
-                      setIsSignUp(!isSignUp);
-                      setError('');
-                    }}
-                  >
-                    {isSignUp 
-                      ? 'Already have an account? Sign In' 
-                      : "Don't have an account? Sign Up"
-                    }
-                  </Button>
-                </div>
-              </form>
-            </TabsContent>
+                {error && (
+                  <Alert variant="destructive">
+                    <AlertDescription>{error}</AlertDescription>
+                  </Alert>
+                )}
 
-            <TabsContent value="partner">
-              <form onSubmit={handlePartnerSubmit} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="partnerUsername">Username</Label>
-                  <Input
-                    id="partnerUsername"
-                    type="text"
-                    placeholder="Enter your username"
-                    value={partnerUsername}
-                    onChange={(e) => setPartnerUsername(e.target.value)}
-                    required
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="partnerPassword">Password</Label>
-                  <Input
-                    id="partnerPassword"
-                    type="password"
-                    placeholder="Enter your password"
-                    value={partnerPassword}
-                    onChange={(e) => setPartnerPassword(e.target.value)}
-                    required
-                  />
-                </div>
-
-                <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? 'Signing In...' : 'Sign In as Partner'}
-                </Button>
-
-                <div className="bg-blue-50 p-3 rounded-md">
-                  <p className="text-sm text-blue-800">
-                    <strong>Partners:</strong> Use the username and password provided by your administrator.
+                <div className="bg-gray-50 p-4 rounded-md">
+                  <p className="text-sm text-gray-700 font-medium mb-2">Demo Credentials:</p>
+                  <p className="text-xs text-gray-600">
+                    <strong>Admin:</strong> username: admin, password: admin
+                  </p>
+                  <p className="text-xs text-gray-600">
+                    <strong>Partner:</strong> Contact admin for credentials
                   </p>
                 </div>
               </form>
-            </TabsContent>
-          </Tabs>
+            </CardContent>
+          </Card>
 
-          {error && (
-            <Alert variant="destructive" className="mt-4">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
-        </CardContent>
-      </Card>
+          {/* Access Types Info */}
+          <div className="space-y-6">
+            <Card className="hover:shadow-lg transition-shadow duration-300">
+              <CardHeader className="text-center pb-4">
+                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Shield className="w-8 h-8 text-blue-600" />
+                </div>
+                <CardTitle className="text-2xl">Admin Access</CardTitle>
+                <CardDescription className="text-base">
+                  Full platform management and oversight
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="text-center">
+                <ul className="text-sm text-gray-600 space-y-2">
+                  <li>• Create and manage partners</li>
+                  <li>• View all batteries and customers</li>
+                  <li>• Complete transaction history</li>
+                  <li>• System-wide analytics</li>
+                </ul>
+              </CardContent>
+            </Card>
+
+            <Card className="hover:shadow-lg transition-shadow duration-300">
+              <CardHeader className="text-center pb-4">
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Users className="w-8 h-8 text-green-600" />
+                </div>
+                <CardTitle className="text-2xl">Partner Access</CardTitle>
+                <CardDescription className="text-base">
+                  Manage assigned batteries and customers
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="text-center">
+                <ul className="text-sm text-gray-600 space-y-2">
+                  <li>• View assigned battery inventory</li>
+                  <li>• Manage customer relationships</li>
+                  <li>• Record transactions and payments</li>
+                  <li>• Generate customer reports</li>
+                </ul>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

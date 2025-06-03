@@ -10,7 +10,7 @@ interface AuthContextType {
   loading: boolean;
   signUp: (email: string, password: string, fullName: string, phone?: string, username?: string) => Promise<{ error: any }>;
   signIn: (identifier: string, password: string) => Promise<{ error: any }>;
-  signInPartner: (identifier: string, password: string) => Promise<{ error: any }>;
+  signInPartner: (username: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
 }
 
@@ -116,20 +116,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return { error };
   };
 
-  const signInPartner = async (identifier: string, password: string) => {
-    // For partners, try to find their email by phone or username
+  const signInPartner = async (username: string, password: string) => {
+    // For partners, find their temp email by username
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('email')
-      .or(`phone.eq.${identifier},username.eq.${identifier}`)
+      .select('username')
+      .eq('username', username)
       .single();
 
-    if (profileError || !profile?.email) {
-      return { error: { message: 'Invalid phone number or username' } };
+    if (profileError || !profile) {
+      return { error: { message: 'Invalid username' } };
     }
 
+    // Use the temporary email format we create for partners
+    const tempEmail = `${username}@partner.internal`;
+
     const { error } = await supabase.auth.signInWithPassword({
-      email: profile.email,
+      email: tempEmail,
       password,
     });
     

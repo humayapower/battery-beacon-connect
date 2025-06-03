@@ -17,7 +17,7 @@ const Auth = () => {
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
   const [username, setUsername] = useState('');
-  const [partnerIdentifier, setPartnerIdentifier] = useState('');
+  const [partnerUsername, setPartnerUsername] = useState('');
   const [partnerPassword, setPartnerPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -66,8 +66,14 @@ const Auth = () => {
     setError('');
     setLoading(true);
 
+    if (!partnerUsername.trim()) {
+      setError('Username is required');
+      setLoading(false);
+      return;
+    }
+
     try {
-      const result = await signInPartner(partnerIdentifier, partnerPassword);
+      const result = await signInPartner(partnerUsername, partnerPassword);
       if (result.error) {
         setError(result.error.message);
       }
@@ -184,13 +190,13 @@ const Auth = () => {
             <TabsContent value="partner">
               <form onSubmit={handlePartnerSubmit} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="partnerIdentifier">Phone Number or Username</Label>
+                  <Label htmlFor="partnerUsername">Username</Label>
                   <Input
-                    id="partnerIdentifier"
+                    id="partnerUsername"
                     type="text"
-                    placeholder="Enter phone number or username"
-                    value={partnerIdentifier}
-                    onChange={(e) => setPartnerIdentifier(e.target.value)}
+                    placeholder="Enter your username"
+                    value={partnerUsername}
+                    onChange={(e) => setPartnerUsername(e.target.value)}
                     required
                   />
                 </div>
@@ -210,6 +216,12 @@ const Auth = () => {
                 <Button type="submit" className="w-full" disabled={loading}>
                   {loading ? 'Signing In...' : 'Sign In as Partner'}
                 </Button>
+
+                <div className="bg-blue-50 p-3 rounded-md">
+                  <p className="text-sm text-blue-800">
+                    <strong>Partners:</strong> Use the username and password provided by your administrator.
+                  </p>
+                </div>
               </form>
             </TabsContent>
           </Tabs>

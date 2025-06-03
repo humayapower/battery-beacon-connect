@@ -5,21 +5,33 @@ import { useAuth } from '@/contexts/AuthContext';
 export const useAdminFunctions = () => {
   const { userRole } = useAuth();
 
-  const createPartner = async (email: string, password: string, fullName: string, phone?: string, username?: string) => {
+  const createPartner = async (
+    fullName: string, 
+    phone: string, 
+    username: string, 
+    password: string = '123456',
+    address?: string,
+    additionalDetails?: string
+  ) => {
     if (userRole !== 'admin') {
       throw new Error('Only admins can create partners');
     }
 
     try {
-      // Use regular signup instead of admin.createUser
+      // Create a temporary email for Supabase auth using username
+      const tempEmail = `${username}@partner.internal`;
+
+      // Use regular signup with temporary email
       const { data: authData, error: authError } = await supabase.auth.signUp({
-        email,
+        email: tempEmail,
         password,
         options: {
           data: {
             full_name: fullName,
-            phone: phone || null,
-            username: username || null,
+            phone: phone,
+            username: username,
+            address: address || null,
+            additional_details: additionalDetails || null,
           },
           emailRedirectTo: undefined, // No email verification for partners
         },

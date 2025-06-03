@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Trash2, AlertTriangle } from 'lucide-react';
 import { usePartners } from '@/hooks/usePartners';
-import { useToast } = from '@/hooks/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { Partner } from '@/types';
 
 interface DeletePartnerModalProps {

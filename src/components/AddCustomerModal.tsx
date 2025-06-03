@@ -68,7 +68,7 @@ const AddCustomerModal = () => {
       const customerData: Omit<Customer, 'id' | 'created_at' | 'updated_at' | 'batteries'> = {
         ...formData,
         partner_id: userRole === 'admin' ? null : user?.id || null,
-        battery_id: formData.battery_id || null,
+        battery_id: formData.battery_id === 'none' ? null : formData.battery_id || null,
         phone: formData.phone || null,
         address: formData.address || null,
         monthly_fee: formData.monthly_fee ? parseFloat(formData.monthly_fee) : null,
@@ -187,7 +187,7 @@ const AddCustomerModal = () => {
                   <SelectValue placeholder="Select battery" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">No battery assigned</SelectItem>
+                  <SelectItem value="none">No battery assigned</SelectItem>
                   {availableBatteries.map((battery) => (
                     <SelectItem key={battery.id} value={battery.id}>
                       {battery.serial_number} - {battery.model} ({battery.capacity})

@@ -159,4 +159,4 @@ export const useBatteries = () => {
   };
 };
 
-export { Battery };
+export type { Battery };

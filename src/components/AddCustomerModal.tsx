@@ -1,14 +1,12 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Plus } from 'lucide-react';
-import { useCustomers, Customer } from '@/hooks/useCustomers';
+import { Plus, Users } from 'lucide-react';
+import { useCustomers, CustomerWithBattery } from '@/hooks/useCustomers';
 import { useBatteries } from '@/hooks/useBatteries';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -21,7 +19,7 @@ interface CustomerFormData {
   phone: string;
   address: string;
   battery_id: string;
-  status: CustomerStatus;
+  status: string;
   monthly_fee: string;
 }
 
@@ -65,17 +63,19 @@ const AddCustomerModal = () => {
     setLoading(true);
 
     try {
-      const customerData: Omit<Customer, 'id' | 'created_at' | 'updated_at'> = {
+      const customerData: Omit<CustomerWithBattery, 'id' | 'created_at' | 'updated_at' | 'batteries'> = {
         customer_id: formData.customer_id,
         name: formData.name,
         email: formData.email,
         phone: formData.phone || '',
         address: formData.address || null,
         payment_type: 'monthly_rent',
+        monthly_amount: formData.monthly_fee ? parseFloat(formData.monthly_fee) : null,
+        monthly_fee: formData.monthly_fee ? parseFloat(formData.monthly_fee) : null,
         partner_id: userRole === 'admin' ? null : user?.id || null,
         battery_id: formData.battery_id === 'none' ? null : formData.battery_id || null,
-        monthly_amount: formData.monthly_fee ? parseFloat(formData.monthly_fee) : null,
         join_date: new Date().toISOString().split('T')[0],
+        last_payment_date: null,
         status: formData.status.toLowerCase() as 'active' | 'inactive' | 'suspended',
       };
 

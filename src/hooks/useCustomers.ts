@@ -63,7 +63,7 @@ export const useCustomers = () => {
 
       if (error) throw error;
       
-      await fetchCustomers(); // Refetch to get the battery data
+      await fetchCustomers();
       toast({
         title: "Customer added successfully",
         description: `Customer ${customerData.name} has been added.`,
@@ -91,7 +91,7 @@ export const useCustomers = () => {
 
       if (error) throw error;
       
-      await fetchCustomers(); // Refetch to get updated data with relations
+      await fetchCustomers();
       toast({
         title: "Customer updated successfully",
         description: "Customer information has been updated.",
@@ -153,4 +153,4 @@ export const useCustomers = () => {
   };
 };
 
-export type { CustomerWithBattery };
+export type { Customer, CustomerWithBattery };

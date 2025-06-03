@@ -1,12 +1,10 @@
-
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, Mail, Phone, MapPin, CreditCard, Battery, User, X } from 'lucide-react';
-import { useCustomers, Customer } from '@/hooks/useCustomers';
-import { useTransactions } from '@/hooks/useTransactions';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Phone, Mail, MapPin, Battery, Calendar, DollarSign, X } from 'lucide-react';
+import { useCustomers, CustomerWithBattery } from '@/hooks/useCustomers';
 
 interface CustomerDetailsModalProps {
   customerId: string | null;
@@ -15,66 +13,65 @@ interface CustomerDetailsModalProps {
 }
 
 const CustomerDetailsModal = ({ customerId, isOpen, onClose }: CustomerDetailsModalProps) => {
-  const [customer, setCustomer] = useState<Customer | null>(null);
+  const [customer, setCustomer] = useState<CustomerWithBattery | null>(null);
   const [loading, setLoading] = useState(false);
   const { getCustomerById } = useCustomers();
-  const { transactions } = useTransactions();
-
-  const customerTransactions = transactions.filter(t => t.customer_id === customerId);
 
   useEffect(() => {
-    const fetchCustomerDetails = async () => {
-      if (!customerId) return;
-      
-      setLoading(true);
-      const result = await getCustomerById(customerId);
-      if (result.success) {
-        setCustomer(result.data);
-      }
-      setLoading(false);
-    };
-
-    if (isOpen && customerId) {
+    if (customerId && isOpen) {
       fetchCustomerDetails();
     }
-  }, [customerId, isOpen, getCustomerById]);
+  }, [customerId, isOpen]);
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'active':
-        return 'bg-green-100 text-green-800';
-      case 'suspended':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'inactive':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
+  const fetchCustomerDetails = async () => {
+    if (!customerId) return;
+    
+    setLoading(true);
+    try {
+      const result = await getCustomerById(customerId);
+      if (result.success) {
+        setCustomer(result.data as CustomerWithBattery);
+      }
+    } catch (error) {
+      console.error('Error fetching customer details:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const formatDate = (dateString: string | null) => {
-    if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleDateString();
+  const getStatusColor = (status: string) => {
+    switch (status?.toLowerCase()) {
+      case 'active':
+        return 'bg-green-100 text-green-800';
+      case 'inactive':
+        return 'bg-gray-100 text-gray-800';
+      case 'suspended':
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-blue-100 text-blue-800';
+    }
   };
 
-  const formatCurrency = (amount: number | null) => {
-    if (!amount) return 'N/A';
-    return `$${amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
+  const formatDate = (dateString: string | null | undefined) => {
+    if (!dateString) return 'N/A';
+    return new Date(dateString).toLocaleDateString();
   };
 
   if (!isOpen) return null;
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader className="flex flex-row items-center justify-between">
-          <DialogTitle className="flex items-center space-x-2">
-            <User className="w-5 h-5" />
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center justify-between">
             <span>Customer Details</span>
+            <Button variant="ghost" size="icon" onClick={onClose}>
+              <X className="h-4 w-4" />
+            </Button>
           </DialogTitle>
-          <Button variant="ghost" size="sm" onClick={onClose}>
-            <X className="w-4 h-4" />
-          </Button>
+          <DialogDescription>
+            View detailed information about this customer.
+          </DialogDescription>
         </DialogHeader>
 
         {loading ? (
@@ -84,139 +81,133 @@ const CustomerDetailsModal = ({ customerId, isOpen, onClose }: CustomerDetailsMo
         ) : customer ? (
           <div className="space-y-6">
             {/* Customer Overview */}
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle className="text-2xl">{customer.name}</CardTitle>
-                    <CardDescription>Customer ID: {customer.id}</CardDescription>
-                  </div>
+            <div className="flex flex-col md:flex-row gap-4 items-start">
+              <div className="bg-blue-100 rounded-full p-6 text-blue-700">
+                <span className="text-2xl font-bold">{customer.name?.charAt(0) || '?'}</span>
+              </div>
+              <div className="flex-1">
+                <h2 className="text-2xl font-bold">{customer.name}</h2>
+                <div className="flex items-center mt-1 space-x-2">
                   <Badge className={getStatusColor(customer.status)}>
                     {customer.status}
                   </Badge>
+                  {customer.customer_id && (
+                    <span className="text-sm text-gray-500">ID: {customer.customer_id}</span>
+                  )}
                 </div>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-4">
-                    <h3 className="font-semibold text-lg">Contact Information</h3>
-                    <div className="space-y-3">
-                      {customer.email && (
-                        <div className="flex items-center space-x-3">
-                          <Mail className="w-4 h-4 text-gray-500" />
-                          <span>{customer.email}</span>
-                        </div>
-                      )}
-                      <div className="flex items-center space-x-3">
-                        <Phone className="w-4 h-4 text-gray-500" />
-                        <span>{customer.phone}</span>
-                      </div>
-                      {customer.address && (
-                        <div className="flex items-start space-x-3">
-                          <MapPin className="w-4 h-4 text-gray-500 mt-1" />
-                          <span className="text-sm">{customer.address}</span>
-                        </div>
-                      )}
+                <div className="mt-3 space-y-2">
+                  {customer.phone && (
+                    <div className="flex items-center text-gray-600">
+                      <Phone className="h-4 w-4 mr-2" />
+                      <span>{customer.phone}</span>
                     </div>
-                  </div>
-
-                  <div className="space-y-4">
-                    <h3 className="font-semibold text-lg">Account Information</h3>
-                    <div className="space-y-3">
-                      <div className="flex items-center space-x-3">
-                        <Calendar className="w-4 h-4 text-gray-500" />
-                        <span className="text-sm">
-                          <span className="font-medium">Join Date:</span> {formatDate(customer.join_date)}
-                        </span>
-                      </div>
-                      <div className="flex items-center space-x-3">
-                        <CreditCard className="w-4 h-4 text-gray-500" />
-                        <span className="text-sm">
-                          <span className="font-medium">Monthly Amount:</span> {formatCurrency(customer.monthly_amount)}
-                        </span>
-                      </div>
-                      <div className="flex items-center space-x-3">
-                        <span className="text-sm">
-                          <span className="font-medium">Payment Type:</span> {customer.payment_type}
-                        </span>
-                      </div>
+                  )}
+                  {customer.email && (
+                    <div className="flex items-center text-gray-600">
+                      <Mail className="h-4 w-4 mr-2" />
+                      <span>{customer.email}</span>
                     </div>
-                  </div>
+                  )}
+                  {customer.address && (
+                    <div className="flex items-center text-gray-600">
+                      <MapPin className="h-4 w-4 mr-2" />
+                      <span>{customer.address}</span>
+                    </div>
+                  )}
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
 
-            {/* Battery Information */}
-            {customer.batteries && (
+            {/* Customer Details */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center space-x-2">
-                    <Battery className="w-5 h-5" />
-                    <span>Assigned Battery</span>
-                  </CardTitle>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-lg">Payment Information</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-3 gap-4">
-                    <div>
-                      <span className="font-medium">Serial Number:</span>
-                      <p className="text-sm text-gray-600">{customer.batteries.serial_number}</p>
+                  <dl className="space-y-2">
+                    <div className="flex justify-between">
+                      <dt className="text-gray-500">Payment Type:</dt>
+                      <dd className="font-medium">
+                        {customer.payment_type === 'emi' ? 'EMI' : 
+                         customer.payment_type === 'monthly_rent' ? 'Monthly Rent' : 
+                         customer.payment_type === 'one_time_purchase' ? 'One-time Purchase' : 'N/A'}
+                      </dd>
                     </div>
-                    <div>
-                      <span className="font-medium">Model:</span>
-                      <p className="text-sm text-gray-600">{customer.batteries.model}</p>
+                    {customer.monthly_amount && (
+                      <div className="flex justify-between">
+                        <dt className="text-gray-500">Monthly Amount:</dt>
+                        <dd className="font-medium">${customer.monthly_amount}</dd>
+                      </div>
+                    )}
+                    <div className="flex justify-between">
+                      <dt className="text-gray-500">Join Date:</dt>
+                      <dd className="font-medium">{formatDate(customer.join_date)}</dd>
                     </div>
-                    <div>
-                      <span className="font-medium">Capacity:</span>
-                      <p className="text-sm text-gray-600">{customer.batteries.capacity}</p>
+                    <div className="flex justify-between">
+                      <dt className="text-gray-500">Last Payment:</dt>
+                      <dd className="font-medium">{formatDate(customer.last_payment_date)}</dd>
                     </div>
-                  </div>
+                  </dl>
                 </CardContent>
               </Card>
-            )}
 
-            {/* Transaction History */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Transaction History</CardTitle>
-                <CardDescription>
-                  {customerTransactions.length} transaction(s) found
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {customerTransactions.length > 0 ? (
-                  <div className="space-y-3">
-                    {customerTransactions.slice(0, 5).map((transaction) => (
-                      <div key={transaction.id} className="flex items-center justify-between p-3 border rounded-lg">
-                        <div className="flex items-center space-x-3">
-                          <div>
-                            <p className="font-medium">{transaction.id}</p>
-                            <p className="text-sm text-gray-600">{transaction.transaction_type}</p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-medium">${transaction.amount.toFixed(2)}</p>
-                          <p className="text-sm text-gray-600">{formatDate(transaction.transaction_date)}</p>
-                        </div>
-                        <Badge className={getStatusColor(transaction.payment_status)}>
-                          {transaction.payment_status}
-                        </Badge>
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-lg">Battery Information</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {customer.batteries ? (
+                    <dl className="space-y-2">
+                      <div className="flex justify-between">
+                        <dt className="text-gray-500">Serial Number:</dt>
+                        <dd className="font-medium">{customer.batteries.serial_number}</dd>
                       </div>
-                    ))}
-                    {customerTransactions.length > 5 && (
-                      <p className="text-sm text-gray-600 text-center">
-                        ... and {customerTransactions.length - 5} more transactions
-                      </p>
-                    )}
-                  </div>
-                ) : (
-                  <p className="text-gray-600 text-center py-4">No transactions found for this customer.</p>
-                )}
-              </CardContent>
-            </Card>
+                      <div className="flex justify-between">
+                        <dt className="text-gray-500">Model:</dt>
+                        <dd className="font-medium">{customer.batteries.model}</dd>
+                      </div>
+                      <div className="flex justify-between">
+                        <dt className="text-gray-500">Capacity:</dt>
+                        <dd className="font-medium">{customer.batteries.capacity}</dd>
+                      </div>
+                      {customer.batteries.status && (
+                        <div className="flex justify-between">
+                          <dt className="text-gray-500">Status:</dt>
+                          <dd>
+                            <Badge className={
+                              customer.batteries.status === 'available' ? 'bg-green-100 text-green-800' :
+                              customer.batteries.status === 'assigned' ? 'bg-blue-100 text-blue-800' :
+                              'bg-orange-100 text-orange-800'
+                            }>
+                              {customer.batteries.status}
+                            </Badge>
+                          </dd>
+                        </div>
+                      )}
+                    </dl>
+                  ) : (
+                    <div className="text-center py-4 text-gray-500">
+                      No battery assigned
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Actions */}
+            <div className="flex justify-end space-x-2 pt-4 border-t">
+              <Button variant="outline" onClick={onClose}>
+                Close
+              </Button>
+              <Button>
+                Edit Customer
+              </Button>
+            </div>
           </div>
         ) : (
-          <div className="text-center py-8">
-            <p className="text-gray-600">Customer not found.</p>
+          <div className="text-center py-8 text-gray-500">
+            Customer not found or an error occurred.
           </div>
         )}
       </DialogContent>

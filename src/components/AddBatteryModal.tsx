@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -80,7 +79,7 @@ const AddBatteryModal = () => {
         capacity: formData.capacity,
         imei_number: formData.imei_number || null,
         sim_number: formData.sim_number || null,
-        status: 'Available', // Automatically set to Available
+        status: 'available',
         partner_id: userRole === 'admin' ? null : user?.id || null,
         warranty_period: formData.warranty_period ? parseInt(formData.warranty_period) : null,
         warranty_expiry: formData.warranty_expiry || null,

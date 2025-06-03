@@ -29,6 +29,7 @@ export type Database = {
           updated_at: string | null
           voltage: number | null
           warranty_expiry: string | null
+          warranty_period: number | null
         }
         Insert: {
           capacity: string
@@ -49,6 +50,7 @@ export type Database = {
           updated_at?: string | null
           voltage?: number | null
           warranty_expiry?: string | null
+          warranty_period?: number | null
         }
         Update: {
           capacity?: string
@@ -69,6 +71,7 @@ export type Database = {
           updated_at?: string | null
           voltage?: number | null
           warranty_expiry?: string | null
+          warranty_period?: number | null
         }
         Relationships: []
       }

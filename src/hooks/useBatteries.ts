@@ -32,7 +32,24 @@ export const useBatteries = () => {
   const fetchBatteries = async () => {
     try {
       setLoading(true);
-      let query = supabase.from('batteries').select('*');
+      let query = supabase.from('batteries').select(`
+        id,
+        serial_number,
+        model,
+        model_name,
+        model_number,
+        manufacturing_date,
+        voltage,
+        capacity,
+        imei_number,
+        sim_number,
+        status,
+        partner_id,
+        warranty_expiry,
+        warranty_period,
+        created_at,
+        updated_at
+      `);
       
       if (userRole === 'partner') {
         query = query.eq('partner_id', user?.id);
@@ -58,7 +75,24 @@ export const useBatteries = () => {
       const { data, error } = await supabase
         .from('batteries')
         .insert([batteryData])
-        .select()
+        .select(`
+          id,
+          serial_number,
+          model,
+          model_name,
+          model_number,
+          manufacturing_date,
+          voltage,
+          capacity,
+          imei_number,
+          sim_number,
+          status,
+          partner_id,
+          warranty_expiry,
+          warranty_period,
+          created_at,
+          updated_at
+        `)
         .single();
 
       if (error) throw error;
@@ -86,7 +120,24 @@ export const useBatteries = () => {
         .from('batteries')
         .update(updates)
         .eq('id', id)
-        .select()
+        .select(`
+          id,
+          serial_number,
+          model,
+          model_name,
+          model_number,
+          manufacturing_date,
+          voltage,
+          capacity,
+          imei_number,
+          sim_number,
+          status,
+          partner_id,
+          warranty_expiry,
+          warranty_period,
+          created_at,
+          updated_at
+        `)
         .single();
 
       if (error) throw error;

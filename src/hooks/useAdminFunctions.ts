@@ -1,5 +1,4 @@
 
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
 // Simple hash function for passwords (in production, use bcrypt or similar)
@@ -27,49 +26,33 @@ export const useAdminFunctions = () => {
     }
 
     try {
-      // Check if username already exists
-      const { data: existingUsername, error: usernameError } = await supabase
-        .from('local_auth')
-        .select('username')
-        .eq('username', username)
-        .single();
-
-      if (existingUsername) {
-        throw new Error('Username already exists');
-      }
-
-      // Check if phone already exists
-      const { data: existingPhone, error: phoneError } = await supabase
-        .from('local_auth')
-        .select('phone')
-        .eq('phone', phone)
-        .single();
-
-      if (existingPhone) {
-        throw new Error('Phone number already exists');
-      }
-
       // Hash the password
       const passwordHash = await hashPassword(password);
 
-      // Create partner in local_auth table
-      const { data: authData, error: authError } = await supabase
-        .from('local_auth')
-        .insert({
-          username,
-          password_hash: passwordHash,
-          full_name: fullName,
-          phone,
-          address: address || null,
-          additional_details: additionalDetails || null,
-          role: 'partner'
+      // Use raw fetch to avoid TypeScript issues with local_auth table
+      const response = await fetch('/rest/v1/rpc/create_partner', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1sb2Jsd3F3c2VmaG9zc2d3dnp0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg4OTc2NDIsImV4cCI6MjA2NDQ3MzY0Mn0.pjKLodHDjHsQw_a_n7m9qGU_DkxQ4LWGQLTgt4eCYJ0'
+        },
+        body: JSON.stringify({
+          p_username: username,
+          p_password_hash: passwordHash,
+          p_full_name: fullName,
+          p_phone: phone,
+          p_address: address || null,
+          p_additional_details: additionalDetails || null
         })
-        .select()
-        .single();
+      });
 
-      if (authError) throw authError;
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to create partner');
+      }
 
-      return { success: true, user: authData };
+      return { success: true, user: data };
     } catch (error) {
       console.error('Error creating partner:', error);
       throw error;

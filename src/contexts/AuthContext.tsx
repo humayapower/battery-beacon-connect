@@ -1,6 +1,5 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 
 interface User {
   id: string;
@@ -70,12 +69,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const hashedPassword = await hashPassword(password);
       
-      const { data, error } = await supabase
-        .from('local_auth')
-        .select('*')
-        .eq('username', email) // Using email field as username for regular login
-        .eq('password_hash', hashedPassword)
-        .single();
+      // Use raw SQL query to avoid TypeScript issues with local_auth table
+      const { data, error } = await fetch('/rest/v1/rpc/authenticate_user', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1sb2Jsd3F3c2VmaG9zc2d3dnp0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg4OTc2NDIsImV4cCI6MjA2NDQ3MzY0Mn0.pjKLodHDjHsQw_a_n7m9qGU_DkxQ4LWGQLTgt4eCYJ0'
+        },
+        body: JSON.stringify({
+          p_username: email,
+          p_password_hash: hashedPassword
+        })
+      }).then(res => res.json());
 
       if (error || !data) {
         return { error: { message: 'Invalid credentials' } };
@@ -105,12 +110,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const hashedPassword = await hashPassword(password);
       
-      const { data, error } = await supabase
-        .from('local_auth')
-        .select('*')
-        .eq('username', username)
-        .eq('password_hash', hashedPassword)
-        .single();
+      // Use raw SQL query to avoid TypeScript issues with local_auth table
+      const { data, error } = await fetch('/rest/v1/rpc/authenticate_user', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1sb2Jsd3F3c2VmaG9zc2d3dnp0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg4OTc2NDIsImV4cCI6MjA2NDQ3MzY0Mn0.pjKLodHDjHsQw_a_n7m9qGU_DkxQ4LWGQLTgt4eCYJ0'
+        },
+        body: JSON.stringify({
+          p_username: username,
+          p_password_hash: hashedPassword
+        })
+      }).then(res => res.json());
 
       if (error || !data) {
         return { error: { message: 'Invalid username or password' } };

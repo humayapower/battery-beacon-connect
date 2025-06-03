@@ -128,7 +128,8 @@ const PartnerTable = () => {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Partner Name</TableHead>
-                    <TableHead>Email</TableHead>
+                    <TableHead>Username</TableHead>
+                    <TableHead>Phone</TableHead>
                     <TableHead>Batteries</TableHead>
                     <TableHead>Customers</TableHead>
                     <TableHead>Status</TableHead>
@@ -141,7 +142,8 @@ const PartnerTable = () => {
                       <TableCell className="font-medium">
                         {partner.full_name || 'No name provided'}
                       </TableCell>
-                      <TableCell>{partner.email}</TableCell>
+                      <TableCell>{partner.username}</TableCell>
+                      <TableCell>{partner.phone}</TableCell>
                       <TableCell>
                         <div className="flex items-center space-x-1">
                           <Battery className="w-4 h-4 text-gray-500" />

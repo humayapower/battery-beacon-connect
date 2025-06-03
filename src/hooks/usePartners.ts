@@ -1,6 +1,5 @@
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
@@ -28,42 +27,22 @@ export const usePartners = () => {
     try {
       setLoading(true);
       
-      // Get all partners from local_auth table
-      const { data: partnersData, error: partnersError } = await supabase
-        .from('local_auth')
-        .select('*')
-        .eq('role', 'partner');
+      // Use raw fetch to avoid TypeScript issues with local_auth table
+      const response = await fetch('/rest/v1/rpc/get_partners_with_counts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1sb2Jsd3F3c2VmaG9zc2d3dnp0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg4OTc2NDIsImV4cCI6MjA2NDQ3MzY0Mn0.pjKLodHDjHsQw_a_n7m9qGU_DkxQ4LWGQLTgt4eCYJ0'
+        }
+      });
 
-      if (partnersError) throw partnersError;
-
-      if (!partnersData || partnersData.length === 0) {
-        setPartners([]);
-        return;
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to fetch partners');
       }
 
-      // Get battery and customer counts for each partner
-      const partnersWithCounts = await Promise.all(
-        partnersData.map(async (partner) => {
-          const [batteryCount, customerCount] = await Promise.all([
-            supabase
-              .from('batteries')
-              .select('id', { count: 'exact' })
-              .eq('partner_id', partner.id),
-            supabase
-              .from('customers')
-              .select('id', { count: 'exact' })
-              .eq('partner_id', partner.id)
-          ]);
-
-          return {
-            ...partner,
-            battery_count: batteryCount.count || 0,
-            customer_count: customerCount.count || 0
-          };
-        })
-      );
-
-      setPartners(partnersWithCounts);
+      setPartners(data || []);
     } catch (error: any) {
       toast({
         title: "Error fetching partners",

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -166,7 +167,7 @@ const AdminDashboard = () => {
             <div className="flex items-center justify-between">
               <SidebarTrigger />
               <div className="flex items-center space-x-4">
-                <span className="text-sm text-gray-600">Welcome, {user?.user_metadata?.full_name || user?.email}</span>
+                <span className="text-sm text-gray-600">Welcome, {user?.full_name || user?.username}</span>
                 <Badge className="bg-blue-100 text-blue-800">Administrator</Badge>
               </div>
             </div>

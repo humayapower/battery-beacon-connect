@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,10 +9,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import BatteryTable from './BatteryTable';
 import CustomerTable from './CustomerTable';
 import TransactionTable from './TransactionTable';
-
-interface PartnerDashboardProps {
-  onRoleChange: () => void;
-}
 
 const PartnerDashboard = () => {
   const [activeSection, setActiveSection] = useState('overview');
@@ -175,7 +172,7 @@ const PartnerDashboard = () => {
             <div className="flex items-center justify-between">
               <SidebarTrigger />
               <div className="flex items-center space-x-4">
-                <span className="text-sm text-gray-600">Welcome, {user?.user_metadata?.full_name || user?.email}</span>
+                <span className="text-sm text-gray-600">Welcome, {user?.full_name || user?.username}</span>
                 <Badge className="bg-green-100 text-green-800">Partner</Badge>
               </div>
             </div>

@@ -5,11 +5,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Plus } from 'lucide-react';
+import { Plus, UserPlus } from 'lucide-react';
 import { useAdminFunctions } from '@/hooks/useAdminFunctions';
 import { useToast } from '@/hooks/use-toast';
 
-const CreatePartnerModal = () => {
+interface CreatePartnerModalProps {
+  onPartnerCreated?: () => void;
+}
+
+const CreatePartnerModal = ({ onPartnerCreated }: CreatePartnerModalProps) => {
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -26,6 +30,24 @@ const CreatePartnerModal = () => {
     setError('');
     setLoading(true);
 
+    if (!fullName.trim()) {
+      setError('Full name is required');
+      setLoading(false);
+      return;
+    }
+
+    if (!email.trim()) {
+      setError('Email is required');
+      setLoading(false);
+      return;
+    }
+
+    if (!password.trim() || password.length < 6) {
+      setError('Password must be at least 6 characters long');
+      setLoading(false);
+      return;
+    }
+
     try {
       await createPartner(email, password, fullName);
       toast({
@@ -36,6 +58,7 @@ const CreatePartnerModal = () => {
       setEmail('');
       setPassword('');
       setFullName('');
+      onPartnerCreated?.();
     } catch (err: any) {
       setError(err.message || 'Failed to create partner');
     } finally {
@@ -51,9 +74,12 @@ const CreatePartnerModal = () => {
           Create Partner
         </Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Create New Partner</DialogTitle>
+          <DialogTitle className="flex items-center space-x-2">
+            <UserPlus className="w-5 h-5" />
+            <span>Create New Partner</span>
+          </DialogTitle>
           <DialogDescription>
             Add a new partner to the platform. They will receive an email confirmation to activate their account.
           </DialogDescription>
@@ -61,7 +87,7 @@ const CreatePartnerModal = () => {
         
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="partnerName">Full Name</Label>
+            <Label htmlFor="partnerName">Full Name *</Label>
             <Input
               id="partnerName"
               type="text"
@@ -69,11 +95,12 @@ const CreatePartnerModal = () => {
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
               required
+              disabled={loading}
             />
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="partnerEmail">Email</Label>
+            <Label htmlFor="partnerEmail">Email Address *</Label>
             <Input
               id="partnerEmail"
               type="email"
@@ -81,19 +108,25 @@ const CreatePartnerModal = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              disabled={loading}
             />
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="partnerPassword">Password</Label>
+            <Label htmlFor="partnerPassword">Temporary Password *</Label>
             <Input
               id="partnerPassword"
               type="password"
-              placeholder="Enter temporary password"
+              placeholder="Minimum 6 characters"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              minLength={6}
+              disabled={loading}
             />
+            <p className="text-xs text-gray-500">
+              The partner can change this password after logging in.
+            </p>
           </div>
 
           {error && (
@@ -102,12 +135,31 @@ const CreatePartnerModal = () => {
             </Alert>
           )}
 
-          <div className="flex justify-end space-x-2">
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+          <div className="flex justify-end space-x-2 pt-4">
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => setOpen(false)}
+              disabled={loading}
+            >
               Cancel
             </Button>
-            <Button type="submit" disabled={loading}>
-              {loading ? 'Creating...' : 'Create Partner'}
+            <Button 
+              type="submit" 
+              disabled={loading}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              {loading ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Creating...
+                </>
+              ) : (
+                <>
+                  <UserPlus className="w-4 h-4 mr-2" />
+                  Create Partner
+                </>
+              )}
             </Button>
           </div>
         </form>

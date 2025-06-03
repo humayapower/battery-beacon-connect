@@ -98,10 +98,10 @@ const BatteryTable = ({ isAdmin }: BatteryTableProps) => {
                     <TableHead>Capacity</TableHead>
                     <TableHead>Voltage</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead>IMEI</TableHead>
-                    <TableHead>SIM</TableHead>
-                    <TableHead>Warranty</TableHead>
-                    <TableHead>Mfg. Date</TableHead>
+                    {/* <TableHead>IMEI</TableHead> */}
+                    {/* <TableHead>SIM</TableHead> */}
+                    {/* <TableHead>Warranty</TableHead>  */}
+                    {/* <TableHead>Mfg. Date</TableHead> */}
                     <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>

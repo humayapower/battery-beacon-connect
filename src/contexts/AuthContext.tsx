@@ -1,11 +1,19 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+
+interface User {
+  id: string;
+  username: string;
+  full_name: string;
+  phone: string;
+  address?: string;
+  additional_details?: string;
+  role: string;
+}
 
 interface AuthContextType {
   user: User | null;
-  session: Session | null;
   userRole: string | null;
   loading: boolean;
   signUp: (email: string, password: string, fullName: string, phone?: string, username?: string) => Promise<{ error: any }>;
@@ -24,135 +32,119 @@ export const useAuth = () => {
   return context;
 };
 
+// Simple hash function for passwords (in production, use bcrypt or similar)
+const hashPassword = async (password: string): Promise<string> => {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(password);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+};
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchUserRole = async (userId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', userId)
-        .single();
-      
-      if (error) {
-        console.error('Error fetching user role:', error);
-        return null;
-      }
-      
-      return data?.role || null;
-    } catch (error) {
-      console.error('Error fetching user role:', error);
-      return null;
-    }
-  };
-
   useEffect(() => {
-    // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        if (session?.user) {
-          setTimeout(async () => {
-            const role = await fetchUserRole(session.user.id);
-            setUserRole(role);
-            setLoading(false);
-          }, 0);
-        } else {
-          setUserRole(null);
-          setLoading(false);
-        }
+    // Check for existing session in localStorage
+    const storedUser = localStorage.getItem('local_auth_user');
+    if (storedUser) {
+      try {
+        const userData = JSON.parse(storedUser);
+        setUser(userData);
+        setUserRole(userData.role);
+      } catch (error) {
+        localStorage.removeItem('local_auth_user');
       }
-    );
-
-    // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      if (session?.user) {
-        fetchUserRole(session.user.id).then((role) => {
-          setUserRole(role);
-          setLoading(false);
-        });
-      } else {
-        setLoading(false);
-      }
-    });
-
-    return () => subscription.unsubscribe();
+    }
+    setLoading(false);
   }, []);
 
   const signUp = async (email: string, password: string, fullName: string, phone?: string, username?: string) => {
-    const redirectUrl = `${window.location.origin}/`;
-    
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: redirectUrl,
-        data: {
-          full_name: fullName,
-          phone: phone || null,
-          username: username || null,
-        },
-      },
-    });
-    
-    return { error };
+    // This is kept for compatibility but we'll use local auth
+    return { error: { message: 'Please use admin panel to create accounts' } };
   };
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    
-    return { error };
+    try {
+      const hashedPassword = await hashPassword(password);
+      
+      const { data, error } = await supabase
+        .from('local_auth')
+        .select('*')
+        .eq('username', email) // Using email field as username for regular login
+        .eq('password_hash', hashedPassword)
+        .single();
+
+      if (error || !data) {
+        return { error: { message: 'Invalid credentials' } };
+      }
+
+      const userData: User = {
+        id: data.id,
+        username: data.username,
+        full_name: data.full_name,
+        phone: data.phone,
+        address: data.address,
+        additional_details: data.additional_details,
+        role: data.role
+      };
+
+      setUser(userData);
+      setUserRole(data.role);
+      localStorage.setItem('local_auth_user', JSON.stringify(userData));
+      
+      return { error: null };
+    } catch (error) {
+      return { error: { message: 'Login failed' } };
+    }
   };
 
   const signInPartner = async (username: string, password: string) => {
     try {
-      // Find partner by username first
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
+      const hashedPassword = await hashPassword(password);
+      
+      const { data, error } = await supabase
+        .from('local_auth')
         .select('*')
         .eq('username', username)
+        .eq('password_hash', hashedPassword)
         .single();
 
-      if (profileError || !profile) {
+      if (error || !data) {
         return { error: { message: 'Invalid username or password' } };
       }
 
-      // Create the same dummy email format used during creation
-      const sanitizedUsername = username.replace(/[^a-zA-Z0-9]/g, '');
-      const dummyEmail = `${sanitizedUsername}.partner@example.com`;
+      const userData: User = {
+        id: data.id,
+        username: data.username,
+        full_name: data.full_name,
+        phone: data.phone,
+        address: data.address,
+        additional_details: data.additional_details,
+        role: data.role
+      };
 
-      const { error } = await supabase.auth.signInWithPassword({
-        email: dummyEmail,
-        password,
-      });
+      setUser(userData);
+      setUserRole(data.role);
+      localStorage.setItem('local_auth_user', JSON.stringify(userData));
       
-      return { error };
+      return { error: null };
     } catch (error) {
       return { error: { message: 'Invalid username or password' } };
     }
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    setUser(null);
     setUserRole(null);
+    localStorage.removeItem('local_auth_user');
     window.location.href = '/auth';
   };
 
   const value = {
     user,
-    session,
     userRole,
     loading,
     signUp,

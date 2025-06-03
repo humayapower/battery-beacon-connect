@@ -6,8 +6,11 @@ import { useToast } from '@/hooks/use-toast';
 
 export interface Partner {
   id: string;
-  email: string;
+  username: string;
   full_name: string;
+  phone: string;
+  address?: string;
+  additional_details?: string;
   created_at: string;
   updated_at: string;
   role: string;
@@ -25,46 +28,35 @@ export const usePartners = () => {
     try {
       setLoading(true);
       
-      // First get all partner user IDs
-      const { data: partnerRoles, error: rolesError } = await supabase
-        .from('user_roles')
-        .select('user_id')
+      // Get all partners from local_auth table
+      const { data: partnersData, error: partnersError } = await supabase
+        .from('local_auth')
+        .select('*')
         .eq('role', 'partner');
 
-      if (rolesError) throw rolesError;
+      if (partnersError) throw partnersError;
 
-      if (!partnerRoles || partnerRoles.length === 0) {
+      if (!partnersData || partnersData.length === 0) {
         setPartners([]);
         return;
       }
 
-      const partnerIds = partnerRoles.map(role => role.user_id);
-
-      // Get partner profiles
-      const { data: profiles, error: profilesError } = await supabase
-        .from('profiles')
-        .select('*')
-        .in('id', partnerIds);
-
-      if (profilesError) throw profilesError;
-
-      // Get battery counts for each partner
+      // Get battery and customer counts for each partner
       const partnersWithCounts = await Promise.all(
-        (profiles || []).map(async (profile) => {
+        partnersData.map(async (partner) => {
           const [batteryCount, customerCount] = await Promise.all([
             supabase
               .from('batteries')
               .select('id', { count: 'exact' })
-              .eq('partner_id', profile.id),
+              .eq('partner_id', partner.id),
             supabase
               .from('customers')
               .select('id', { count: 'exact' })
-              .eq('partner_id', profile.id)
+              .eq('partner_id', partner.id)
           ]);
 
           return {
-            ...profile,
-            role: 'partner',
+            ...partner,
             battery_count: batteryCount.count || 0,
             customer_count: customerCount.count || 0
           };

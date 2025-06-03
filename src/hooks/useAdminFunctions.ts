@@ -18,12 +18,34 @@ export const useAdminFunctions = () => {
     }
 
     try {
-      // Create a temporary email for Supabase auth using username
-      const tempEmail = `${username}@partner.internal`;
+      // Check if username already exists
+      const { data: existingProfile, error: checkError } = await supabase
+        .from('profiles')
+        .select('username')
+        .eq('username', username)
+        .single();
 
-      // Use regular signup with temporary email
+      if (existingProfile) {
+        throw new Error('Username already exists');
+      }
+
+      // Check if phone already exists
+      const { data: existingPhone, error: phoneCheckError } = await supabase
+        .from('profiles')
+        .select('phone')
+        .eq('phone', phone)
+        .single();
+
+      if (existingPhone) {
+        throw new Error('Phone number already exists');
+      }
+
+      // Create a dummy email that follows email format but isn't real
+      const dummyEmail = `${username.replace(/[^a-zA-Z0-9]/g, '')}.partner@internal.local`;
+
+      // Use regular signup with dummy email
       const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: tempEmail,
+        email: dummyEmail,
         password,
         options: {
           data: {
@@ -32,6 +54,7 @@ export const useAdminFunctions = () => {
             username: username,
             address: address || null,
             additional_details: additionalDetails || null,
+            is_partner: true,
           },
           emailRedirectTo: undefined, // No email verification for partners
         },

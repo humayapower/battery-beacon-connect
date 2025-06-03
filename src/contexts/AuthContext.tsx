@@ -117,26 +117,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signInPartner = async (username: string, password: string) => {
-    // For partners, find their temp email by username
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('username')
-      .eq('username', username)
-      .single();
+    try {
+      // Find partner by username first
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('username', username)
+        .single();
 
-    if (profileError || !profile) {
-      return { error: { message: 'Invalid username' } };
+      if (profileError || !profile) {
+        return { error: { message: 'Invalid username or password' } };
+      }
+
+      // Create the same dummy email format used during creation
+      const dummyEmail = `${username.replace(/[^a-zA-Z0-9]/g, '')}.partner@internal.local`;
+
+      const { error } = await supabase.auth.signInWithPassword({
+        email: dummyEmail,
+        password,
+      });
+      
+      return { error };
+    } catch (error) {
+      return { error: { message: 'Invalid username or password' } };
     }
-
-    // Use the temporary email format we create for partners
-    const tempEmail = `${username}@partner.internal`;
-
-    const { error } = await supabase.auth.signInWithPassword({
-      email: tempEmail,
-      password,
-    });
-    
-    return { error };
   };
 
   const signOut = async () => {

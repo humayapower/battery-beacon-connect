@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -15,7 +16,6 @@ interface BatteryFormData {
   serial_number: string;
   model: string;
   model_name: ModelName | '';
-  model_number: string;
   manufacturing_date: string;
   voltage: string;
   capacity: string;
@@ -31,7 +31,6 @@ const AddBatteryModal = () => {
     serial_number: '',
     model: '',
     model_name: '',
-    model_number: '',
     manufacturing_date: '',
     voltage: '',
     capacity: '',
@@ -73,7 +72,6 @@ const AddBatteryModal = () => {
         serial_number: formData.serial_number,
         model: formData.model || formData.model_name,
         model_name: formData.model_name as ModelName,
-        model_number: formData.model_number || null,
         manufacturing_date: formData.manufacturing_date || null,
         voltage: formData.voltage ? parseFloat(formData.voltage) : null,
         capacity: formData.capacity,
@@ -83,6 +81,10 @@ const AddBatteryModal = () => {
         partner_id: userRole === 'admin' ? null : user?.id || null,
         warranty_period: formData.warranty_period ? parseInt(formData.warranty_period) : null,
         warranty_expiry: formData.warranty_expiry || null,
+        customer_id: null,
+        location: null,
+        purchase_date: null,
+        last_maintenance: null,
       };
 
       const result = await addBattery(batteryData);
@@ -93,7 +95,6 @@ const AddBatteryModal = () => {
           serial_number: '',
           model: '',
           model_name: '',
-          model_number: '',
           manufacturing_date: '',
           voltage: '',
           capacity: '',
@@ -168,17 +169,6 @@ const AddBatteryModal = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="model_number">Model Number</Label>
-                <Input
-                  id="model_number"
-                  type="text"
-                  placeholder="e.g., MX-5000-Pro"
-                  value={formData.model_number}
-                  onChange={(e) => setFormData(prev => ({ ...prev, model_number: e.target.value }))}
-                />
-              </div>
-              
-              <div className="space-y-2">
                 <Label htmlFor="capacity">Capacity (Ah) *</Label>
                 <Input
                   id="capacity"
@@ -189,13 +179,7 @@ const AddBatteryModal = () => {
                   required
                 />
               </div>
-            </div>
-          </div>
-
-          {/* Technical Specifications */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900">Technical Specifications</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              
               <div className="space-y-2">
                 <Label htmlFor="voltage">Voltage (V)</Label>
                 <Input
@@ -207,7 +191,13 @@ const AddBatteryModal = () => {
                   onChange={(e) => setFormData(prev => ({ ...prev, voltage: e.target.value }))}
                 />
               </div>
-              
+            </div>
+          </div>
+
+          {/* Technical Specifications */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-gray-900">Technical Specifications</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="manufacturing_date">Manufacturing Date</Label>
                 <Input
@@ -217,13 +207,7 @@ const AddBatteryModal = () => {
                   onChange={(e) => setFormData(prev => ({ ...prev, manufacturing_date: e.target.value }))}
                 />
               </div>
-            </div>
-          </div>
-
-          {/* Connectivity & Tracking */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900">Connectivity & Tracking</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              
               <div className="space-y-2">
                 <Label htmlFor="imei_number">IMEI Number</Label>
                 <Input
@@ -234,7 +218,13 @@ const AddBatteryModal = () => {
                   onChange={(e) => setFormData(prev => ({ ...prev, imei_number: e.target.value }))}
                 />
               </div>
-              
+            </div>
+          </div>
+
+          {/* Connectivity & Tracking */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-gray-900">Connectivity & Tracking</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="sim_number">SIM Number</Label>
                 <Input
@@ -245,13 +235,7 @@ const AddBatteryModal = () => {
                   onChange={(e) => setFormData(prev => ({ ...prev, sim_number: e.target.value }))}
                 />
               </div>
-            </div>
-          </div>
-
-          {/* Warranty Information */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900">Warranty Information</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              
               <div className="space-y-2">
                 <Label htmlFor="warranty_period">Warranty Period (months)</Label>
                 <Input
@@ -262,7 +246,13 @@ const AddBatteryModal = () => {
                   onChange={(e) => setFormData(prev => ({ ...prev, warranty_period: e.target.value }))}
                 />
               </div>
-              
+            </div>
+          </div>
+
+          {/* Warranty Information */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-gray-900">Warranty Information</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="warranty_expiry">Warranty Expiry Date</Label>
                 <Input

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -171,20 +172,6 @@ const CustomerDetailsModal = ({ customerId, isOpen, onClose }: CustomerDetailsMo
                         <dt className="text-gray-500">Capacity:</dt>
                         <dd className="font-medium">{customer.batteries.capacity}</dd>
                       </div>
-                      {customer.batteries.status && (
-                        <div className="flex justify-between">
-                          <dt className="text-gray-500">Status:</dt>
-                          <dd>
-                            <Badge className={
-                              customer.batteries.status === 'available' ? 'bg-green-100 text-green-800' :
-                              customer.batteries.status === 'assigned' ? 'bg-blue-100 text-blue-800' :
-                              'bg-orange-100 text-orange-800'
-                            }>
-                              {customer.batteries.status}
-                            </Badge>
-                          </dd>
-                        </div>
-                      )}
                     </dl>
                   ) : (
                     <div className="text-center py-4 text-gray-500">

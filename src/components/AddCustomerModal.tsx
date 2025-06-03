@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Plus, Users } from 'lucide-react';
@@ -10,7 +11,7 @@ import { useCustomers, CustomerWithBattery } from '@/hooks/useCustomers';
 import { useBatteries } from '@/hooks/useBatteries';
 import { useAuth } from '@/contexts/AuthContext';
 
-type CustomerStatus = 'Active' | 'Pending' | 'Inactive';
+type CustomerStatus = 'active' | 'inactive' | 'suspended';
 
 interface CustomerFormData {
   customer_id: string;
@@ -32,7 +33,7 @@ const AddCustomerModal = () => {
     phone: '',
     address: '',
     battery_id: '',
-    status: 'Pending',
+    status: 'active',
     monthly_fee: '',
   });
   const [error, setError] = useState('');
@@ -71,12 +72,11 @@ const AddCustomerModal = () => {
         address: formData.address || null,
         payment_type: 'monthly_rent',
         monthly_amount: formData.monthly_fee ? parseFloat(formData.monthly_fee) : null,
-        monthly_fee: formData.monthly_fee ? parseFloat(formData.monthly_fee) : null,
         partner_id: userRole === 'admin' ? null : user?.id || null,
         battery_id: formData.battery_id === 'none' ? null : formData.battery_id || null,
         join_date: new Date().toISOString().split('T')[0],
         last_payment_date: null,
-        status: formData.status.toLowerCase() as 'active' | 'inactive' | 'suspended',
+        status: formData.status as CustomerStatus,
       };
 
       const result = await addCustomer(customerData);
@@ -90,7 +90,7 @@ const AddCustomerModal = () => {
           phone: '',
           address: '',
           battery_id: '',
-          status: 'Pending',
+          status: 'active',
           monthly_fee: '',
         });
       }
@@ -212,9 +212,9 @@ const AddCustomerModal = () => {
                   <SelectValue placeholder="Select status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Active">Active</SelectItem>
-                  <SelectItem value="Pending">Pending</SelectItem>
-                  <SelectItem value="Inactive">Inactive</SelectItem>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="inactive">Inactive</SelectItem>
+                  <SelectItem value="suspended">Suspended</SelectItem>
                 </SelectContent>
               </Select>
             </div>

@@ -54,15 +54,10 @@ export const useCustomers = () => {
 
   const addCustomer = async (customerData: Omit<CustomerWithBattery, 'id' | 'created_at' | 'updated_at' | 'batteries'>) => {
     try {
-      // First, create the customer without battery assignment
+      // Create customer without battery assignment first
       const customerToInsert = { ...customerData };
-      const batteryId = customerToInsert.battery_id;
+      delete customerToInsert.battery_id; // Remove battery_id completely for initial insert
       
-      // Temporarily remove battery_id to avoid constraint issues
-      if (batteryId === 'none' || !batteryId) {
-        customerToInsert.battery_id = null;
-      }
-
       const { data: customer, error: customerError } = await supabase
         .from('customers')
         .insert([customerToInsert])
@@ -71,27 +66,34 @@ export const useCustomers = () => {
 
       if (customerError) throw customerError;
 
-      // If there's a battery to assign, update it separately
-      if (batteryId && batteryId !== 'none') {
-        const { error: batteryError } = await supabase
+      // If there's a battery to assign, handle it after customer creation
+      if (customerData.battery_id && customerData.battery_id !== 'none') {
+        // First update the battery to assign it to the customer
+        const { error: batteryUpdateError } = await supabase
           .from('batteries')
-          .update({ customer_id: customer.id })
-          .eq('id', batteryId);
+          .update({ 
+            customer_id: customer.id,
+            status: 'assigned'
+          })
+          .eq('id', customerData.battery_id);
 
-        if (batteryError) {
-          console.error('Error assigning battery:', batteryError);
-          // Don't fail the customer creation if battery assignment fails
+        if (batteryUpdateError) {
+          console.error('Error updating battery:', batteryUpdateError);
           toast({
             title: "Customer created but battery assignment failed",
             description: "Customer was created successfully, but the battery could not be assigned.",
             variant: "destructive",
           });
         } else {
-          // Update the customer record with the battery_id
-          await supabase
+          // Then update the customer record with the battery_id
+          const { error: customerUpdateError } = await supabase
             .from('customers')
-            .update({ battery_id: batteryId })
+            .update({ battery_id: customerData.battery_id })
             .eq('id', customer.id);
+
+          if (customerUpdateError) {
+            console.error('Error updating customer with battery_id:', customerUpdateError);
+          }
         }
       }
       

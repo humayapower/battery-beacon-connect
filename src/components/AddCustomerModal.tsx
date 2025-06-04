@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -77,10 +76,20 @@ const AddCustomerModal = () => {
   const { partners } = usePartners();
   const { user, userRole } = useAuth();
 
-  const availableBatteries = batteries.filter(battery => 
-    battery.status === 'available' && 
-    (userRole === 'admin' || battery.partner_id === user?.id)
-  );
+  // Filter batteries based on selected partner (for admin) or current user (for partner)
+  const availableBatteries = batteries.filter(battery => {
+    if (battery.status !== 'available') return false;
+    
+    if (userRole === 'admin') {
+      // If no partner selected, show no batteries
+      if (!formData.partner_id) return false;
+      // Show batteries assigned to the selected partner
+      return battery.partner_id === formData.partner_id;
+    } else {
+      // For partners, show only their own batteries
+      return battery.partner_id === user?.id;
+    }
+  });
 
   const generateCustomerId = () => {
     const timestamp = Date.now().toString().slice(-6);
@@ -96,6 +105,13 @@ const AddCustomerModal = () => {
       }));
     }
   }, [open, userRole, user?.id]);
+
+  // Reset battery selection when partner changes (for admin)
+  useEffect(() => {
+    if (userRole === 'admin') {
+      setFormData(prev => ({ ...prev, battery_id: '' }));
+    }
+  }, [formData.partner_id, userRole]);
 
   // Calculate EMI amount when total amount, down payment, or number of EMI changes
   useEffect(() => {
@@ -567,9 +583,14 @@ const AddCustomerModal = () => {
                 <Select
                   value={formData.battery_id}
                   onValueChange={(value) => setFormData(prev => ({ ...prev, battery_id: value }))}
+                  disabled={userRole === 'admin' && !formData.partner_id}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select battery" />
+                    <SelectValue placeholder={
+                      userRole === 'admin' && !formData.partner_id 
+                        ? "Select partner first" 
+                        : "Select battery"
+                    } />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">No battery assigned</SelectItem>

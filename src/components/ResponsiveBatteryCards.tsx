@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Edit, Eye, Battery as BatteryIcon } from 'lucide-react';
-import { Battery } from '@/types';
+import { Battery } from '@/hooks/useBatteries';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface ResponsiveBatteryCardsProps {
@@ -28,9 +28,8 @@ const ResponsiveBatteryCards = ({ batteries }: ResponsiveBatteryCardsProps) => {
   };
 
   const getPartnerName = (battery: Battery) => {
-    // This will need to be enhanced when we have partner data joined
     if (!battery.partner_id) return 'Unassigned';
-    return 'Partner Name'; // Placeholder - will be replaced with actual partner name
+    return battery.partner?.name || 'Unknown Partner';
   };
 
   return (

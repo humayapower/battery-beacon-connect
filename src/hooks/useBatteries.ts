@@ -3,7 +3,31 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { Battery } from '@/types';
+
+export interface Battery {
+  id: string;
+  serial_number: string;
+  model: string;
+  model_name?: string;
+  capacity: string;
+  voltage?: number;
+  manufacturing_date?: string;
+  warranty_period?: number;
+  warranty_expiry?: string;
+  purchase_date?: string;
+  last_maintenance?: string;
+  location?: string;
+  status: 'available' | 'assigned' | 'maintenance';
+  partner_id?: string;
+  customer_id?: string;
+  imei_number?: string;
+  sim_number?: string;
+  created_at: string;
+  updated_at: string;
+  partner?: {
+    name: string;
+  };
+}
 
 export const useBatteries = () => {
   const [batteries, setBatteries] = useState<Battery[]>([]);
@@ -33,7 +57,10 @@ export const useBatteries = () => {
         imei_number,
         sim_number,
         created_at,
-        updated_at
+        updated_at,
+        partner:users!batteries_partner_id_fkey (
+          name
+        )
       `);
       
       if (userRole === 'partner') {
@@ -55,7 +82,7 @@ export const useBatteries = () => {
     }
   };
 
-  const addBattery = async (batteryData: Omit<Battery, 'id' | 'created_at' | 'updated_at'>) => {
+  const addBattery = async (batteryData: Omit<Battery, 'id' | 'created_at' | 'updated_at' | 'partner'>) => {
     try {
       const { data, error } = await supabase
         .from('batteries')
@@ -79,7 +106,10 @@ export const useBatteries = () => {
           imei_number,
           sim_number,
           created_at,
-          updated_at
+          updated_at,
+          partner:users!batteries_partner_id_fkey (
+            name
+          )
         `)
         .single();
 
@@ -127,7 +157,10 @@ export const useBatteries = () => {
           imei_number,
           sim_number,
           created_at,
-          updated_at
+          updated_at,
+          partner:users!batteries_partner_id_fkey (
+            name
+          )
         `)
         .single();
 

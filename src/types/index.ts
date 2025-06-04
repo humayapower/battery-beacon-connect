@@ -1,4 +1,3 @@
-
 export interface Partner {
   id: string;
   name: string;
@@ -31,6 +30,9 @@ export interface Battery {
   sim_number?: string;
   created_at: string;
   updated_at: string;
+  partner?: {
+    name: string;
+  };
 }
 
 export interface Customer {

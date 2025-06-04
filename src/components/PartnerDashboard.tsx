@@ -30,7 +30,7 @@ const PartnerDashboard = () => {
   // Calculate live stats (filtered for partner if needed)
   const partnerBatteries = batteries?.filter(b => b.partner_id === user?.id) || [];
   const partnerCustomers = customers?.filter(c => c.partner_id === user?.id) || [];
-  const partnerTransactions = transactions?.filter(t => t.customers?.partner_id === user?.id) || [];
+  const partnerTransactions = transactions?.filter(t => t.partner_id === user?.id) || [];
 
   const totalBatteries = partnerBatteries.length;
   const availableBatteries = partnerBatteries.filter(b => b.status === 'available').length;

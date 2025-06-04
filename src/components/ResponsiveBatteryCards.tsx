@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Edit, Eye, Battery as BatteryIcon } from 'lucide-react';
-import { Battery } from '@/hooks/useBatteries';
+import { Battery } from '@/types';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface ResponsiveBatteryCardsProps {

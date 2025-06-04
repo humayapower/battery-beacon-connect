@@ -3,31 +3,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-
-export interface Battery {
-  id: string;
-  serial_number: string;
-  model: string;
-  model_name?: string;
-  capacity: string;
-  voltage?: number;
-  manufacturing_date?: string;
-  warranty_period?: number;
-  warranty_expiry?: string;
-  purchase_date?: string;
-  last_maintenance?: string;
-  location?: string;
-  status: 'available' | 'assigned' | 'maintenance';
-  partner_id?: string;
-  customer_id?: string;
-  imei_number?: string;
-  sim_number?: string;
-  created_at: string;
-  updated_at: string;
-  partner?: {
-    name: string;
-  };
-}
+import { Battery } from '@/types';
 
 export const useBatteries = () => {
   const [batteries, setBatteries] = useState<Battery[]>([]);
@@ -200,5 +176,3 @@ export const useBatteries = () => {
     refetch: fetchBatteries,
   };
 };
-
-export type { Battery };

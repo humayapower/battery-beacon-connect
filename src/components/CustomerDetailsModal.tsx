@@ -1,11 +1,11 @@
-
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Phone, Mail, MapPin, Battery, Calendar, DollarSign, X } from 'lucide-react';
+import { User, Phone, Mail, MapPin, Calendar, Battery, CreditCard, Edit, Trash2 } from 'lucide-react';
 import { useCustomers, CustomerWithBattery } from '@/hooks/useCustomers';
+import CustomerBillingPage from './CustomerBillingPage';
 
 interface CustomerDetailsModalProps {
   customerId: string | null;
@@ -16,187 +16,255 @@ interface CustomerDetailsModalProps {
 const CustomerDetailsModal = ({ customerId, isOpen, onClose }: CustomerDetailsModalProps) => {
   const [customer, setCustomer] = useState<CustomerWithBattery | null>(null);
   const [loading, setLoading] = useState(false);
+  const [showBilling, setShowBilling] = useState(false);
   const { getCustomerById } = useCustomers();
 
-  useEffect(() => {
-    if (customerId && isOpen) {
-      fetchCustomerDetails();
-    }
-  }, [customerId, isOpen]);
-
-  const fetchCustomerDetails = async () => {
+  const fetchCustomer = async () => {
     if (!customerId) return;
-    
     setLoading(true);
-    try {
-      const result = await getCustomerById(customerId);
-      if (result.success) {
-        setCustomer(result.data as CustomerWithBattery);
-      }
-    } catch (error) {
-      console.error('Error fetching customer details:', error);
-    } finally {
-      setLoading(false);
+    const result = await getCustomerById(customerId);
+    if (result.success) {
+      setCustomer(result.data);
+    } else {
+      console.error("Failed to fetch customer details:", result.error);
     }
+    setLoading(false);
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status?.toLowerCase()) {
-      case 'active':
-        return 'bg-green-100 text-green-800';
-      case 'inactive':
-        return 'bg-gray-100 text-gray-800';
-      case 'suspended':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-blue-100 text-blue-800';
+  useEffect(() => {
+    if (customerId) {
+      fetchCustomer();
     }
+  }, [customerId]);
+
+  const handleViewBilling = () => {
+    setShowBilling(true);
   };
 
-  const formatDate = (dateString: string | null | undefined) => {
-    if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleDateString();
-  };
-
-  if (!isOpen) return null;
-
-  return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center justify-between">
-            <span>Customer Details</span>
-            <Button variant="ghost" size="icon" onClick={onClose}>
-              <X className="h-4 w-4" />
+  if (showBilling && customer) {
+    return (
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => setShowBilling(false)}
+              className="mb-2"
+            >
+              ← Back to Details
             </Button>
-          </DialogTitle>
-          <DialogDescription>
-            View detailed information about this customer.
-          </DialogDescription>
-        </DialogHeader>
+          </DialogHeader>
+          <CustomerBillingPage customerId={customer.id} customerName={customer.name} />
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
-        {loading ? (
+  if (!isOpen || !customerId) return null;
+
+  if (loading) {
+    return (
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>Loading Customer Details...</DialogTitle>
+          </DialogHeader>
           <div className="flex items-center justify-center py-8">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
           </div>
-        ) : customer ? (
-          <div className="space-y-6">
-            {/* Customer Overview */}
-            <div className="flex flex-col md:flex-row gap-4 items-start">
-              <div className="bg-blue-100 rounded-full p-6 text-blue-700">
-                <span className="text-2xl font-bold">{customer.name?.charAt(0) || '?'}</span>
-              </div>
-              <div className="flex-1">
-                <h2 className="text-2xl font-bold">{customer.name}</h2>
-                <div className="flex items-center mt-1 space-x-2">
-                  <Badge className={getStatusColor(customer.status)}>
-                    {customer.status}
-                  </Badge>
-                  {customer.customer_id && (
-                    <span className="text-sm text-gray-500">ID: {customer.customer_id}</span>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  if (!customer) {
+    return (
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>Error</DialogTitle>
+          </DialogHeader>
+          <div className="text-center py-8">
+            <p className="text-red-600">Failed to load customer details.</p>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="text-2xl font-bold text-gray-900">
+            Customer Details - {customer.name}
+          </DialogTitle>
+        </DialogHeader>
+        
+        <div className="space-y-6">
+          {/* Action Buttons */}
+          <div className="flex gap-2">
+            <Button onClick={handleViewBilling} className="bg-green-600 hover:bg-green-700">
+              <CreditCard className="w-4 h-4 mr-2" />
+              View Billing
+            </Button>
+            <Button variant="outline">
+              <Edit className="w-4 h-4 mr-2" />
+              Edit Customer
+            </Button>
+            <Button variant="destructive">
+              <Trash2 className="w-4 h-4 mr-2" />
+              Delete Customer
+            </Button>
+          </div>
+
+          {/* Payment Plan Information */}
+          {customer.payment_type && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <CreditCard className="w-5 h-5 mr-2" />
+                  Payment Plan Details
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <span className="text-sm font-medium text-gray-500">Payment Type:</span>
+                    <p className="text-lg font-semibold capitalize">{customer.payment_type}</p>
+                  </div>
+                  
+                  {customer.payment_type === 'emi' && (
+                    <>
+                      <div>
+                        <span className="text-sm font-medium text-gray-500">Total Amount:</span>
+                        <p className="text-lg font-semibold">₹{customer.total_amount?.toLocaleString('en-IN') || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <span className="text-sm font-medium text-gray-500">Down Payment:</span>
+                        <p className="text-lg font-semibold">₹{customer.down_payment?.toLocaleString('en-IN') || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <span className="text-sm font-medium text-gray-500">EMI Amount:</span>
+                        <p className="text-lg font-semibold">₹{customer.emi_amount?.toLocaleString('en-IN') || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <span className="text-sm font-medium text-gray-500">EMI Count:</span>
+                        <p className="text-lg font-semibold">{customer.emi_count || 'N/A'} months</p>
+                      </div>
+                      <div>
+                        <span className="text-sm font-medium text-gray-500">EMI Start Date:</span>
+                        <p className="text-lg font-semibold">{customer.emi_start_date ? new Date(customer.emi_start_date).toLocaleDateString() : 'N/A'}</p>
+                      </div>
+                    </>
+                  )}
+                  
+                  {customer.payment_type === 'monthly_rent' && (
+                    <>
+                      <div>
+                        <span className="text-sm font-medium text-gray-500">Monthly Rent:</span>
+                        <p className="text-lg font-semibold">₹{customer.monthly_rent?.toLocaleString('en-IN') || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <span className="text-sm font-medium text-gray-500">Security Deposit:</span>
+                        <p className="text-lg font-semibold">₹{customer.security_deposit?.toLocaleString('en-IN') || 'N/A'}</p>
+                      </div>
+                    </>
+                  )}
+                  
+                  {customer.payment_type === 'one_time_purchase' && (
+                    <div>
+                      <span className="text-sm font-medium text-gray-500">Purchase Amount:</span>
+                      <p className="text-lg font-semibold">₹{customer.purchase_amount?.toLocaleString('en-IN') || 'N/A'}</p>
+                    </div>
+                  )}
+                  
+                  {customer.next_due_date && (
+                    <div>
+                      <span className="text-sm font-medium text-gray-500">Next Due Date:</span>
+                      <p className="text-lg font-semibold">{new Date(customer.next_due_date).toLocaleDateString()}</p>
+                    </div>
                   )}
                 </div>
-                <div className="mt-3 space-y-2">
-                  {customer.phone && (
-                    <div className="flex items-center text-gray-600">
-                      <Phone className="h-4 w-4 mr-2" />
-                      <span>{customer.phone}</span>
-                    </div>
-                  )}
-                  {customer.email && (
-                    <div className="flex items-center text-gray-600">
-                      <Mail className="h-4 w-4 mr-2" />
-                      <span>{customer.email}</span>
-                    </div>
-                  )}
-                  {customer.address && (
-                    <div className="flex items-center text-gray-600">
-                      <MapPin className="h-4 w-4 mr-2" />
-                      <span>{customer.address}</span>
-                    </div>
-                  )}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Personal Information */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <User className="w-5 h-5 mr-2" />
+                Personal Information
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <span className="text-sm font-medium text-gray-500">Name:</span>
+                  <p className="text-lg font-semibold">{customer.name}</p>
+                </div>
+                <div>
+                  <span className="text-sm font-medium text-gray-500">Phone:</span>
+                  <p className="text-lg font-semibold">
+                    <a href={`tel:${customer.phone}`} className="text-blue-600 hover:underline">
+                      {customer.phone}
+                    </a>
+                  </p>
+                </div>
+                <div>
+                  <span className="text-sm font-medium text-gray-500">Email:</span>
+                  <p className="text-lg font-semibold">
+                    {customer.email ? (
+                      <a href={`mailto:${customer.email}`} className="text-blue-600 hover:underline">
+                        {customer.email}
+                      </a>
+                    ) : 'N/A'}
+                  </p>
+                </div>
+                <div>
+                  <span className="text-sm font-medium text-gray-500">Address:</span>
+                  <p className="text-lg font-semibold">{customer.address || 'N/A'}</p>
+                </div>
+                <div>
+                  <span className="text-sm font-medium text-gray-500">Join Date:</span>
+                  <p className="text-lg font-semibold">
+                    {customer.join_date ? new Date(customer.join_date).toLocaleDateString() : 'N/A'}
+                  </p>
                 </div>
               </div>
-            </div>
+            </CardContent>
+          </Card>
 
-            {/* Customer Details */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg">Payment Information</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <dl className="space-y-2">
-                    <div className="flex justify-between">
-                      <dt className="text-gray-500">Payment Type:</dt>
-                      <dd className="font-medium">
-                        {customer.payment_type === 'emi' ? 'EMI' : 
-                         customer.payment_type === 'monthly_rent' ? 'Monthly Rent' : 
-                         customer.payment_type === 'one_time_purchase' ? 'One-time Purchase' : 'N/A'}
-                      </dd>
-                    </div>
-                    {customer.monthly_amount && (
-                      <div className="flex justify-between">
-                        <dt className="text-gray-500">Monthly Amount:</dt>
-                        <dd className="font-medium">${customer.monthly_amount}</dd>
-                      </div>
-                    )}
-                    <div className="flex justify-between">
-                      <dt className="text-gray-500">Join Date:</dt>
-                      <dd className="font-medium">{formatDate(customer.join_date)}</dd>
-                    </div>
-                    <div className="flex justify-between">
-                      <dt className="text-gray-500">Last Payment:</dt>
-                      <dd className="font-medium">{formatDate(customer.last_payment_date)}</dd>
-                    </div>
-                  </dl>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg">Battery Information</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {customer.batteries ? (
-                    <dl className="space-y-2">
-                      <div className="flex justify-between">
-                        <dt className="text-gray-500">Serial Number:</dt>
-                        <dd className="font-medium">{customer.batteries.serial_number}</dd>
-                      </div>
-                      <div className="flex justify-between">
-                        <dt className="text-gray-500">Model:</dt>
-                        <dd className="font-medium">{customer.batteries.model}</dd>
-                      </div>
-                      <div className="flex justify-between">
-                        <dt className="text-gray-500">Capacity:</dt>
-                        <dd className="font-medium">{customer.batteries.capacity}</dd>
-                      </div>
-                    </dl>
-                  ) : (
-                    <div className="text-center py-4 text-gray-500">
-                      No battery assigned
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Actions */}
-            <div className="flex justify-end space-x-2 pt-4 border-t">
-              <Button variant="outline" onClick={onClose}>
-                Close
-              </Button>
-              <Button>
-                Edit Customer
-              </Button>
-            </div>
-          </div>
-        ) : (
-          <div className="text-center py-8 text-gray-500">
-            Customer not found or an error occurred.
-          </div>
-        )}
+          {/* Battery Information */}
+          {customer.batteries && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Battery className="w-5 h-5 mr-2" />
+                  Battery Information
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <span className="text-sm font-medium text-gray-500">Serial Number:</span>
+                    <p className="text-lg font-semibold">{customer.batteries.serial_number}</p>
+                  </div>
+                  <div>
+                    <span className="text-sm font-medium text-gray-500">Model:</span>
+                    <p className="text-lg font-semibold">{customer.batteries.model}</p>
+                  </div>
+                  <div>
+                    <span className="text-sm font-medium text-gray-500">Capacity:</span>
+                    <p className="text-lg font-semibold">{customer.batteries.capacity}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
       </DialogContent>
     </Dialog>
   );

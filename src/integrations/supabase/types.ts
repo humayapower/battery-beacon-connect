@@ -90,6 +90,35 @@ export type Database = {
           },
         ]
       }
+      customer_credits: {
+        Row: {
+          credit_balance: number
+          customer_id: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          credit_balance?: number
+          customer_id: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          credit_balance?: number
+          customer_id?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_credits_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: true
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       customers: {
         Row: {
           aadhaar_back_url: string | null
@@ -99,18 +128,27 @@ export type Database = {
           created_at: string
           customer_id: string | null
           customer_photo_url: string | null
+          down_payment: number | null
           email: string | null
+          emi_amount: number | null
+          emi_count: number | null
+          emi_start_date: string | null
           id: string
           id_type: string | null
           join_date: string | null
           last_payment_date: string | null
           monthly_amount: number | null
+          monthly_rent: number | null
           name: string
+          next_due_date: string | null
           pan_card_url: string | null
           partner_id: string | null
           payment_type: string
           phone: string
+          purchase_amount: number | null
+          security_deposit: number | null
           status: string
+          total_amount: number | null
           updated_at: string
         }
         Insert: {
@@ -121,18 +159,27 @@ export type Database = {
           created_at?: string
           customer_id?: string | null
           customer_photo_url?: string | null
+          down_payment?: number | null
           email?: string | null
+          emi_amount?: number | null
+          emi_count?: number | null
+          emi_start_date?: string | null
           id?: string
           id_type?: string | null
           join_date?: string | null
           last_payment_date?: string | null
           monthly_amount?: number | null
+          monthly_rent?: number | null
           name: string
+          next_due_date?: string | null
           pan_card_url?: string | null
           partner_id?: string | null
           payment_type: string
           phone: string
+          purchase_amount?: number | null
+          security_deposit?: number | null
           status?: string
+          total_amount?: number | null
           updated_at?: string
         }
         Update: {
@@ -143,18 +190,27 @@ export type Database = {
           created_at?: string
           customer_id?: string | null
           customer_photo_url?: string | null
+          down_payment?: number | null
           email?: string | null
+          emi_amount?: number | null
+          emi_count?: number | null
+          emi_start_date?: string | null
           id?: string
           id_type?: string | null
           join_date?: string | null
           last_payment_date?: string | null
           monthly_amount?: number | null
+          monthly_rent?: number | null
           name?: string
+          next_due_date?: string | null
           pan_card_url?: string | null
           partner_id?: string | null
           payment_type?: string
           phone?: string
+          purchase_amount?: number | null
+          security_deposit?: number | null
           status?: string
+          total_amount?: number | null
           updated_at?: string
         }
         Relationships: [
@@ -170,6 +226,103 @@ export type Database = {
             columns: ["partner_id"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      emis: {
+        Row: {
+          amount: number
+          created_at: string
+          customer_id: string
+          due_date: string
+          emi_number: number
+          id: string
+          paid_amount: number | null
+          payment_status: string
+          remaining_amount: number
+          total_emi_count: number
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          customer_id: string
+          due_date: string
+          emi_number: number
+          id?: string
+          paid_amount?: number | null
+          payment_status?: string
+          remaining_amount: number
+          total_emi_count: number
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          customer_id?: string
+          due_date?: string
+          emi_number?: number
+          id?: string
+          paid_amount?: number | null
+          payment_status?: string
+          remaining_amount?: number
+          total_emi_count?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "emis_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      monthly_rents: {
+        Row: {
+          amount: number
+          created_at: string
+          customer_id: string
+          due_date: string
+          id: string
+          paid_amount: number | null
+          payment_status: string
+          remaining_amount: number
+          rent_month: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          customer_id: string
+          due_date: string
+          id?: string
+          paid_amount?: number | null
+          payment_status?: string
+          remaining_amount: number
+          rent_month: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          customer_id?: string
+          due_date?: string
+          id?: string
+          paid_amount?: number | null
+          payment_status?: string
+          remaining_amount?: number
+          rent_month?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "monthly_rents_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
             referencedColumns: ["id"]
           },
         ]
@@ -212,9 +365,13 @@ export type Database = {
           amount: number
           battery_id: string | null
           created_at: string
+          credit_added: number | null
+          credit_used: number | null
           customer_id: string
           due_date: string | null
+          emi_id: string | null
           id: string
+          monthly_rent_id: string | null
           partner_id: string | null
           payment_status: string
           remarks: string | null
@@ -226,9 +383,13 @@ export type Database = {
           amount: number
           battery_id?: string | null
           created_at?: string
+          credit_added?: number | null
+          credit_used?: number | null
           customer_id: string
           due_date?: string | null
+          emi_id?: string | null
           id?: string
+          monthly_rent_id?: string | null
           partner_id?: string | null
           payment_status?: string
           remarks?: string | null
@@ -240,9 +401,13 @@ export type Database = {
           amount?: number
           battery_id?: string | null
           created_at?: string
+          credit_added?: number | null
+          credit_used?: number | null
           customer_id?: string
           due_date?: string | null
+          emi_id?: string | null
           id?: string
+          monthly_rent_id?: string | null
           partner_id?: string | null
           payment_status?: string
           remarks?: string | null
@@ -263,6 +428,20 @@ export type Database = {
             columns: ["customer_id"]
             isOneToOne: false
             referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_emi_id_fkey"
+            columns: ["emi_id"]
+            isOneToOne: false
+            referencedRelation: "emis"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_monthly_rent_id_fkey"
+            columns: ["monthly_rent_id"]
+            isOneToOne: false
+            referencedRelation: "monthly_rents"
             referencedColumns: ["id"]
           },
           {
@@ -337,6 +516,10 @@ export type Database = {
         }
         Returns: string
       }
+      generate_monthly_rent_charges: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       get_partners_with_counts: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -357,6 +540,10 @@ export type Database = {
           _role: Database["public"]["Enums"]["user_role"]
         }
         Returns: boolean
+      }
+      update_overdue_status: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
     }
     Enums: {

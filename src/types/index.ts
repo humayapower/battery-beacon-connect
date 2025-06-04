@@ -55,6 +55,16 @@ export interface Customer {
   aadhaar_front_url?: string;
   aadhaar_back_url?: string;
   pan_card_url?: string;
+  // New billing fields
+  total_amount?: number;
+  down_payment?: number;
+  emi_count?: number;
+  emi_amount?: number;
+  security_deposit?: number;
+  monthly_rent?: number;
+  purchase_amount?: number;
+  emi_start_date?: string;
+  next_due_date?: string;
   created_at: string;
   updated_at: string;
 }

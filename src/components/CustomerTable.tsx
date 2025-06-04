@@ -1,12 +1,14 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Edit, CreditCard, Eye } from 'lucide-react';
+import { Edit, Eye, Phone } from 'lucide-react';
 import AddCustomerModal from './AddCustomerModal';
 import CustomerDetailsModal from './CustomerDetailsModal';
 import { useCustomers } from '@/hooks/useCustomers';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface CustomerTableProps {
   isAdmin: boolean;
@@ -14,26 +16,9 @@ interface CustomerTableProps {
 
 const CustomerTable = ({ isAdmin }: CustomerTableProps) => {
   const { customers, loading } = useCustomers();
+  const { userRole } = useAuth();
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'active':
-        return 'bg-green-100 text-green-800';
-      case 'suspended':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'inactive':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const formatDate = (dateString: string | null) => {
-    if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleDateString();
-  };
 
   const handleViewDetails = (customerId: string) => {
     setSelectedCustomerId(customerId);
@@ -43,6 +28,16 @@ const CustomerTable = ({ isAdmin }: CustomerTableProps) => {
   const handleCloseDetails = () => {
     setSelectedCustomerId(null);
     setIsDetailsModalOpen(false);
+  };
+
+  const handlePhoneCall = (phone: string) => {
+    window.open(`tel:${phone}`, '_self');
+  };
+
+  const getPartnerName = (customer: any) => {
+    // This will need to be enhanced when we have partner data joined
+    if (!customer.partner_id) return 'Unassigned';
+    return 'Partner Name'; // Placeholder - will be replaced with actual partner name
   };
 
   if (loading) {
@@ -101,11 +96,9 @@ const CustomerTable = ({ isAdmin }: CustomerTableProps) => {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Name</TableHead>
-                    <TableHead>Email</TableHead>
                     <TableHead>Phone</TableHead>
                     <TableHead>Battery</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Join Date</TableHead>
+                    {userRole === 'admin' && <TableHead>Associated Partner</TableHead>}
                     <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -115,22 +108,36 @@ const CustomerTable = ({ isAdmin }: CustomerTableProps) => {
                       <TableCell>
                         <button
                           onClick={() => handleViewDetails(customer.id)}
-                          className="text-blue-600 hover:text-blue-800 font-medium"
+                          className="text-blue-600 hover:text-blue-800 font-medium hover:underline"
                         >
                           {customer.name}
                         </button>
                       </TableCell>
-                      <TableCell>{customer.email}</TableCell>
-                      <TableCell>{customer.phone || 'N/A'}</TableCell>
                       <TableCell>
-                        {customer.batteries?.serial_number || 'Unassigned'}
+                        {customer.phone ? (
+                          <button
+                            onClick={() => handlePhoneCall(customer.phone)}
+                            className="flex items-center space-x-1 text-blue-600 hover:text-blue-800"
+                          >
+                            <Phone className="w-4 h-4" />
+                            <span>{customer.phone}</span>
+                          </button>
+                        ) : (
+                          'N/A'
+                        )}
                       </TableCell>
                       <TableCell>
-                        <Badge className={getStatusColor(customer.status)}>
-                          {customer.status}
+                        <Badge variant="outline">
+                          {customer.batteries?.serial_number || 'Unassigned'}
                         </Badge>
                       </TableCell>
-                      <TableCell>{formatDate(customer.join_date)}</TableCell>
+                      {userRole === 'admin' && (
+                        <TableCell>
+                          <span className={!customer.partner_id ? 'text-gray-500 italic' : ''}>
+                            {getPartnerName(customer)}
+                          </span>
+                        </TableCell>
+                      )}
                       <TableCell>
                         <div className="flex space-x-2">
                           <Button 

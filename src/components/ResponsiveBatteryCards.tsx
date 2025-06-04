@@ -5,12 +5,15 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Edit, Eye, Battery as BatteryIcon } from 'lucide-react';
 import { Battery } from '@/types';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface ResponsiveBatteryCardsProps {
   batteries: Battery[];
 }
 
 const ResponsiveBatteryCards = ({ batteries }: ResponsiveBatteryCardsProps) => {
+  const { userRole } = useAuth();
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'available':
@@ -24,9 +27,10 @@ const ResponsiveBatteryCards = ({ batteries }: ResponsiveBatteryCardsProps) => {
     }
   };
 
-  const formatDate = (dateString: string | null) => {
-    if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleDateString();
+  const getPartnerName = (battery: Battery) => {
+    // This will need to be enhanced when we have partner data joined
+    if (!battery.partner_id) return 'Unassigned';
+    return 'Partner Name'; // Placeholder - will be replaced with actual partner name
   };
 
   return (
@@ -46,41 +50,23 @@ const ResponsiveBatteryCards = ({ batteries }: ResponsiveBatteryCardsProps) => {
             
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
-                <span className="text-gray-600">Model:</span>
+                <span className="text-gray-600">Model Name:</span>
+                <Badge variant="outline">
+                  {battery.model_name || 'N/A'}
+                </Badge>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Model Number:</span>
                 <span className="font-medium">{battery.model}</span>
               </div>
-              {battery.model_name && (
+              {userRole === 'admin' && (
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Name:</span>
-                  <span className="font-medium">{battery.model_name}</span>
+                  <span className="text-gray-600">Partner:</span>
+                  <span className={`font-medium ${!battery.partner_id ? 'text-gray-500 italic' : ''}`}>
+                    {getPartnerName(battery)}
+                  </span>
                 </div>
               )}
-              <div className="flex justify-between">
-                <span className="text-gray-600">Capacity:</span>
-                <span className="font-medium">{battery.capacity}</span>
-              </div>
-              {battery.voltage && (
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Voltage:</span>
-                  <span className="font-medium">{battery.voltage}V</span>
-                </div>
-              )}
-              {battery.imei_number && (
-                <div className="flex justify-between">
-                  <span className="text-gray-600">IMEI:</span>
-                  <span className="font-medium text-xs">{battery.imei_number}</span>
-                </div>
-              )}
-              {battery.warranty_period && (
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Warranty:</span>
-                  <span className="font-medium">{battery.warranty_period} months</span>
-                </div>
-              )}
-              <div className="flex justify-between">
-                <span className="text-gray-600">Mfg. Date:</span>
-                <span className="font-medium">{formatDate(battery.manufacturing_date)}</span>
-              </div>
             </div>
             
             <div className="flex space-x-2 mt-4">

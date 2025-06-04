@@ -9,6 +9,7 @@ import AddBatteryModal from './AddBatteryModal';
 import AssignBatteryModal from './AssignBatteryModal';
 import ResponsiveBatteryCards from './ResponsiveBatteryCards';
 import { useBatteries } from '@/hooks/useBatteries';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface BatteryTableProps {
   isAdmin: boolean;
@@ -16,6 +17,7 @@ interface BatteryTableProps {
 
 const BatteryTable = ({ isAdmin }: BatteryTableProps) => {
   const { batteries, loading } = useBatteries();
+  const { userRole } = useAuth();
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -30,9 +32,10 @@ const BatteryTable = ({ isAdmin }: BatteryTableProps) => {
     }
   };
 
-  const formatDate = (dateString: string | null) => {
-    if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleDateString();
+  const getPartnerName = (battery: any) => {
+    // This will need to be enhanced when we have partner data joined
+    if (!battery.partner_id) return 'Unassigned';
+    return 'Partner Name'; // Placeholder - will be replaced with actual partner name
   };
 
   if (loading) {
@@ -114,13 +117,8 @@ const BatteryTable = ({ isAdmin }: BatteryTableProps) => {
                       <TableHead>Serial Number</TableHead>
                       <TableHead>Model Name</TableHead>
                       <TableHead>Model Number</TableHead>
-                      <TableHead>Capacity</TableHead>
-                      <TableHead>Voltage</TableHead>
                       <TableHead>Status</TableHead>
-                      <TableHead>IMEI</TableHead>
-                      <TableHead>SIM</TableHead>
-                      <TableHead>Warranty</TableHead>
-                      <TableHead>Mfg. Date</TableHead>
+                      {userRole === 'admin' && <TableHead>Associated Partner</TableHead>}
                       <TableHead>Actions</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -134,17 +132,18 @@ const BatteryTable = ({ isAdmin }: BatteryTableProps) => {
                           </Badge>
                         </TableCell>
                         <TableCell>{battery.model}</TableCell>
-                        <TableCell>{battery.capacity}</TableCell>
-                        <TableCell>{battery.voltage ? `${battery.voltage}V` : 'N/A'}</TableCell>
                         <TableCell>
                           <Badge className={getStatusColor(battery.status)}>
                             {battery.status}
                           </Badge>
                         </TableCell>
-                        <TableCell className="text-xs">{battery.imei_number || 'N/A'}</TableCell>
-                        <TableCell className="text-xs">{battery.sim_number || 'N/A'}</TableCell>
-                        <TableCell>{battery.warranty_period ? `${battery.warranty_period} months` : 'N/A'}</TableCell>
-                        <TableCell>{formatDate(battery.manufacturing_date)}</TableCell>
+                        {userRole === 'admin' && (
+                          <TableCell>
+                            <span className={!battery.partner_id ? 'text-gray-500 italic' : ''}>
+                              {getPartnerName(battery)}
+                            </span>
+                          </TableCell>
+                        )}
                         <TableCell>
                           <div className="flex space-x-2">
                             <Button variant="outline" size="sm">

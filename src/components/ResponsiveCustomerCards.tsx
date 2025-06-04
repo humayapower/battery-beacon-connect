@@ -3,8 +3,9 @@ import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Edit, Eye, User, Phone, Mail } from 'lucide-react';
+import { Edit, Eye, User, Phone } from 'lucide-react';
 import { CustomerWithBattery } from '@/hooks/useCustomers';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface ResponsiveCustomerCardsProps {
   customers: CustomerWithBattery[];
@@ -12,35 +13,16 @@ interface ResponsiveCustomerCardsProps {
 }
 
 const ResponsiveCustomerCards = ({ customers, onViewDetails }: ResponsiveCustomerCardsProps) => {
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'active':
-        return 'bg-green-100 text-green-800';
-      case 'suspended':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'inactive':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
+  const { userRole } = useAuth();
+
+  const handlePhoneCall = (phone: string) => {
+    window.open(`tel:${phone}`, '_self');
   };
 
-  const formatDate = (dateString: string | null) => {
-    if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleDateString();
-  };
-
-  const getPaymentTypeDisplay = (paymentType: string) => {
-    switch (paymentType) {
-      case 'emi':
-        return 'EMI';
-      case 'monthly_rent':
-        return 'Rental';
-      case 'one_time_purchase':
-        return 'Full Purchase';
-      default:
-        return paymentType?.replace('_', ' ') || 'N/A';
-    }
+  const getPartnerName = (customer: CustomerWithBattery) => {
+    // This will need to be enhanced when we have partner data joined
+    if (!customer.partner_id) return 'Unassigned';
+    return 'Partner Name'; // Placeholder - will be replaced with actual partner name
   };
 
   return (
@@ -53,47 +35,37 @@ const ResponsiveCustomerCards = ({ customers, onViewDetails }: ResponsiveCustome
                 <User className="w-5 h-5 text-blue-600 flex-shrink-0" />
                 <button
                   onClick={() => onViewDetails(customer.id)}
-                  className="font-semibold text-sm text-blue-600 hover:text-blue-800 truncate"
+                  className="font-semibold text-sm text-blue-600 hover:text-blue-800 hover:underline truncate"
                 >
                   {customer.name}
                 </button>
               </div>
-              <Badge className={getStatusColor(customer.status)}>
-                {customer.status}
-              </Badge>
             </div>
             
             <div className="space-y-2 text-sm">
-              {customer.email && (
-                <div className="flex items-center space-x-2">
-                  <Mail className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                  <span className="truncate">{customer.email}</span>
-                </div>
-              )}
               {customer.phone && (
                 <div className="flex items-center space-x-2">
-                  <Phone className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                  <span>{customer.phone}</span>
+                  <button
+                    onClick={() => handlePhoneCall(customer.phone)}
+                    className="flex items-center space-x-1 text-blue-600 hover:text-blue-800"
+                  >
+                    <Phone className="w-4 h-4 flex-shrink-0" />
+                    <span>{customer.phone}</span>
+                  </button>
                 </div>
               )}
               <div className="flex justify-between">
                 <span className="text-gray-600">Battery:</span>
-                <span className="font-medium text-xs">
+                <Badge variant="outline" className="text-xs">
                   {customer.batteries?.serial_number || 'Unassigned'}
-                </span>
+                </Badge>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Join Date:</span>
-                <span className="font-medium">{formatDate(customer.join_date)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Plan:</span>
-                <span className="font-medium capitalize">{getPaymentTypeDisplay(customer.payment_type)}</span>
-              </div>
-              {customer.monthly_amount && (
+              {userRole === 'admin' && (
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Monthly:</span>
-                  <span className="font-medium">${customer.monthly_amount}</span>
+                  <span className="text-gray-600">Partner:</span>
+                  <span className={`font-medium text-xs ${!customer.partner_id ? 'text-gray-500 italic' : ''}`}>
+                    {getPartnerName(customer)}
+                  </span>
                 </div>
               )}
             </div>

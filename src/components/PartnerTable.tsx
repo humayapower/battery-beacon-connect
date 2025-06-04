@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Users, Battery, UserCheck, Eye } from 'lucide-react';
+import { Users, Battery, UserCheck, Eye, Phone } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import CreatePartnerModal from './CreatePartnerModal';
 import EditPartnerModal from './EditPartnerModal';
@@ -14,6 +14,15 @@ import { useAuth } from '@/contexts/AuthContext';
 const PartnerTable = () => {
   const { partners, loading, refetch } = usePartners();
   const { userRole } = useAuth();
+
+  const handleViewDetails = (partnerId: string) => {
+    // This will open partner details modal/page in the future
+    console.log('View partner details:', partnerId);
+  };
+
+  const handlePhoneCall = (phone: string) => {
+    window.open(`tel:${phone}`, '_self');
+  };
 
   if (userRole !== 'admin') {
     return (
@@ -130,13 +139,10 @@ const PartnerTable = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Partner Name</TableHead>
-                    <TableHead>Username</TableHead>
+                    <TableHead>Name</TableHead>
                     <TableHead>Phone</TableHead>
                     <TableHead>Batteries</TableHead>
                     <TableHead>Customers</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Join Date</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -144,10 +150,22 @@ const PartnerTable = () => {
                   {partners.map((partner) => (
                     <TableRow key={partner.id} className="hover:bg-gray-50">
                       <TableCell className="font-medium">
-                        {partner.name}
+                        <button
+                          onClick={() => handleViewDetails(partner.id)}
+                          className="text-blue-600 hover:text-blue-800 font-medium hover:underline"
+                        >
+                          {partner.name}
+                        </button>
                       </TableCell>
-                      <TableCell>{partner.username}</TableCell>
-                      <TableCell>{partner.phone}</TableCell>
+                      <TableCell>
+                        <button
+                          onClick={() => handlePhoneCall(partner.phone)}
+                          className="flex items-center space-x-1 text-blue-600 hover:text-blue-800"
+                        >
+                          <Phone className="w-4 h-4" />
+                          <span>{partner.phone}</span>
+                        </button>
+                      </TableCell>
                       <TableCell>
                         <div className="flex items-center space-x-1">
                           <Battery className="w-4 h-4 text-gray-500" />
@@ -161,16 +179,12 @@ const PartnerTable = () => {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Badge className="bg-green-100 text-green-800 border-green-200">
-                          Active
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        {new Date(partner.created_at).toLocaleDateString()}
-                      </TableCell>
-                      <TableCell>
                         <div className="flex items-center space-x-2">
-                          <Button variant="outline" size="sm">
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleViewDetails(partner.id)}
+                          >
                             <Eye className="w-4 h-4 mr-1" />
                             View
                           </Button>

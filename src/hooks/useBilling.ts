@@ -10,7 +10,7 @@ export const useBilling = () => {
   const getBillingDetails = async (customerId: string): Promise<BillingDetails | null> => {
     try {
       // Fetch EMIs
-      const { data: emis, error: emisError } = await supabase
+      const { data: emisData, error: emisError } = await supabase
         .from('emis')
         .select('*')
         .eq('customer_id', customerId)
@@ -19,7 +19,7 @@ export const useBilling = () => {
       if (emisError) throw emisError;
 
       // Fetch Monthly Rents
-      const { data: rents, error: rentsError } = await supabase
+      const { data: rentsData, error: rentsError } = await supabase
         .from('monthly_rents')
         .select('*')
         .eq('customer_id', customerId)
@@ -48,6 +48,17 @@ export const useBilling = () => {
         .order('transaction_date', { ascending: false });
 
       if (transactionsError) throw transactionsError;
+
+      // Type cast the data to ensure proper typing
+      const emis: EMI[] = (emisData || []).map(emi => ({
+        ...emi,
+        payment_status: emi.payment_status as 'due' | 'paid' | 'partial' | 'overdue'
+      }));
+
+      const rents: MonthlyRent[] = (rentsData || []).map(rent => ({
+        ...rent,
+        payment_status: rent.payment_status as 'due' | 'paid' | 'partial' | 'overdue'
+      }));
 
       // Calculate totals
       const totalPaid = transactions?.reduce((sum, t) => sum + t.amount, 0) || 0;
@@ -84,8 +95,8 @@ export const useBilling = () => {
       }
 
       return {
-        emis: emis || [],
-        rents: rents || [],
+        emis,
+        rents,
         credits: credits || { id: '', customer_id: customerId, credit_balance: 0, updated_at: '' },
         transactions: transactions || [],
         totalPaid,

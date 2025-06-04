@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -10,6 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useCustomers } from '@/hooks/useCustomers';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { Customer } from '@/types';
 
 interface AddCustomerModalProps {
   // You can add props here if needed
@@ -115,7 +117,7 @@ const AddCustomerModal = () => {
     setLoading(true);
 
     try {
-      const customerData = {
+      const customerData: Omit<Customer, 'id' | 'created_at' | 'updated_at'> = {
         name,
         phone,
         email: email || undefined,
@@ -124,7 +126,7 @@ const AddCustomerModal = () => {
         partner_id: partnerId === 'none' ? null : partnerId,
         battery_id: batteryId === 'none' ? null : batteryId,
         join_date: joinDate,
-        status: 'active',
+        status: 'active' as const, // Fix: explicitly cast as const
         // Add billing plan data
         ...(paymentType === 'emi' && {
           total_amount: paymentPlan.totalAmount ? parseFloat(paymentPlan.totalAmount) : undefined,
@@ -247,7 +249,7 @@ const AddCustomerModal = () => {
           </div>
           <div>
             <Label htmlFor="paymentType">Payment Type</Label>
-            <Select value={paymentType} onValueChange={setPaymentType}>
+            <Select value={paymentType} onValueChange={(value: 'emi' | 'monthly_rent' | 'one_time_purchase') => setPaymentType(value)}>
               <SelectTrigger>
                 <SelectValue placeholder="Select payment type" />
               </SelectTrigger>

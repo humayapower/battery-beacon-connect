@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -9,6 +10,9 @@ interface CustomerWithBattery extends Customer {
     serial_number: string;
     model: string;
     capacity: string;
+  } | null;
+  partner?: {
+    name: string;
   } | null;
 }
 
@@ -29,6 +33,9 @@ export const useCustomers = () => {
             serial_number,
             model,
             capacity
+          ),
+          users!customers_partner_id_fkey (
+            name
           )
         `);
       
@@ -40,7 +47,14 @@ export const useCustomers = () => {
       
       if (error) throw error;
       
-      setCustomers((data || []) as CustomerWithBattery[]);
+      // Transform the data to match our interface
+      const transformedData = (data || []).map(customer => ({
+        ...customer,
+        partner: customer.users ? { name: customer.users.name } : null,
+        users: undefined // Remove the users property as we've moved it to partner
+      }));
+      
+      setCustomers(transformedData as CustomerWithBattery[]);
     } catch (error: any) {
       toast({
         title: "Error fetching customers",

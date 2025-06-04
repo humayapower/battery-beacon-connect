@@ -20,9 +20,8 @@ const ResponsiveCustomerCards = ({ customers, onViewDetails }: ResponsiveCustome
   };
 
   const getPartnerName = (customer: CustomerWithBattery) => {
-    // This will need to be enhanced when we have partner data joined
     if (!customer.partner_id) return 'Unassigned';
-    return 'Partner Name'; // Placeholder - will be replaced with actual partner name
+    return customer.partner?.name || 'Unknown Partner';
   };
 
   return (

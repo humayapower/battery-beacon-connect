@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -55,13 +54,46 @@ export const useCustomers = () => {
 
   const addCustomer = async (customerData: Omit<CustomerWithBattery, 'id' | 'created_at' | 'updated_at' | 'batteries'>) => {
     try {
-      const { data, error } = await supabase
+      // First, create the customer without battery assignment
+      const customerToInsert = { ...customerData };
+      const batteryId = customerToInsert.battery_id;
+      
+      // Temporarily remove battery_id to avoid constraint issues
+      if (batteryId === 'none' || !batteryId) {
+        customerToInsert.battery_id = null;
+      }
+
+      const { data: customer, error: customerError } = await supabase
         .from('customers')
-        .insert([customerData])
+        .insert([customerToInsert])
         .select()
         .single();
 
-      if (error) throw error;
+      if (customerError) throw customerError;
+
+      // If there's a battery to assign, update it separately
+      if (batteryId && batteryId !== 'none') {
+        const { error: batteryError } = await supabase
+          .from('batteries')
+          .update({ customer_id: customer.id })
+          .eq('id', batteryId);
+
+        if (batteryError) {
+          console.error('Error assigning battery:', batteryError);
+          // Don't fail the customer creation if battery assignment fails
+          toast({
+            title: "Customer created but battery assignment failed",
+            description: "Customer was created successfully, but the battery could not be assigned.",
+            variant: "destructive",
+          });
+        } else {
+          // Update the customer record with the battery_id
+          await supabase
+            .from('customers')
+            .update({ battery_id: batteryId })
+            .eq('id', customer.id);
+        }
+      }
       
       await fetchCustomers();
       toast({
@@ -69,7 +101,7 @@ export const useCustomers = () => {
         description: `Customer ${customerData.name} has been added.`,
       });
       
-      return { success: true, data };
+      return { success: true, data: customer };
     } catch (error: any) {
       toast({
         title: "Error adding customer",

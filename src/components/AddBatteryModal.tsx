@@ -7,7 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Plus, Battery as BatteryIcon } from 'lucide-react';
-import { useBatteries, Battery } from '@/hooks/useBatteries';
+import { useBatteries } from '@/hooks/useBatteries';
+import { Battery } from '@/types';
 import { useAuth } from '@/contexts/AuthContext';
 
 type ModelName = 'MAXCHARGE' | 'FLUXON' | 'EXTRAGRID';

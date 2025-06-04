@@ -16,6 +16,7 @@ import FileUpload from './FileUpload';
 
 type CustomerStatus = 'active' | 'inactive' | 'suspended';
 type IdType = 'aadhaar' | 'pan';
+type PlanType = 'emi' | 'rental' | 'full_purchase';
 
 interface CustomerFormData {
   customer_id: string;
@@ -24,13 +25,24 @@ interface CustomerFormData {
   address: string;
   battery_id: string;
   status: string;
-  monthly_fee: string;
   partner_id: string;
   customer_photo_url: string;
   id_type: string;
   aadhaar_front_url: string;
   aadhaar_back_url: string;
   pan_card_url: string;
+  join_date: string;
+  plan_type: string;
+  // EMI fields
+  total_amount: string;
+  down_payment: string;
+  number_of_emi: string;
+  emi_amount: string;
+  // Rental fields
+  security_deposit: string;
+  monthly_rent: string;
+  // Full purchase fields
+  purchase_amount: string;
 }
 
 const AddCustomerModal = () => {
@@ -42,13 +54,21 @@ const AddCustomerModal = () => {
     address: '',
     battery_id: '',
     status: 'active',
-    monthly_fee: '',
     partner_id: '',
     customer_photo_url: '',
     id_type: '',
     aadhaar_front_url: '',
     aadhaar_back_url: '',
     pan_card_url: '',
+    join_date: new Date().toISOString().split('T')[0],
+    plan_type: '',
+    total_amount: '',
+    down_payment: '',
+    number_of_emi: '',
+    emi_amount: '',
+    security_deposit: '',
+    monthly_rent: '',
+    purchase_amount: '',
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -77,6 +97,20 @@ const AddCustomerModal = () => {
     }
   }, [open, userRole, user?.id]);
 
+  // Calculate EMI amount when total amount, down payment, or number of EMI changes
+  useEffect(() => {
+    if (formData.plan_type === 'emi' && formData.total_amount && formData.down_payment && formData.number_of_emi) {
+      const total = parseFloat(formData.total_amount);
+      const down = parseFloat(formData.down_payment);
+      const numEmi = parseInt(formData.number_of_emi);
+      
+      if (total > 0 && down >= 0 && numEmi > 0) {
+        const emiAmount = (total - down) / numEmi;
+        setFormData(prev => ({ ...prev, emi_amount: emiAmount.toFixed(2) }));
+      }
+    }
+  }, [formData.total_amount, formData.down_payment, formData.number_of_emi, formData.plan_type]);
+
   const resetForm = () => {
     setFormData({
       customer_id: '',
@@ -85,13 +119,21 @@ const AddCustomerModal = () => {
       address: '',
       battery_id: '',
       status: 'active',
-      monthly_fee: '',
       partner_id: '',
       customer_photo_url: '',
       id_type: '',
       aadhaar_front_url: '',
       aadhaar_back_url: '',
       pan_card_url: '',
+      join_date: new Date().toISOString().split('T')[0],
+      plan_type: '',
+      total_amount: '',
+      down_payment: '',
+      number_of_emi: '',
+      emi_amount: '',
+      security_deposit: '',
+      monthly_rent: '',
+      purchase_amount: '',
     });
     setError('');
   };
@@ -127,6 +169,27 @@ const AddCustomerModal = () => {
       setError('Partner selection is required for admin');
       return false;
     }
+    
+    // Validate plan-specific fields
+    if (formData.plan_type) {
+      if (formData.plan_type === 'emi') {
+        if (!formData.total_amount || !formData.down_payment || !formData.number_of_emi) {
+          setError('Total amount, down payment, and number of EMIs are required for EMI plan');
+          return false;
+        }
+      } else if (formData.plan_type === 'rental') {
+        if (!formData.security_deposit || !formData.monthly_rent) {
+          setError('Security deposit and monthly rent are required for rental plan');
+          return false;
+        }
+      } else if (formData.plan_type === 'full_purchase') {
+        if (!formData.purchase_amount) {
+          setError('Total amount is required for full purchase plan');
+          return false;
+        }
+      }
+    }
+    
     return true;
   };
 
@@ -139,17 +202,32 @@ const AddCustomerModal = () => {
     setLoading(true);
 
     try {
+      // Determine payment type and monthly amount based on plan
+      let paymentType: 'emi' | 'monthly_rent' | 'one_time_purchase';
+      let monthlyAmount: number | null = null;
+
+      if (formData.plan_type === 'emi') {
+        paymentType = 'emi';
+        monthlyAmount = formData.emi_amount ? parseFloat(formData.emi_amount) : null;
+      } else if (formData.plan_type === 'rental') {
+        paymentType = 'monthly_rent';
+        monthlyAmount = formData.monthly_rent ? parseFloat(formData.monthly_rent) : null;
+      } else {
+        paymentType = 'one_time_purchase';
+        monthlyAmount = null;
+      }
+
       const customerData: Omit<CustomerWithBattery, 'id' | 'created_at' | 'updated_at' | 'batteries'> = {
         customer_id: formData.customer_id,
         name: formData.name,
         phone: formData.phone,
         email: null,
         address: formData.address || null,
-        payment_type: 'monthly_rent',
-        monthly_amount: formData.monthly_fee ? parseFloat(formData.monthly_fee) : null,
+        payment_type: paymentType,
+        monthly_amount: monthlyAmount,
         partner_id: formData.partner_id || null,
         battery_id: formData.battery_id === 'none' || !formData.battery_id ? null : formData.battery_id,
-        join_date: new Date().toISOString().split('T')[0],
+        join_date: formData.join_date,
         last_payment_date: null,
         status: formData.status as CustomerStatus,
         customer_photo_url: formData.customer_photo_url || null,
@@ -172,6 +250,119 @@ const AddCustomerModal = () => {
     }
   };
 
+  const renderPlanFields = () => {
+    if (!formData.plan_type) return null;
+
+    switch (formData.plan_type) {
+      case 'emi':
+        return (
+          <div className="space-y-4">
+            <h4 className="text-md font-medium text-gray-700">EMI Details</h4>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="total_amount">Total Amount ($) *</Label>
+                <Input
+                  id="total_amount"
+                  type="number"
+                  step="0.01"
+                  placeholder="e.g., 5000.00"
+                  value={formData.total_amount}
+                  onChange={(e) => setFormData(prev => ({ ...prev, total_amount: e.target.value }))}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="down_payment">Down Payment ($) *</Label>
+                <Input
+                  id="down_payment"
+                  type="number"
+                  step="0.01"
+                  placeholder="e.g., 1000.00"
+                  value={formData.down_payment}
+                  onChange={(e) => setFormData(prev => ({ ...prev, down_payment: e.target.value }))}
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="number_of_emi">Number of EMIs *</Label>
+                <Input
+                  id="number_of_emi"
+                  type="number"
+                  placeholder="e.g., 12"
+                  value={formData.number_of_emi}
+                  onChange={(e) => setFormData(prev => ({ ...prev, number_of_emi: e.target.value }))}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="emi_amount">EMI Amount ($)</Label>
+                <Input
+                  id="emi_amount"
+                  type="number"
+                  step="0.01"
+                  value={formData.emi_amount}
+                  readOnly
+                  className="bg-gray-100"
+                  placeholder="Auto-calculated"
+                />
+              </div>
+            </div>
+          </div>
+        );
+
+      case 'rental':
+        return (
+          <div className="space-y-4">
+            <h4 className="text-md font-medium text-gray-700">Rental Details</h4>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="security_deposit">Security Deposit ($) *</Label>
+                <Input
+                  id="security_deposit"
+                  type="number"
+                  step="0.01"
+                  placeholder="e.g., 500.00"
+                  value={formData.security_deposit}
+                  onChange={(e) => setFormData(prev => ({ ...prev, security_deposit: e.target.value }))}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="monthly_rent">Monthly Rent ($) *</Label>
+                <Input
+                  id="monthly_rent"
+                  type="number"
+                  step="0.01"
+                  placeholder="e.g., 450.00"
+                  value={formData.monthly_rent}
+                  onChange={(e) => setFormData(prev => ({ ...prev, monthly_rent: e.target.value }))}
+                />
+              </div>
+            </div>
+          </div>
+        );
+
+      case 'full_purchase':
+        return (
+          <div className="space-y-4">
+            <h4 className="text-md font-medium text-gray-700">Purchase Details</h4>
+            <div className="space-y-2">
+              <Label htmlFor="purchase_amount">Total Amount ($) *</Label>
+              <Input
+                id="purchase_amount"
+                type="number"
+                step="0.01"
+                placeholder="e.g., 5000.00"
+                value={formData.purchase_amount}
+                onChange={(e) => setFormData(prev => ({ ...prev, purchase_amount: e.target.value }))}
+              />
+            </div>
+          </div>
+        );
+
+      default:
+        return null;
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={(isOpen) => {
       setOpen(isOpen);
@@ -187,7 +378,7 @@ const AddCustomerModal = () => {
         <DialogHeader>
           <DialogTitle>Add New Customer</DialogTitle>
           <DialogDescription>
-            Enter the customer information including identity proof documents.
+            Enter the customer information including identity proof documents and payment plan details.
           </DialogDescription>
         </DialogHeader>
         
@@ -197,17 +388,6 @@ const AddCustomerModal = () => {
             <h3 className="text-lg font-medium">Basic Details</h3>
             
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="customer_id">Customer ID</Label>
-                <Input
-                  id="customer_id"
-                  type="text"
-                  value={formData.customer_id}
-                  onChange={(e) => setFormData(prev => ({ ...prev, customer_id: e.target.value }))}
-                  required
-                />
-              </div>
-              
               <div className="space-y-2">
                 <Label htmlFor="name">Full Name *</Label>
                 <Input
@@ -219,9 +399,7 @@ const AddCustomerModal = () => {
                   required
                 />
               </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
+              
               <div className="space-y-2">
                 <Label htmlFor="phone">Phone Number *</Label>
                 <Input
@@ -233,18 +411,17 @@ const AddCustomerModal = () => {
                   required
                 />
               </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="monthly_fee">Monthly Fee ($)</Label>
-                <Input
-                  id="monthly_fee"
-                  type="number"
-                  step="0.01"
-                  placeholder="e.g., 450.00"
-                  value={formData.monthly_fee}
-                  onChange={(e) => setFormData(prev => ({ ...prev, monthly_fee: e.target.value }))}
-                />
-              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="join_date">Joining Date *</Label>
+              <Input
+                id="join_date"
+                type="date"
+                value={formData.join_date}
+                onChange={(e) => setFormData(prev => ({ ...prev, join_date: e.target.value }))}
+                required
+              />
             </div>
 
             <div className="space-y-2">
@@ -265,6 +442,41 @@ const AddCustomerModal = () => {
               value={formData.customer_photo_url}
               onChange={(url) => setFormData(prev => ({ ...prev, customer_photo_url: url || '' }))}
             />
+          </div>
+
+          {/* Payment Plan Section */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium">Payment Plan (Optional)</h3>
+            
+            <div className="space-y-2">
+              <Label htmlFor="plan_type">Plan Type</Label>
+              <Select
+                value={formData.plan_type}
+                onValueChange={(value: PlanType) => setFormData(prev => ({ 
+                  ...prev, 
+                  plan_type: value,
+                  // Clear plan-specific fields when changing plan type
+                  total_amount: '',
+                  down_payment: '',
+                  number_of_emi: '',
+                  emi_amount: '',
+                  security_deposit: '',
+                  monthly_rent: '',
+                  purchase_amount: ''
+                }))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select plan type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="emi">EMI</SelectItem>
+                  <SelectItem value="rental">Rental</SelectItem>
+                  <SelectItem value="full_purchase">Full Purchase</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {renderPlanFields()}
           </div>
 
           {/* Identity Proof Section */}

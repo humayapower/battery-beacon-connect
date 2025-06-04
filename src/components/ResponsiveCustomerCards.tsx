@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -27,6 +28,19 @@ const ResponsiveCustomerCards = ({ customers, onViewDetails }: ResponsiveCustome
   const formatDate = (dateString: string | null) => {
     if (!dateString) return 'N/A';
     return new Date(dateString).toLocaleDateString();
+  };
+
+  const getPaymentTypeDisplay = (paymentType: string) => {
+    switch (paymentType) {
+      case 'emi':
+        return 'EMI';
+      case 'monthly_rent':
+        return 'Rental';
+      case 'one_time_purchase':
+        return 'Full Purchase';
+      default:
+        return paymentType?.replace('_', ' ') || 'N/A';
+    }
   };
 
   return (
@@ -72,10 +86,14 @@ const ResponsiveCustomerCards = ({ customers, onViewDetails }: ResponsiveCustome
                 <span className="text-gray-600">Join Date:</span>
                 <span className="font-medium">{formatDate(customer.join_date)}</span>
               </div>
-              {customer.payment_type && (
+              <div className="flex justify-between">
+                <span className="text-gray-600">Plan:</span>
+                <span className="font-medium capitalize">{getPaymentTypeDisplay(customer.payment_type)}</span>
+              </div>
+              {customer.monthly_amount && (
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Payment:</span>
-                  <span className="font-medium capitalize">{customer.payment_type.replace('_', ' ')}</span>
+                  <span className="text-gray-600">Monthly:</span>
+                  <span className="font-medium">${customer.monthly_amount}</span>
                 </div>
               )}
             </div>

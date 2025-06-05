@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -43,7 +42,7 @@ const AdminDashboard = () => {
   // Calculate live stats
   const totalCustomers = customers?.length || 0;
   const emiCustomers = customers?.filter(c => c.payment_type === 'emi')?.length || 0;
-  const rentalCustomers = customers?.filter(c => c.payment_type === 'rent')?.length || 0;
+  const rentalCustomers = customers?.filter(c => c.payment_type === 'monthly_rent')?.length || 0;
   
   // Calculate overdue payments
   const now = new Date();
@@ -305,7 +304,7 @@ const AdminDashboard = () => {
                             <TableCell>
                               <div>
                                 <p className="font-medium">{customer.name}</p>
-                                <p className="text-sm text-gray-500">{customer.batteries?.model_name || 'N/A'}</p>
+                                <p className="text-sm text-gray-500">{customer.batteries?.model || customer.batteries?.model_name || 'N/A'}</p>
                               </div>
                             </TableCell>
                             <TableCell>
@@ -352,14 +351,14 @@ const AdminDashboard = () => {
                     </TableHeader>
                     <TableBody>
                       {customers
-                        ?.filter(c => c.payment_type === 'rent')
+                        ?.filter(c => c.payment_type === 'monthly_rent')
                         ?.slice(0, 3)
                         ?.map((customer) => (
                           <TableRow key={customer.id}>
                             <TableCell>
                               <div>
                                 <p className="font-medium">{customer.name}</p>
-                                <p className="text-sm text-gray-500">{customer.batteries?.model_name || 'N/A'}</p>
+                                <p className="text-sm text-gray-500">{customer.batteries?.model || customer.batteries?.model_name || 'N/A'}</p>
                               </div>
                             </TableCell>
                             <TableCell>

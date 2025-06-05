@@ -3,8 +3,9 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar";
-import { Battery, Users, User, CreditCard, Home, Plus, Settings, LogOut } from 'lucide-react';
+import { Battery, Users, User, CreditCard, Home, Plus, Settings, LogOut, TrendingUp, TrendingDown, Calendar } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useBatteries } from '@/hooks/useBatteries';
 import { useCustomers } from '@/hooks/useCustomers';
@@ -14,9 +15,11 @@ import BatteryTable from './BatteryTable';
 import PartnerTable from './PartnerTable';
 import CustomerTable from './CustomerTable';
 import TransactionTable from './TransactionTable';
+import BillingDashboard from './BillingDashboard';
 import CreatePartnerModal from './CreatePartnerModal';
 import AssignBatteryModal from './AssignBatteryModal';
 import AddBatteryModal from './AddBatteryModal';
+import AddCustomerModal from './AddCustomerModal';
 
 const AdminDashboard = () => {
   const [activeSection, setActiveSection] = useState('overview');
@@ -27,39 +30,52 @@ const AdminDashboard = () => {
   const { transactions } = useTransactions();
 
   const menuItems = [
-    { title: "Overview", icon: Home, key: "overview" },
+    { title: "Dashboard", icon: Home, key: "overview" },
+    { title: "Customers", icon: User, key: "customers" },
+    { title: "Payments", icon: CreditCard, key: "payments" },
     { title: "Batteries", icon: Battery, key: "batteries" },
     { title: "Partners", icon: Users, key: "partners" },
-    { title: "Customers", icon: User, key: "customers" },
-    { title: "Transactions", icon: CreditCard, key: "transactions" },
+    { title: "Reports", icon: TrendingUp, key: "reports" },
+    { title: "Analytics", icon: TrendingDown, key: "analytics" },
     { title: "Settings", icon: Settings, key: "settings" },
   ];
 
   // Calculate live stats
-  const totalBatteries = batteries?.length || 0;
-  const availableBatteries = batteries?.filter(b => b.status === 'available')?.length || 0;
-  const assignedBatteries = batteries?.filter(b => b.status === 'assigned')?.length || 0;
-  const maintenanceBatteries = batteries?.filter(b => b.status === 'maintenance')?.length || 0;
-  
-  const totalPartners = partners?.length || 0;
   const totalCustomers = customers?.length || 0;
-  const activeCustomers = customers?.filter(c => c.status === 'active')?.length || 0;
+  const emiCustomers = customers?.filter(c => c.payment_type === 'emi')?.length || 0;
+  const rentalCustomers = customers?.filter(c => c.payment_type === 'rent')?.length || 0;
   
-  const totalRevenue = transactions?.filter(t => t.payment_status === 'paid')?.reduce((sum, t) => sum + t.amount, 0) || 0;
+  // Calculate overdue payments
+  const now = new Date();
+  const overdueTransactions = transactions?.filter(t => 
+    t.payment_status === 'overdue' || 
+    (t.payment_status === 'due' && t.due_date && new Date(t.due_date) < now)
+  ) || [];
+  
+  // Recent payments (last 5)
+  const recentPayments = transactions
+    ?.filter(t => t.payment_status === 'paid')
+    ?.sort((a, b) => new Date(b.transaction_date).getTime() - new Date(a.transaction_date).getTime())
+    ?.slice(0, 5) || [];
 
-  const stats = [
-    { title: "Total Batteries", value: totalBatteries.toString(), change: `${availableBatteries} available`, icon: Battery, color: "bg-blue-500" },
-    { title: "Active Partners", value: totalPartners.toString(), change: "All partners", icon: Users, color: "bg-green-500" },
-    { title: "Total Customers", value: totalCustomers.toString(), change: `${activeCustomers} active`, icon: User, color: "bg-purple-500" },
-    { title: "Monthly Revenue", value: `₹${totalRevenue.toLocaleString()}`, change: "Total collected", icon: CreditCard, color: "bg-orange-500" },
-  ];
+  const formatCurrency = (amount: number) => {
+    return `₹${amount.toLocaleString('en-IN')}`;
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-IN', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric'
+    });
+  };
 
   const AppSidebar = () => (
     <Sidebar className="border-r">
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel className="text-lg font-semibold text-gray-800 mb-4 px-2">
-            Admin Dashboard
+            Battery Leasing
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -99,80 +115,321 @@ const AdminDashboard = () => {
     switch (activeSection) {
       case 'overview':
         return (
-          <div className="space-y-4 lg:space-y-6">
-            <div className="px-4 sm:px-0">
-              <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-2">Dashboard Overview</h2>
-              <p className="text-sm lg:text-base text-gray-600">Welcome back! Here's what's happening with your battery management platform.</p>
-            </div>
-            
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 px-4 sm:px-0">
-              {stats.map((stat, index) => (
-                <Card key={index} className="hover:shadow-md transition-shadow">
-                  <CardContent className="p-4 lg:p-6">
-                    <div className="flex items-center justify-between">
-                      <div className="min-w-0 flex-1">
-                        <p className="text-xs lg:text-sm font-medium text-gray-600 truncate">{stat.title}</p>
-                        <p className="text-lg lg:text-2xl font-bold text-gray-900">{stat.value}</p>
-                        <p className="text-xs lg:text-sm text-green-600">{stat.change}</p>
-                      </div>
-                      <div className={`p-2 lg:p-3 rounded-full ${stat.color} flex-shrink-0 ml-3`}>
-                        <stat.icon className="w-4 h-4 lg:w-6 lg:h-6 text-white" />
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+          <div className="space-y-6">
+            {/* Header */}
+            <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4">
+              <div>
+                <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">Dashboard</h1>
+                <p className="text-gray-600">Overview of your battery leasing business</p>
+              </div>
+              <div className="flex gap-2">
+                <AddCustomerModal />
+                <Button variant="outline">
+                  <Calendar className="w-4 h-4 mr-2" />
+                  Export
+                </Button>
+              </div>
             </div>
 
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 lg:gap-6 px-4 sm:px-0">
+            {/* Key Metrics */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg lg:text-xl">Battery Status Overview</CardTitle>
-                  <CardDescription className="text-sm lg:text-base">Current status of all batteries</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center">
-                      <div className="flex items-center space-x-2 min-w-0 flex-1">
-                        <Badge className="bg-green-100 text-green-800 flex-shrink-0">Available</Badge>
-                        <span className="text-sm truncate">Ready for assignment</span>
-                      </div>
-                      <span className="font-semibold ml-2">{availableBatteries}</span>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Total Customers</p>
+                      <p className="text-3xl font-bold">{totalCustomers}</p>
+                      <p className="text-sm text-green-600">+12% from last month</p>
                     </div>
-                    <div className="flex justify-between items-center">
-                      <div className="flex items-center space-x-2 min-w-0 flex-1">
-                        <Badge className="bg-blue-100 text-blue-800 flex-shrink-0">Assigned</Badge>
-                        <span className="text-sm truncate">With customers</span>
-                      </div>
-                      <span className="font-semibold ml-2">{assignedBatteries}</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <div className="flex items-center space-x-2 min-w-0 flex-1">
-                        <Badge className="bg-orange-100 text-orange-800 flex-shrink-0">Maintenance</Badge>
-                        <span className="text-sm truncate">Under service</span>
-                      </div>
-                      <span className="font-semibold ml-2">{maintenanceBatteries}</span>
+                    <div className="p-3 bg-blue-100 rounded-full">
+                      <User className="w-6 h-6 text-blue-600" />
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
               <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg lg:text-xl">Quick Actions</CardTitle>
-                  <CardDescription className="text-sm lg:text-base">Common admin tasks and shortcuts</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <AddBatteryModal />
-                  <AssignBatteryModal />
-                  <CreatePartnerModal />
-                  <Button className="w-full justify-start" variant="outline">
-                    <CreditCard className="w-4 h-4 mr-2" />
-                    Process Payment
-                  </Button>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">EMI Customers</p>
+                      <p className="text-3xl font-bold">{emiCustomers}</p>
+                      <p className="text-sm text-green-600">+5% from last month</p>
+                    </div>
+                    <div className="p-3 bg-green-100 rounded-full">
+                      <CreditCard className="w-6 h-6 text-green-600" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Rental Customers</p>
+                      <p className="text-3xl font-bold">{rentalCustomers}</p>
+                      <p className="text-sm text-green-600">+10% from last month</p>
+                    </div>
+                    <div className="p-3 bg-purple-100 rounded-full">
+                      <Battery className="w-6 h-6 text-purple-600" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Overdue Payments</p>
+                      <p className="text-3xl font-bold">{overdueTransactions.length}</p>
+                      <p className="text-sm text-red-600">-2% from last month</p>
+                    </div>
+                    <div className="p-3 bg-red-100 rounded-full">
+                      <TrendingDown className="w-6 h-6 text-red-600" />
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             </div>
+
+            {/* Main Content Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Recent Payments */}
+              <div className="lg:col-span-2">
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between">
+                    <div>
+                      <CardTitle>Recent Payments</CardTitle>
+                      <CardDescription>Recent payments from your customers</CardDescription>
+                    </div>
+                    <Button variant="ghost" size="sm" onClick={() => setActiveSection('payments')}>
+                      View all payments
+                    </Button>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      {recentPayments.length > 0 ? (
+                        recentPayments.map((payment) => (
+                          <div key={payment.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                            <div className="flex items-center space-x-3">
+                              <div className="p-2 bg-blue-100 rounded-full">
+                                <CreditCard className="w-4 h-4 text-blue-600" />
+                              </div>
+                              <div>
+                                <p className="font-medium">{payment.customers?.name || 'Unknown Customer'}</p>
+                                <p className="text-sm text-gray-600 capitalize">
+                                  {payment.transaction_type} Payment • {formatDate(payment.transaction_date)}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <p className="font-semibold">{formatCurrency(payment.amount)}</p>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-center text-gray-500 py-8">No recent payments</p>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Overdue Payments */}
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <div>
+                    <CardTitle>Overdue Payments</CardTitle>
+                    <CardDescription>Customers with overdue payments</CardDescription>
+                  </div>
+                  <Button variant="ghost" size="sm" onClick={() => setActiveSection('payments')}>
+                    View all overdue
+                  </Button>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {overdueTransactions.length > 0 ? (
+                      overdueTransactions.slice(0, 3).map((transaction) => (
+                        <div key={transaction.id} className="flex items-center justify-between">
+                          <div>
+                            <p className="font-medium text-sm">{transaction.customers?.name || 'Unknown'}</p>
+                            <p className="text-xs text-gray-500">
+                              Due on {transaction.due_date ? formatDate(transaction.due_date) : 'N/A'}
+                            </p>
+                          </div>
+                          <p className="font-semibold text-red-600">{formatCurrency(transaction.amount)}</p>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-center text-gray-500 py-4">No overdue payments</p>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Customer Sections */}
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+              {/* EMI Customers */}
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <div>
+                    <CardTitle className="flex items-center">
+                      <CreditCard className="w-5 h-5 mr-2" />
+                      EMI Customers
+                    </CardTitle>
+                    <CardDescription>Customers on installment plans</CardDescription>
+                  </div>
+                  <Button variant="ghost" size="sm" onClick={() => setActiveSection('customers')}>
+                    View All
+                  </Button>
+                </CardHeader>
+                <CardContent>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Customer</TableHead>
+                        <TableHead>Installments</TableHead>
+                        <TableHead>Next Due</TableHead>
+                        <TableHead>Status</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {customers
+                        ?.filter(c => c.payment_type === 'emi')
+                        ?.slice(0, 3)
+                        ?.map((customer) => (
+                          <TableRow key={customer.id}>
+                            <TableCell>
+                              <div>
+                                <p className="font-medium">{customer.name}</p>
+                                <p className="text-sm text-gray-500">{customer.batteries?.model_name || 'N/A'}</p>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              {customer.emi_count ? `${customer.emi_count} EMIs` : 'N/A'}
+                            </TableCell>
+                            <TableCell>
+                              {customer.next_due_date ? formatDate(customer.next_due_date) : 'N/A'}
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant={customer.status === 'active' ? 'default' : 'secondary'}>
+                                {customer.status}
+                              </Badge>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+
+              {/* Rental Customers */}
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <div>
+                    <CardTitle className="flex items-center">
+                      <Battery className="w-5 h-5 mr-2" />
+                      Rental Customers
+                    </CardTitle>
+                    <CardDescription>Customers on monthly rental plans</CardDescription>
+                  </div>
+                  <Button variant="ghost" size="sm" onClick={() => setActiveSection('customers')}>
+                    View All
+                  </Button>
+                </CardHeader>
+                <CardContent>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Customer</TableHead>
+                        <TableHead>Monthly Rent</TableHead>
+                        <TableHead>Paid Until</TableHead>
+                        <TableHead>Status</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {customers
+                        ?.filter(c => c.payment_type === 'rent')
+                        ?.slice(0, 3)
+                        ?.map((customer) => (
+                          <TableRow key={customer.id}>
+                            <TableCell>
+                              <div>
+                                <p className="font-medium">{customer.name}</p>
+                                <p className="text-sm text-gray-500">{customer.batteries?.model_name || 'N/A'}</p>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              {customer.monthly_rent ? formatCurrency(customer.monthly_rent) : 'N/A'}
+                            </TableCell>
+                            <TableCell>
+                              {customer.last_payment_date ? formatDate(customer.last_payment_date) : 'N/A'}
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant={customer.status === 'active' ? 'default' : 'secondary'}>
+                                {customer.status}
+                              </Badge>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Battery Overview */}
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center">
+                    <Battery className="w-5 h-5 mr-2" />
+                    Battery Overview
+                  </CardTitle>
+                  <CardDescription>All batteries in your inventory</CardDescription>
+                </div>
+                <Button variant="ghost" size="sm" onClick={() => setActiveSection('batteries')}>
+                  View All
+                </Button>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Serial Number</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead>Customer</TableHead>
+                      <TableHead>Installation Date</TableHead>
+                      <TableHead>Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {batteries?.slice(0, 5)?.map((battery) => (
+                      <TableRow key={battery.id}>
+                        <TableCell className="font-medium">{battery.serial_number}</TableCell>
+                        <TableCell>{battery.model_name || battery.model}</TableCell>
+                        <TableCell>{battery.customer_id ? 'Assigned' : 'Available'}</TableCell>
+                        <TableCell>
+                          {battery.created_at ? formatDate(battery.created_at) : 'N/A'}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center">
+                            <div className={`w-2 h-2 rounded-full mr-2 ${
+                              battery.status === 'available' ? 'bg-green-500' : 
+                              battery.status === 'assigned' ? 'bg-blue-500' : 'bg-orange-500'
+                            }`}></div>
+                            <span className="capitalize">{battery.status}</span>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
           </div>
         );
       case 'batteries':
@@ -181,8 +438,8 @@ const AdminDashboard = () => {
         return <PartnerTable />;
       case 'customers':
         return <CustomerTable isAdmin={true} />;
-      case 'transactions':
-        return <TransactionTable isAdmin={true} />;
+      case 'payments':
+        return <BillingDashboard />;
       default:
         return <div className="text-center py-12">Section under development</div>;
     }
@@ -196,9 +453,19 @@ const AdminDashboard = () => {
           <div className="border-b bg-white px-4 lg:px-6 py-3 lg:py-4">
             <div className="flex items-center justify-between">
               <SidebarTrigger className="lg:hidden" />
-              <div className="flex items-center space-x-2 lg:space-x-4 ml-auto">
-                <span className="text-xs lg:text-sm text-gray-600 truncate">Welcome, {user?.name || user?.username}</span>
-                <Badge className="bg-blue-100 text-blue-800 text-xs">Admin</Badge>
+              <div className="flex items-center space-x-4 ml-auto">
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Search customers, batteries, payments..."
+                    className="pl-8 pr-4 py-2 border border-gray-300 rounded-lg text-sm w-64 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  <Users className="w-4 h-4 absolute left-2.5 top-2.5 text-gray-400" />
+                </div>
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm text-gray-600">Welcome, {user?.name || user?.username}</span>
+                  <Badge className="bg-blue-100 text-blue-800">Admin User</Badge>
+                </div>
               </div>
             </div>
           </div>

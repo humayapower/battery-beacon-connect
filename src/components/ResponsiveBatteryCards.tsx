@@ -9,9 +9,10 @@ import { useAuth } from '@/contexts/AuthContext';
 
 interface ResponsiveBatteryCardsProps {
   batteries: Battery[];
+  onViewDetails?: (batteryId: string) => void;
 }
 
-const ResponsiveBatteryCards = ({ batteries }: ResponsiveBatteryCardsProps) => {
+const ResponsiveBatteryCards = ({ batteries, onViewDetails }: ResponsiveBatteryCardsProps) => {
   const { userRole } = useAuth();
 
   const getStatusColor = (status: string) => {
@@ -32,6 +33,12 @@ const ResponsiveBatteryCards = ({ batteries }: ResponsiveBatteryCardsProps) => {
     return battery.partner?.name || 'Unknown Partner';
   };
 
+  const handleViewDetails = (batteryId: string) => {
+    if (onViewDetails) {
+      onViewDetails(batteryId);
+    }
+  };
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
       {batteries.map((battery) => (
@@ -40,7 +47,12 @@ const ResponsiveBatteryCards = ({ batteries }: ResponsiveBatteryCardsProps) => {
             <div className="flex items-start justify-between mb-3">
               <div className="flex items-center space-x-2">
                 <BatteryIcon className="w-5 h-5 text-blue-600" />
-                <span className="font-semibold text-sm">{battery.serial_number}</span>
+                <button
+                  onClick={() => handleViewDetails(battery.id)}
+                  className="font-semibold text-sm text-blue-600 hover:text-blue-800 hover:underline"
+                >
+                  {battery.serial_number}
+                </button>
               </div>
               <Badge className={getStatusColor(battery.status)}>
                 {battery.status}
@@ -69,7 +81,12 @@ const ResponsiveBatteryCards = ({ batteries }: ResponsiveBatteryCardsProps) => {
             </div>
             
             <div className="flex space-x-2 mt-4">
-              <Button variant="outline" size="sm" className="flex-1">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="flex-1"
+                onClick={() => handleViewDetails(battery.id)}
+              >
                 <Eye className="w-3 h-3 mr-1" />
                 View
               </Button>

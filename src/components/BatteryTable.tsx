@@ -7,6 +7,7 @@ import { Edit, Eye } from 'lucide-react';
 import AddBatteryModal from './AddBatteryModal';
 import AssignBatteryModal from './AssignBatteryModal';
 import ResponsiveBatteryCards from './ResponsiveBatteryCards';
+import BatteryProfile from './BatteryProfile';
 import { useBatteries } from '@/hooks/useBatteries';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -17,6 +18,15 @@ interface BatteryTableProps {
 const BatteryTable = ({ isAdmin }: BatteryTableProps) => {
   const { batteries, loading } = useBatteries();
   const { userRole } = useAuth();
+  const [selectedBatteryId, setSelectedBatteryId] = useState<string | null>(null);
+
+  const handleViewDetails = (batteryId: string) => {
+    setSelectedBatteryId(batteryId);
+  };
+
+  const handleCloseDetails = () => {
+    setSelectedBatteryId(null);
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -41,6 +51,17 @@ const BatteryTable = ({ isAdmin }: BatteryTableProps) => {
       <div className="flex items-center justify-center py-8">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
       </div>
+    );
+  }
+
+  // If a battery is selected, show its profile
+  if (selectedBatteryId) {
+    return (
+      <BatteryProfile 
+        batteryId={selectedBatteryId} 
+        onBack={handleCloseDetails}
+        showBackButton={true}
+      />
     );
   }
 
@@ -87,7 +108,7 @@ const BatteryTable = ({ isAdmin }: BatteryTableProps) => {
       {/* Mobile Card View */}
       <div className="block lg:hidden">
         {batteries.length > 0 ? (
-          <ResponsiveBatteryCards batteries={batteries} />
+          <ResponsiveBatteryCards batteries={batteries} onViewDetails={handleViewDetails} />
         ) : (
           <Card>
             <CardContent className="text-center py-8">
@@ -123,7 +144,14 @@ const BatteryTable = ({ isAdmin }: BatteryTableProps) => {
                   <TableBody>
                     {batteries.map((battery) => (
                       <TableRow key={battery.id} className="hover:bg-gray-50">
-                        <TableCell className="font-medium">{battery.serial_number}</TableCell>
+                        <TableCell className="font-medium">
+                          <button
+                            onClick={() => handleViewDetails(battery.id)}
+                            className="text-blue-600 hover:text-blue-800 font-medium hover:underline"
+                          >
+                            {battery.serial_number}
+                          </button>
+                        </TableCell>
                         <TableCell>
                           <Badge variant="outline">
                             {battery.model_name || 'N/A'}
@@ -144,7 +172,11 @@ const BatteryTable = ({ isAdmin }: BatteryTableProps) => {
                         )}
                         <TableCell>
                           <div className="flex space-x-2">
-                            <Button variant="outline" size="sm">
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => handleViewDetails(battery.id)}
+                            >
                               <Eye className="w-3 h-3 mr-1" />
                               View
                             </Button>

@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -8,16 +7,24 @@ import { Button } from "@/components/ui/button";
 import CreatePartnerModal from './CreatePartnerModal';
 import EditPartnerModal from './EditPartnerModal';
 import DeletePartnerModal from './DeletePartnerModal';
+import PartnerProfile from './PartnerProfile';
 import { usePartners } from '@/hooks/usePartners';
 import { useAuth } from '@/contexts/AuthContext';
 
 const PartnerTable = () => {
   const { partners, loading, refetch } = usePartners();
   const { userRole } = useAuth();
+  const [selectedPartnerId, setSelectedPartnerId] = useState<string | null>(null);
+  const [showProfile, setShowProfile] = useState(false);
 
   const handleViewDetails = (partnerId: string) => {
-    // This will open partner details modal/page in the future
-    console.log('View partner details:', partnerId);
+    setSelectedPartnerId(partnerId);
+    setShowProfile(true);
+  };
+
+  const handleCloseProfile = () => {
+    setSelectedPartnerId(null);
+    setShowProfile(false);
   };
 
   const handlePhoneCall = (phone: string) => {
@@ -47,6 +54,17 @@ const PartnerTable = () => {
           <p className="text-gray-600">Loading partners...</p>
         </div>
       </div>
+    );
+  }
+
+  // If showing profile, render the partner profile component
+  if (showProfile && selectedPartnerId) {
+    return (
+      <PartnerProfile 
+        partnerId={selectedPartnerId} 
+        onBack={handleCloseProfile}
+        showBackButton={true}
+      />
     );
   }
 

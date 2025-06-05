@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,6 +7,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Edit, Eye, Phone } from 'lucide-react';
 import AddCustomerModal from './AddCustomerModal';
 import CustomerDetailsModal from './CustomerDetailsModal';
+import CustomerProfile from './CustomerProfile';
+import ResponsiveCustomerCards from './ResponsiveCustomerCards';
 import { useCustomers } from '@/hooks/useCustomers';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -20,15 +21,16 @@ const CustomerTable = ({ isAdmin }: CustomerTableProps) => {
   const { userRole } = useAuth();
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
 
   const handleViewDetails = (customerId: string) => {
     setSelectedCustomerId(customerId);
-    setIsDetailsModalOpen(true);
+    setShowProfile(true);
   };
 
-  const handleCloseDetails = () => {
+  const handleCloseProfile = () => {
     setSelectedCustomerId(null);
-    setIsDetailsModalOpen(false);
+    setShowProfile(false);
   };
 
   const handlePhoneCall = (phone: string) => {
@@ -45,6 +47,17 @@ const CustomerTable = ({ isAdmin }: CustomerTableProps) => {
       <div className="flex items-center justify-center py-8">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
       </div>
+    );
+  }
+
+  // If showing profile, render the customer profile component
+  if (showProfile && selectedCustomerId) {
+    return (
+      <CustomerProfile 
+        customerId={selectedCustomerId} 
+        onBack={handleCloseProfile}
+        showBackButton={true}
+      />
     );
   }
 
@@ -94,61 +107,7 @@ const CustomerTable = ({ isAdmin }: CustomerTableProps) => {
             <>
               {/* Mobile Card View */}
               <div className="block lg:hidden space-y-4 p-4">
-                {customers.map((customer) => (
-                  <Card key={customer.id} className="border">
-                    <CardContent className="p-4">
-                      <div className="flex justify-between items-start mb-3">
-                        <div>
-                          <button
-                            onClick={() => handleViewDetails(customer.id)}
-                            className="text-blue-600 hover:text-blue-800 font-medium hover:underline text-left"
-                          >
-                            {customer.name}
-                          </button>
-                          <p className="text-xs text-gray-500 mt-1">
-                            {customer.phone ? (
-                              <button
-                                onClick={() => handlePhoneCall(customer.phone)}
-                                className="flex items-center space-x-1 text-blue-600 hover:text-blue-800"
-                              >
-                                <Phone className="w-3 h-3" />
-                                <span>{customer.phone}</span>
-                              </button>
-                            ) : (
-                              'No phone'
-                            )}
-                          </p>
-                        </div>
-                        <Badge variant="outline">
-                          {customer.batteries?.serial_number || 'Unassigned'}
-                        </Badge>
-                      </div>
-                      {userRole === 'admin' && (
-                        <div className="mb-3">
-                          <span className="text-xs text-gray-500">Partner: </span>
-                          <span className={`text-xs ${!customer.partner_id ? 'text-gray-500 italic' : 'text-gray-700'}`}>
-                            {getPartnerName(customer)}
-                          </span>
-                        </div>
-                      )}
-                      <div className="flex space-x-2">
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => handleViewDetails(customer.id)}
-                          className="flex-1"
-                        >
-                          <Eye className="w-3 h-3 mr-1" />
-                          View
-                        </Button>
-                        <Button variant="outline" size="sm" className="flex-1">
-                          <Edit className="w-3 h-3 mr-1" />
-                          Edit
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                <ResponsiveCustomerCards customers={customers} onViewDetails={handleViewDetails} />
               </div>
 
               {/* Desktop Table View */}
@@ -237,7 +196,7 @@ const CustomerTable = ({ isAdmin }: CustomerTableProps) => {
       <CustomerDetailsModal
         customerId={selectedCustomerId}
         isOpen={isDetailsModalOpen}
-        onClose={handleCloseDetails}
+        onClose={() => setIsDetailsModalOpen(false)}
       />
     </div>
   );

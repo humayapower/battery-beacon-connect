@@ -41,8 +41,8 @@ const AdminDashboard = () => {
 
   // Calculate live stats
   const totalCustomers = customers?.length || 0;
-  const emiCustomers = customers?.filter(c => c.payment_type === 'emi')?.length || 0;
-  const rentalCustomers = customers?.filter(c => c.payment_type === 'monthly_rent')?.length || 0;
+  const totalPartners = partners?.length || 0;
+  const totalBatteries = batteries?.length || 0;
   
   // Calculate overdue payments
   const now = new Date();
@@ -55,6 +55,11 @@ const AdminDashboard = () => {
   const recentPayments = transactions
     ?.filter(t => t.payment_status === 'paid')
     ?.sort((a, b) => new Date(b.transaction_date).getTime() - new Date(a.transaction_date).getTime())
+    ?.slice(0, 5) || [];
+
+  // Recent customers (last 5)
+  const recentCustomers = customers
+    ?.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
     ?.slice(0, 5) || [];
 
   const formatCurrency = (amount: number) => {
@@ -151,12 +156,12 @@ const AdminDashboard = () => {
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-gray-600">EMI Customers</p>
-                      <p className="text-3xl font-bold">{emiCustomers}</p>
+                      <p className="text-sm font-medium text-gray-600">Total Partners</p>
+                      <p className="text-3xl font-bold">{totalPartners}</p>
                       <p className="text-sm text-green-600">+5% from last month</p>
                     </div>
                     <div className="p-3 bg-green-100 rounded-full">
-                      <CreditCard className="w-6 h-6 text-green-600" />
+                      <Users className="w-6 h-6 text-green-600" />
                     </div>
                   </div>
                 </CardContent>
@@ -166,8 +171,8 @@ const AdminDashboard = () => {
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-gray-600">Rental Customers</p>
-                      <p className="text-3xl font-bold">{rentalCustomers}</p>
+                      <p className="text-sm font-medium text-gray-600">Total Batteries</p>
+                      <p className="text-3xl font-bold">{totalBatteries}</p>
                       <p className="text-sm text-green-600">+10% from last month</p>
                     </div>
                     <div className="p-3 bg-purple-100 rounded-full">
@@ -269,116 +274,62 @@ const AdminDashboard = () => {
               </Card>
             </div>
 
-            {/* Customer Sections */}
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-              {/* EMI Customers */}
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between">
-                  <div>
-                    <CardTitle className="flex items-center">
-                      <CreditCard className="w-5 h-5 mr-2" />
-                      EMI Customers
-                    </CardTitle>
-                    <CardDescription>Customers on installment plans</CardDescription>
-                  </div>
-                  <Button variant="ghost" size="sm" onClick={() => setActiveSection('customers')}>
-                    View All
-                  </Button>
-                </CardHeader>
-                <CardContent>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Customer</TableHead>
-                        <TableHead>Installments</TableHead>
-                        <TableHead>Next Due</TableHead>
-                        <TableHead>Status</TableHead>
+            {/* Customer Section */}
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center">
+                    <User className="w-5 h-5 mr-2" />
+                    Recent Customers
+                  </CardTitle>
+                  <CardDescription>Recently added customers</CardDescription>
+                </div>
+                <Button variant="ghost" size="sm" onClick={() => setActiveSection('customers')}>
+                  View All
+                </Button>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Customer</TableHead>
+                      <TableHead>Payment Type</TableHead>
+                      <TableHead>Battery</TableHead>
+                      <TableHead>Join Date</TableHead>
+                      <TableHead>Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {recentCustomers.map((customer) => (
+                      <TableRow key={customer.id}>
+                        <TableCell>
+                          <div>
+                            <p className="font-medium">{customer.name}</p>
+                            <p className="text-sm text-gray-500">{customer.phone}</p>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className="capitalize">
+                            {customer.payment_type.replace('_', ' ')}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {customer.batteries?.serial_number || 'Unassigned'}
+                        </TableCell>
+                        <TableCell>
+                          {customer.join_date ? formatDate(customer.join_date) : 'N/A'}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={customer.status === 'active' ? 'default' : 'secondary'}>
+                            {customer.status}
+                          </Badge>
+                        </TableCell>
                       </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {customers
-                        ?.filter(c => c.payment_type === 'emi')
-                        ?.slice(0, 3)
-                        ?.map((customer) => (
-                          <TableRow key={customer.id}>
-                            <TableCell>
-                              <div>
-                                <p className="font-medium">{customer.name}</p>
-                                <p className="text-sm text-gray-500">{customer.batteries?.model || customer.batteries?.model_name || 'N/A'}</p>
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              {customer.emi_count ? `${customer.emi_count} EMIs` : 'N/A'}
-                            </TableCell>
-                            <TableCell>
-                              {customer.next_due_date ? formatDate(customer.next_due_date) : 'N/A'}
-                            </TableCell>
-                            <TableCell>
-                              <Badge variant={customer.status === 'active' ? 'default' : 'secondary'}>
-                                {customer.status}
-                              </Badge>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                    </TableBody>
-                  </Table>
-                </CardContent>
-              </Card>
-
-              {/* Rental Customers */}
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between">
-                  <div>
-                    <CardTitle className="flex items-center">
-                      <Battery className="w-5 h-5 mr-2" />
-                      Rental Customers
-                    </CardTitle>
-                    <CardDescription>Customers on monthly rental plans</CardDescription>
-                  </div>
-                  <Button variant="ghost" size="sm" onClick={() => setActiveSection('customers')}>
-                    View All
-                  </Button>
-                </CardHeader>
-                <CardContent>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Customer</TableHead>
-                        <TableHead>Monthly Rent</TableHead>
-                        <TableHead>Paid Until</TableHead>
-                        <TableHead>Status</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {customers
-                        ?.filter(c => c.payment_type === 'monthly_rent')
-                        ?.slice(0, 3)
-                        ?.map((customer) => (
-                          <TableRow key={customer.id}>
-                            <TableCell>
-                              <div>
-                                <p className="font-medium">{customer.name}</p>
-                                <p className="text-sm text-gray-500">{customer.batteries?.model || customer.batteries?.model_name || 'N/A'}</p>
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              {customer.monthly_rent ? formatCurrency(customer.monthly_rent) : 'N/A'}
-                            </TableCell>
-                            <TableCell>
-                              {customer.last_payment_date ? formatDate(customer.last_payment_date) : 'N/A'}
-                            </TableCell>
-                            <TableCell>
-                              <Badge variant={customer.status === 'active' ? 'default' : 'secondary'}>
-                                {customer.status}
-                              </Badge>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                    </TableBody>
-                  </Table>
-                </CardContent>
-              </Card>
-            </div>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
 
             {/* Battery Overview */}
             <Card>

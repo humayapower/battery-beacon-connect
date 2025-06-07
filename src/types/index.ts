@@ -5,6 +5,9 @@ export interface Partner {
   phone: string;
   username: string;
   address?: string;
+  email?: string;
+  business_name?: string;
+  status: 'active' | 'inactive' | 'suspended';
   created_at: string;
   updated_at: string;
   battery_count?: number;

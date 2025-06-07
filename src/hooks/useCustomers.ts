@@ -47,11 +47,10 @@ export const useCustomers = () => {
       
       if (error) throw error;
       
-      // Transform the data to match our interface
       const transformedData = (data || []).map(customer => ({
         ...customer,
         partner: customer.users ? { name: customer.users.name } : null,
-        users: undefined // Remove the users property as we've moved it to partner
+        users: undefined
       }));
       
       setCustomers(transformedData as CustomerWithBattery[]);
@@ -68,9 +67,8 @@ export const useCustomers = () => {
 
   const addCustomer = async (customerData: Omit<CustomerWithBattery, 'id' | 'created_at' | 'updated_at' | 'batteries'>) => {
     try {
-      // Create customer without battery assignment first
       const customerToInsert = { ...customerData };
-      delete customerToInsert.battery_id; // Remove battery_id completely for initial insert
+      delete customerToInsert.battery_id;
       
       const { data: customer, error: customerError } = await supabase
         .from('customers')
@@ -80,9 +78,7 @@ export const useCustomers = () => {
 
       if (customerError) throw customerError;
 
-      // If there's a battery to assign, handle it after customer creation
       if (customerData.battery_id && customerData.battery_id !== 'none') {
-        // First update the battery to assign it to the customer
         const { error: batteryUpdateError } = await supabase
           .from('batteries')
           .update({ 
@@ -91,23 +87,11 @@ export const useCustomers = () => {
           })
           .eq('id', customerData.battery_id);
 
-        if (batteryUpdateError) {
-          console.error('Error updating battery:', batteryUpdateError);
-          toast({
-            title: "Customer created but battery assignment failed",
-            description: "Customer was created successfully, but the battery could not be assigned.",
-            variant: "destructive",
-          });
-        } else {
-          // Then update the customer record with the battery_id
-          const { error: customerUpdateError } = await supabase
+        if (!batteryUpdateError) {
+          await supabase
             .from('customers')
             .update({ battery_id: customerData.battery_id })
             .eq('id', customer.id);
-
-          if (customerUpdateError) {
-            console.error('Error updating customer with battery_id:', customerUpdateError);
-          }
         }
       }
       

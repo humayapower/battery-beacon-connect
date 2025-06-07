@@ -5,8 +5,6 @@ export interface Partner {
   phone: string;
   username: string;
   address?: string;
-  email?: string;
-  business_name?: string;
   status: 'active' | 'inactive' | 'suspended';
   created_at: string;
   updated_at: string;
@@ -48,7 +46,6 @@ export interface Customer {
   address?: string;
   payment_type: 'emi' | 'monthly_rent' | 'one_time_purchase';
   monthly_amount?: number;
-  monthly_fee?: number;
   partner_id?: string;
   battery_id?: string;
   join_date?: string;
@@ -59,7 +56,6 @@ export interface Customer {
   aadhaar_front_url?: string;
   aadhaar_back_url?: string;
   pan_card_url?: string;
-  // New billing fields
   total_amount?: number;
   down_payment?: number;
   emi_count?: number;

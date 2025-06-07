@@ -50,20 +50,28 @@ const CreatePartnerModal = ({ onPartnerCreated }: CreatePartnerModalProps) => {
   };
 
   const uploadFile = async (file: File, bucket: string, path: string) => {
-    const { data, error } = await supabase.storage
-      .from(bucket)
-      .upload(path, file, {
-        cacheControl: '3600',
-        upsert: true
-      });
+    try {
+      const { data, error } = await supabase.storage
+        .from(bucket)
+        .upload(path, file, {
+          cacheControl: '3600',
+          upsert: true
+        });
 
-    if (error) throw error;
-    
-    const { data: publicUrlData } = supabase.storage
-      .from(bucket)
-      .getPublicUrl(path);
+      if (error) {
+        console.error('Upload error:', error);
+        throw error;
+      }
+      
+      const { data: publicUrlData } = supabase.storage
+        .from(bucket)
+        .getPublicUrl(path);
 
-    return publicUrlData.publicUrl;
+      return publicUrlData.publicUrl;
+    } catch (err) {
+      console.error('File upload failed:', err);
+      throw new Error(`Failed to upload ${file.name}: ${err.message}`);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -103,7 +111,7 @@ const CreatePartnerModal = ({ onPartnerCreated }: CreatePartnerModalProps) => {
 
     try {
       // Upload files if present
-      const uploadedUrls: any = {};
+      const uploadedUrls: Record<string, string> = {};
       
       if (files.partnerPhoto) {
         const fileName = `${Date.now()}_partner_photo.${files.partnerPhoto.name.split('.').pop()}`;
@@ -123,23 +131,32 @@ const CreatePartnerModal = ({ onPartnerCreated }: CreatePartnerModalProps) => {
       setUploading(false);
 
       // Create partner with uploaded document URLs
-      await createPartner(
+      const result = await createPartner(
         formData.name.trim(),
         formData.phone.trim(),
         formData.username.trim(),
         formData.password.trim(),
         formData.address.trim() || undefined
       );
-      
-      toast({
-        title: "Partner created successfully",
-        description: `${formData.name} has been added as a partner with all documents.`,
-      });
-      
-      setOpen(false);
-      resetForm();
-      onPartnerCreated?.();
+
+      if (result.success) {
+        // TODO: Update partner record with document URLs
+        // For now, the partner is created successfully without document links
+        // This can be enhanced later to store document URLs in a separate table
+        
+        toast({
+          title: "Partner created successfully",
+          description: `${formData.name} has been added as a partner.`,
+        });
+        
+        setOpen(false);
+        resetForm();
+        onPartnerCreated?.();
+      } else {
+        throw new Error(result.error || 'Failed to create partner');
+      }
     } catch (err: any) {
+      console.error('Partner creation error:', err);
       setError(err.message || 'Failed to create partner');
     } finally {
       setLoading(false);

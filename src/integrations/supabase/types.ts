@@ -327,39 +327,6 @@ export type Database = {
           },
         ]
       }
-      partners: {
-        Row: {
-          address: string | null
-          created_at: string
-          id: string
-          name: string
-          password_hash: string
-          phone: string
-          updated_at: string
-          username: string
-        }
-        Insert: {
-          address?: string | null
-          created_at?: string
-          id?: string
-          name: string
-          password_hash: string
-          phone: string
-          updated_at?: string
-          username: string
-        }
-        Update: {
-          address?: string | null
-          created_at?: string
-          id?: string
-          name?: string
-          password_hash?: string
-          phone?: string
-          updated_at?: string
-          username?: string
-        }
-        Relationships: []
-      }
       transactions: {
         Row: {
           amount: number

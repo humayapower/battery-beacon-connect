@@ -1,24 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar";
-import { Battery, Users, User, CreditCard, Home, Plus, Settings, LogOut, TrendingUp, TrendingDown, Calendar, FileText } from 'lucide-react';
+import { Battery, Users, User, CreditCard, Home, Settings, LogOut, Calendar, FileText } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useBatteries } from '@/hooks/useBatteries';
 import { useCustomers } from '@/hooks/useCustomers';
-import { usePartners } from '@/hooks/usePartners';
+import { useOptimizedPartners } from '@/hooks/useOptimizedPartners';
 import { useTransactions } from '@/hooks/useTransactions';
 import { ThemeToggle } from './ThemeToggle';
 import BatteryTable from './BatteryTable';
-import PartnerTable from './PartnerTable';
+import OptimizedPartnerTable from './OptimizedPartnerTable';
 import CustomerTable from './CustomerTable';
 import TransactionTable from './TransactionTable';
 import BillingDashboard from './BillingDashboard';
-import CreatePartnerModal from './CreatePartnerModal';
-import AssignBatteryModal from './AssignBatteryModal';
-import AddBatteryModal from './AddBatteryModal';
 import AddCustomerModal from './AddCustomerModal';
 
 const AdminDashboard = () => {
@@ -26,7 +23,7 @@ const AdminDashboard = () => {
   const { signOut, user } = useAuth();
   const { batteries } = useBatteries();
   const { customers } = useCustomers();
-  const { partners } = usePartners();
+  const { partners } = useOptimizedPartners();
   const { transactions } = useTransactions();
 
   const menuItems = [
@@ -39,33 +36,34 @@ const AdminDashboard = () => {
     { title: "Settings", icon: Settings, key: "settings" },
   ];
 
-  // Calculate live stats
-  const totalCustomers = customers?.length || 0;
-  const totalPartners = partners?.length || 0;
-  const totalBatteries = batteries?.length || 0;
-  
-  // Calculate overdue payments
-  const now = new Date();
-  const overdueTransactions = transactions?.filter(t => 
-    t.payment_status === 'overdue' || 
-    (t.payment_status === 'due' && t.due_date && new Date(t.due_date) < now)
-  ) || [];
-  
-  // Recent payments (last 5)
-  const recentPayments = transactions
-    ?.filter(t => t.payment_status === 'paid')
-    ?.sort((a, b) => new Date(b.transaction_date).getTime() - new Date(a.transaction_date).getTime())
-    ?.slice(0, 5) || [];
+  // Optimized stats calculation with memoization
+  const stats = useMemo(() => {
+    const now = new Date();
+    const overdueTransactions = transactions?.filter(t => 
+      t.payment_status === 'overdue' || 
+      (t.payment_status === 'due' && t.due_date && new Date(t.due_date) < now)
+    ) || [];
+    
+    const recentPayments = transactions
+      ?.filter(t => t.payment_status === 'paid')
+      ?.sort((a, b) => new Date(b.transaction_date).getTime() - new Date(a.transaction_date).getTime())
+      ?.slice(0, 5) || [];
 
-  // Recent customers (last 5)
-  const recentCustomers = customers
-    ?.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-    ?.slice(0, 5) || [];
+    const recentCustomers = customers
+      ?.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+      ?.slice(0, 5) || [];
 
-  const formatCurrency = (amount: number) => {
-    return `₹${amount.toLocaleString('en-IN')}`;
-  };
+    return {
+      totalCustomers: customers?.length || 0,
+      totalPartners: partners?.length || 0,
+      totalBatteries: batteries?.length || 0,
+      overdueCount: overdueTransactions.length,
+      recentPayments,
+      recentCustomers,
+    };
+  }, [customers, partners, batteries, transactions]);
 
+  const formatCurrency = (amount: number) => `₹${amount.toLocaleString('en-IN')}`;
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-IN', {
       day: 'numeric',
@@ -120,7 +118,6 @@ const AdminDashboard = () => {
       case 'overview':
         return (
           <div className="space-y-6">
-            {/* Header */}
             <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4">
               <div>
                 <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">Dashboard</h1>
@@ -135,14 +132,13 @@ const AdminDashboard = () => {
               </div>
             </div>
 
-            {/* Key Metrics */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               <Card>
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-gray-600">Total Customers</p>
-                      <p className="text-3xl font-bold">{totalCustomers}</p>
+                      <p className="text-3xl font-bold">{stats.totalCustomers}</p>
                       <p className="text-sm text-green-600">+12% from last month</p>
                     </div>
                     <div className="p-3 bg-blue-100 rounded-full">
@@ -157,7 +153,7 @@ const AdminDashboard = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-gray-600">Total Partners</p>
-                      <p className="text-3xl font-bold">{totalPartners}</p>
+                      <p className="text-3xl font-bold">{stats.totalPartners}</p>
                       <p className="text-sm text-green-600">+5% from last month</p>
                     </div>
                     <div className="p-3 bg-green-100 rounded-full">
@@ -172,7 +168,7 @@ const AdminDashboard = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-gray-600">Total Batteries</p>
-                      <p className="text-3xl font-bold">{totalBatteries}</p>
+                      <p className="text-3xl font-bold">{stats.totalBatteries}</p>
                       <p className="text-sm text-green-600">+10% from last month</p>
                     </div>
                     <div className="p-3 bg-purple-100 rounded-full">
@@ -187,20 +183,18 @@ const AdminDashboard = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-gray-600">Overdue Payments</p>
-                      <p className="text-3xl font-bold">{overdueTransactions.length}</p>
+                      <p className="text-3xl font-bold">{stats.overdueCount}</p>
                       <p className="text-sm text-red-600">-2% from last month</p>
                     </div>
                     <div className="p-3 bg-red-100 rounded-full">
-                      <TrendingDown className="w-6 h-6 text-red-600" />
+                      <CreditCard className="w-6 h-6 text-red-600" />
                     </div>
                   </div>
                 </CardContent>
               </Card>
             </div>
 
-            {/* Main Content Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Recent Payments */}
               <div className="lg:col-span-2">
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between">
@@ -214,15 +208,15 @@ const AdminDashboard = () => {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
-                      {recentPayments.length > 0 ? (
-                        recentPayments.map((payment) => (
+                      {stats.recentPayments.length > 0 ? (
+                        stats.recentPayments.map((payment) => (
                           <div key={payment.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                             <div className="flex items-center space-x-3">
                               <div className="p-2 bg-blue-100 rounded-full">
                                 <CreditCard className="w-4 h-4 text-blue-600" />
                               </div>
                               <div>
-                                <p className="font-medium">{payment.customers?.name || 'Unknown Customer'}</p>
+                                <p className="font-medium">Customer Payment</p>
                                 <p className="text-sm text-gray-600 capitalize">
                                   {payment.transaction_type} Payment • {formatDate(payment.transaction_date)}
                                 </p>
@@ -241,40 +235,31 @@ const AdminDashboard = () => {
                 </Card>
               </div>
 
-              {/* Overdue Payments */}
               <Card>
-                <CardHeader className="flex flex-row items-center justify-between">
-                  <div>
-                    <CardTitle>Overdue Payments</CardTitle>
-                    <CardDescription>Customers with overdue payments</CardDescription>
-                  </div>
-                  <Button variant="ghost" size="sm" onClick={() => setActiveSection('payments')}>
-                    View all overdue
-                  </Button>
+                <CardHeader>
+                  <CardTitle>Recent Customers</CardTitle>
+                  <CardDescription>Recently added customers</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    {overdueTransactions.length > 0 ? (
-                      overdueTransactions.slice(0, 3).map((transaction) => (
-                        <div key={transaction.id} className="flex items-center justify-between">
-                          <div>
-                            <p className="font-medium text-sm">{transaction.customers?.name || 'Unknown'}</p>
-                            <p className="text-xs text-gray-500">
-                              Due on {transaction.due_date ? formatDate(transaction.due_date) : 'N/A'}
-                            </p>
-                          </div>
-                          <p className="font-semibold text-red-600">{formatCurrency(transaction.amount)}</p>
+                    {stats.recentCustomers.slice(0, 3).map((customer) => (
+                      <div key={customer.id} className="flex items-center justify-between">
+                        <div>
+                          <p className="font-medium text-sm">{customer.name}</p>
+                          <p className="text-xs text-gray-500">
+                            {customer.join_date ? formatDate(customer.join_date) : 'N/A'}
+                          </p>
                         </div>
-                      ))
-                    ) : (
-                      <p className="text-center text-gray-500 py-4">No overdue payments</p>
-                    )}
+                        <Badge variant={customer.status === 'active' ? 'default' : 'secondary'}>
+                          {customer.status}
+                        </Badge>
+                      </div>
+                    ))}
                   </div>
                 </CardContent>
               </Card>
             </div>
 
-            {/* Customer Section */}
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <div>
@@ -300,7 +285,7 @@ const AdminDashboard = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {recentCustomers.map((customer) => (
+                    {stats.recentCustomers.map((customer) => (
                       <TableRow key={customer.id}>
                         <TableCell>
                           <div>
@@ -331,7 +316,6 @@ const AdminDashboard = () => {
               </CardContent>
             </Card>
 
-            {/* Battery Overview */}
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <div>
@@ -385,7 +369,7 @@ const AdminDashboard = () => {
       case 'batteries':
         return <BatteryTable isAdmin={true} />;
       case 'partners':
-        return <PartnerTable />;
+        return <OptimizedPartnerTable />;
       case 'customers':
         return <CustomerTable isAdmin={true} />;
       case 'payments':
@@ -421,14 +405,6 @@ const AdminDashboard = () => {
               <SidebarTrigger className="lg:hidden" />
               <div className="flex items-center space-x-4 ml-auto">
                 <ThemeToggle />
-                <div className="relative">
-                  <input
-                    type="text"
-                    placeholder="Search..."
-                    className="pl-8 pr-4 py-2 border rounded-lg text-sm w-64 focus:outline-none focus:ring-2 focus:ring-primary bg-background"
-                  />
-                  <Users className="w-4 h-4 absolute left-2.5 top-2.5 text-muted-foreground" />
-                </div>
                 <div className="flex items-center space-x-2">
                   <span className="text-sm">Welcome, {user?.name || user?.username}</span>
                   <Badge>Admin User</Badge>

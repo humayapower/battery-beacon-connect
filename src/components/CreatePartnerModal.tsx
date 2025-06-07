@@ -139,22 +139,18 @@ const CreatePartnerModal = ({ onPartnerCreated }: CreatePartnerModalProps) => {
         formData.address.trim() || undefined
       );
 
-      if (result.success) {
-        // TODO: Update partner record with document URLs
-        // For now, the partner is created successfully without document links
-        // This can be enhanced later to store document URLs in a separate table
-        
-        toast({
-          title: "Partner created successfully",
-          description: `${formData.name} has been added as a partner.`,
-        });
-        
-        setOpen(false);
-        resetForm();
-        onPartnerCreated?.();
-      } else {
-        throw new Error(result.error || 'Failed to create partner');
-      }
+      // TODO: Update partner record with document URLs
+      // For now, the partner is created successfully without document links
+      // This can be enhanced later to store document URLs in a separate table
+      
+      toast({
+        title: "Partner created successfully",
+        description: `${formData.name} has been added as a partner.`,
+      });
+      
+      setOpen(false);
+      resetForm();
+      onPartnerCreated?.();
     } catch (err: any) {
       console.error('Partner creation error:', err);
       setError(err.message || 'Failed to create partner');

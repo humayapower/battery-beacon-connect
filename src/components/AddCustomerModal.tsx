@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -559,9 +558,9 @@ const AddCustomerModal = () => {
 
             {formData.paymentType === 'monthly_rent' && (
               <div className="grid grid-cols-2 gap-4 p-4 border rounded-lg bg-muted/30">
-                <h4 className="col-span-2 font-semibold">Subscription Plan Details</h4>
+                <h4 className="col-span-2 font-semibold">Monthly Rent Plan Details</h4>
                 <div>
-                  <Label htmlFor="monthlyRent" className="font-medium">Monthly Rent (₹) *</Label>
+                  <Label htmlFor="monthlyRent" className="font-medium">Monthly Rent Amount (₹) *</Label>
                   <Input
                     id="monthlyRent"
                     type="number"

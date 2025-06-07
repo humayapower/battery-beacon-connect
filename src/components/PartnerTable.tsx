@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -70,7 +71,9 @@ const PartnerTable = () => {
     return partners.find(partner => partner.id === partnerId);
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: string | undefined) => {
+    if (!status) return 'bg-gray-100 text-gray-800';
+    
     switch (status) {
       case 'active':
         return 'bg-green-100 text-green-800';
@@ -192,7 +195,7 @@ const PartnerTable = () => {
                         <TableCell>{partner.address || 'N/A'}</TableCell>
                         <TableCell>
                           <Badge className={getStatusColor(partner.status)}>
-                            {partner.status.charAt(0).toUpperCase() + partner.status.slice(1)}
+                            {partner.status ? (partner.status.charAt(0).toUpperCase() + partner.status.slice(1)) : 'Unknown'}
                           </Badge>
                         </TableCell>
                       </TableRow>

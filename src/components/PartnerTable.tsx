@@ -38,8 +38,7 @@ const PartnerTable = () => {
       const matchesSearch = !searchTerm || 
         partner.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         partner.phone?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        partner.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        partner.business_name?.toLowerCase().includes(searchTerm.toLowerCase());
+        partner.username?.toLowerCase().includes(searchTerm.toLowerCase());
 
       // Status filter
       const matchesStatus = !filters.status || partner.status === filters.status;
@@ -60,15 +59,6 @@ const PartnerTable = () => {
 
   const handlePhoneCall = (phone: string) => {
     window.open(`tel:${phone}`, '_self');
-  };
-
-  const handleViewAddress = (address: string) => {
-    window.open(`https://maps.google.com/?q=${encodeURIComponent(address)}`, '_blank');
-  };
-
-  // Helper function to find partner by ID
-  const findPartnerById = (partnerId: string) => {
-    return partners.find(partner => partner.id === partnerId);
   };
 
   const getStatusColor = (status: string | undefined) => {
@@ -122,7 +112,7 @@ const PartnerTable = () => {
         onSearchChange={setSearchTerm}
         onFilterChange={setFilters}
         filterOptions={filterOptions}
-        placeholder="Search partners by name, phone, email, or business name..."
+        placeholder="Search partners by name, phone, or username..."
       />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -162,10 +152,12 @@ const PartnerTable = () => {
                   <TableHeader>
                     <TableRow>
                       <TableHead className="font-semibold">Partner Name</TableHead>
-                      <TableHead className="font-semibold">Business Name</TableHead>
                       <TableHead className="font-semibold">Phone</TableHead>
-                      <TableHead className="font-semibold">Location</TableHead>
+                      <TableHead className="font-semibold">Username</TableHead>
+                      <TableHead className="font-semibold">Batteries</TableHead>
+                      <TableHead className="font-semibold">Customers</TableHead>
                       <TableHead className="font-semibold">Status</TableHead>
+                      <TableHead className="font-semibold">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -179,24 +171,48 @@ const PartnerTable = () => {
                             {partner.name}
                           </button>
                         </TableCell>
-                        <TableCell>{partner.business_name || 'N/A'}</TableCell>
                         <TableCell>
                           {partner.phone ? (
                             <button
                               onClick={() => handlePhoneCall(partner.phone)}
-                              className="text-primary hover:text-primary/80 transition-colors"
+                              className="text-primary hover:text-primary/80 transition-colors flex items-center"
                             >
+                              <Phone className="w-4 h-4 mr-1" />
                               {partner.phone}
                             </button>
                           ) : (
                             'N/A'
                           )}
                         </TableCell>
-                        <TableCell>{partner.address || 'N/A'}</TableCell>
+                        <TableCell className="font-medium">{partner.username}</TableCell>
+                        <TableCell className="text-center">
+                          <Badge variant="outline" className="bg-blue-50 text-blue-700">
+                            {partner.battery_count || 0}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <Badge variant="outline" className="bg-purple-50 text-purple-700">
+                            {partner.customer_count || 0}
+                          </Badge>
+                        </TableCell>
                         <TableCell>
                           <Badge className={getStatusColor(partner.status)}>
                             {partner.status ? (partner.status.charAt(0).toUpperCase() + partner.status.slice(1)) : 'Unknown'}
                           </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center space-x-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleViewProfile(partner.id)}
+                            >
+                              <Eye className="w-4 h-4 mr-1" />
+                              View
+                            </Button>
+                            <EditPartnerModal partner={partner} />
+                            <DeletePartnerModal partner={partner} />
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}

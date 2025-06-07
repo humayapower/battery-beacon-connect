@@ -44,6 +44,11 @@ const PartnerTable = () => {
     window.open(`https://maps.google.com/?q=${encodeURIComponent(address)}`, '_blank');
   };
 
+  // Helper function to find partner by ID
+  const findPartnerById = (partnerId: string) => {
+    return partners.find(partner => partner.id === partnerId);
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -64,51 +69,51 @@ const PartnerTable = () => {
   }
 
   return (
-    <div className="space-y-6 p-4 lg:p-6">
+    <div className="space-y-6 p-4 lg:p-6 bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <div>
-          <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-2">Partner Management</h2>
+          <h2 className="text-3xl lg:text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-2">Partner Management</h2>
           <p className="text-base lg:text-lg text-gray-600">Manage your partner network and relationships</p>
         </div>
         <CreatePartnerModal />
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="border-2 hover:shadow-lg transition-all duration-200">
+        <Card className="border-2 hover:shadow-xl transition-all duration-300 bg-white/80 backdrop-blur-sm border-blue-200">
           <CardContent className="p-6 text-center">
             <div className="text-2xl lg:text-3xl font-bold text-blue-600 mb-1">{partners.length}</div>
-            <div className="text-sm lg:text-base text-gray-600">Total Partners</div>
+            <div className="text-sm lg:text-base text-gray-600 font-medium">Total Partners</div>
           </CardContent>
         </Card>
-        <Card className="border-2 hover:shadow-lg transition-all duration-200">
+        <Card className="border-2 hover:shadow-xl transition-all duration-300 bg-white/80 backdrop-blur-sm border-green-200">
           <CardContent className="p-6 text-center">
             <div className="text-2xl lg:text-3xl font-bold text-green-600 mb-1">
               {partners.filter(p => p.battery_count && p.battery_count > 0).length}
             </div>
-            <div className="text-sm lg:text-base text-gray-600">Active Partners</div>
+            <div className="text-sm lg:text-base text-gray-600 font-medium">Active Partners</div>
           </CardContent>
         </Card>
-        <Card className="border-2 hover:shadow-lg transition-all duration-200">
+        <Card className="border-2 hover:shadow-xl transition-all duration-300 bg-white/80 backdrop-blur-sm border-purple-200">
           <CardContent className="p-6 text-center">
             <div className="text-2xl lg:text-3xl font-bold text-purple-600 mb-1">
               {partners.reduce((sum, p) => sum + (p.battery_count || 0), 0)}
             </div>
-            <div className="text-sm lg:text-base text-gray-600">Total Batteries</div>
+            <div className="text-sm lg:text-base text-gray-600 font-medium">Total Batteries</div>
           </CardContent>
         </Card>
-        <Card className="border-2 hover:shadow-lg transition-all duration-200">
+        <Card className="border-2 hover:shadow-xl transition-all duration-300 bg-white/80 backdrop-blur-sm border-orange-200">
           <CardContent className="p-6 text-center">
             <div className="text-2xl lg:text-3xl font-bold text-orange-600 mb-1">
               {partners.reduce((sum, p) => sum + (p.customer_count || 0), 0)}
             </div>
-            <div className="text-sm lg:text-base text-gray-600">Total Customers</div>
+            <div className="text-sm lg:text-base text-gray-600 font-medium">Total Customers</div>
           </CardContent>
         </Card>
       </div>
 
-      <Card className="border-2 shadow-lg">
-        <CardHeader className="bg-gray-50 border-b">
-          <CardTitle className="text-xl">Partner Directory</CardTitle>
+      <Card className="border-2 shadow-xl bg-white/90 backdrop-blur-sm border-gray-200">
+        <CardHeader className="bg-gradient-to-r from-gray-50 to-blue-50 border-b border-gray-200">
+          <CardTitle className="text-xl font-semibold text-gray-800">Partner Directory</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           {partners.length > 0 ? (
@@ -116,27 +121,27 @@ const PartnerTable = () => {
               {/* Mobile Card View */}
               <div className="block lg:hidden space-y-4 p-6">
                 {partners.map((partner) => (
-                  <Card key={partner.id} className="hover:shadow-lg transition-all duration-200 border-2">
+                  <Card key={partner.id} className="hover:shadow-xl transition-all duration-300 border-2 bg-white/80 backdrop-blur-sm border-gray-100 hover:border-blue-200">
                     <CardContent className="p-6">
                       <div className="flex items-start justify-between mb-4">
                         <div className="flex items-center space-x-2 flex-1">
                           <Users className="w-5 h-5 text-blue-600 flex-shrink-0" />
                           <button
                             onClick={() => handleViewDetails(partner.id)}
-                            className="font-semibold text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1 transition-colors"
+                            className="font-semibold text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1 transition-all duration-200 hover:scale-105"
                           >
                             {partner.name}
                             <ExternalLink className="w-3 h-3" />
                           </button>
                         </div>
-                        <Badge className="bg-green-100 text-green-800 border-green-200">Partner</Badge>
+                        <Badge className="bg-green-100 text-green-800 border-green-200 font-medium">Partner</Badge>
                       </div>
                       
                       <div className="space-y-3 text-sm">
                         <div className="flex items-center space-x-2">
                           <button
                             onClick={() => handlePhoneCall(partner.phone)}
-                            className="flex items-center space-x-1 text-blue-600 hover:text-blue-800 transition-colors"
+                            className="flex items-center space-x-1 text-blue-600 hover:text-blue-800 transition-all duration-200 hover:scale-105"
                           >
                             <Phone className="w-4 h-4 flex-shrink-0" />
                             <span className="font-medium">{partner.phone}</span>
@@ -144,17 +149,17 @@ const PartnerTable = () => {
                         </div>
                         <div className="flex justify-between items-center">
                           <span className="text-gray-600 font-medium">Username:</span>
-                          <span className="font-semibold">{partner.username}</span>
+                          <span className="font-semibold text-gray-800">{partner.username}</span>
                         </div>
                         <div className="flex justify-between items-center">
                           <span className="text-gray-600 font-medium">Batteries:</span>
-                          <Badge variant="outline" className="font-medium">
+                          <Badge variant="outline" className="font-medium border-blue-200 text-blue-700">
                             {partner.battery_count || 0}
                           </Badge>
                         </div>
                         <div className="flex justify-between items-center">
                           <span className="text-gray-600 font-medium">Customers:</span>
-                          <Badge variant="outline" className="font-medium">
+                          <Badge variant="outline" className="font-medium border-green-200 text-green-700">
                             {partner.customer_count || 0}
                           </Badge>
                         </div>
@@ -164,7 +169,7 @@ const PartnerTable = () => {
                         <Button 
                           variant="outline" 
                           size="sm" 
-                          className="flex-1 hover:bg-blue-50"
+                          className="flex-1 hover:bg-blue-50 border-blue-200 text-blue-700 hover:border-blue-300 transition-all duration-200"
                           onClick={() => handleViewDetails(partner.id)}
                         >
                           <Eye className="w-3 h-3 mr-1" />
@@ -173,7 +178,7 @@ const PartnerTable = () => {
                         <Button 
                           variant="outline" 
                           size="sm" 
-                          className="flex-1 hover:bg-gray-50"
+                          className="flex-1 hover:bg-gray-50 border-gray-200 text-gray-700 hover:border-gray-300 transition-all duration-200"
                           onClick={() => handleEdit(partner.id)}
                         >
                           <Edit className="w-3 h-3 mr-1" />
@@ -189,23 +194,23 @@ const PartnerTable = () => {
               <div className="hidden lg:block">
                 <Table>
                   <TableHeader>
-                    <TableRow className="bg-gray-50/50">
-                      <TableHead className="font-semibold">Partner Name</TableHead>
-                      <TableHead className="font-semibold">Phone</TableHead>
-                      <TableHead className="font-semibold">Username</TableHead>
-                      <TableHead className="font-semibold">Batteries</TableHead>
-                      <TableHead className="font-semibold">Customers</TableHead>
-                      <TableHead className="font-semibold">Address</TableHead>
-                      <TableHead className="font-semibold">Actions</TableHead>
+                    <TableRow className="bg-gradient-to-r from-gray-50 to-blue-50 hover:bg-gradient-to-r hover:from-gray-100 hover:to-blue-100">
+                      <TableHead className="font-semibold text-gray-700">Partner Name</TableHead>
+                      <TableHead className="font-semibold text-gray-700">Phone</TableHead>
+                      <TableHead className="font-semibold text-gray-700">Username</TableHead>
+                      <TableHead className="font-semibold text-gray-700">Batteries</TableHead>
+                      <TableHead className="font-semibold text-gray-700">Customers</TableHead>
+                      <TableHead className="font-semibold text-gray-700">Address</TableHead>
+                      <TableHead className="font-semibold text-gray-700">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {partners.map((partner) => (
-                      <TableRow key={partner.id} className="hover:bg-blue-50 transition-colors">
+                      <TableRow key={partner.id} className="hover:bg-blue-50/50 transition-all duration-200 border-b border-gray-100">
                         <TableCell>
                           <button
                             onClick={() => handleViewDetails(partner.id)}
-                            className="text-blue-600 hover:text-blue-800 font-semibold hover:underline flex items-center gap-1 transition-colors"
+                            className="text-blue-600 hover:text-blue-800 font-semibold hover:underline flex items-center gap-1 transition-all duration-200 hover:scale-105"
                           >
                             {partner.name}
                             <ExternalLink className="w-3 h-3" />
@@ -214,17 +219,17 @@ const PartnerTable = () => {
                         <TableCell>
                           <button
                             onClick={() => handlePhoneCall(partner.phone)}
-                            className="flex items-center space-x-1 text-blue-600 hover:text-blue-800 transition-colors"
+                            className="flex items-center space-x-1 text-blue-600 hover:text-blue-800 transition-all duration-200 hover:scale-105"
                           >
                             <Phone className="w-4 h-4" />
                             <span className="font-medium">{partner.phone}</span>
                           </button>
                         </TableCell>
-                        <TableCell className="font-medium">{partner.username}</TableCell>
+                        <TableCell className="font-medium text-gray-800">{partner.username}</TableCell>
                         <TableCell>
                           <div className="flex items-center space-x-1">
                             <Battery className="w-4 h-4 text-blue-600" />
-                            <Badge variant="outline" className="font-medium">
+                            <Badge variant="outline" className="font-medium border-blue-200 text-blue-700">
                               {partner.battery_count || 0}
                             </Badge>
                           </div>
@@ -232,7 +237,7 @@ const PartnerTable = () => {
                         <TableCell>
                           <div className="flex items-center space-x-1">
                             <Users className="w-4 h-4 text-green-600" />
-                            <Badge variant="outline" className="font-medium">
+                            <Badge variant="outline" className="font-medium border-green-200 text-green-700">
                               {partner.customer_count || 0}
                             </Badge>
                           </div>
@@ -241,7 +246,7 @@ const PartnerTable = () => {
                           {partner.address ? (
                             <button
                               onClick={() => handleViewAddress(partner.address!)}
-                              className="flex items-center space-x-1 text-blue-600 hover:text-blue-800 max-w-[200px] truncate transition-colors"
+                              className="flex items-center space-x-1 text-blue-600 hover:text-blue-800 max-w-[200px] truncate transition-all duration-200 hover:scale-105"
                             >
                               <MapPin className="w-4 h-4 flex-shrink-0" />
                               <span className="text-sm">{partner.address}</span>
@@ -256,7 +261,7 @@ const PartnerTable = () => {
                               variant="outline" 
                               size="sm"
                               onClick={() => handleViewDetails(partner.id)}
-                              className="hover:bg-blue-50"
+                              className="hover:bg-blue-50 border-blue-200 text-blue-700 hover:border-blue-300 transition-all duration-200"
                             >
                               <Eye className="w-3 h-3 mr-1" />
                               View
@@ -265,7 +270,7 @@ const PartnerTable = () => {
                               variant="outline" 
                               size="sm" 
                               onClick={() => handleEdit(partner.id)}
-                              className="hover:bg-gray-50"
+                              className="hover:bg-gray-50 border-gray-200 text-gray-700 hover:border-gray-300 transition-all duration-200"
                             >
                               <Edit className="w-3 h-3 mr-1" />
                               Edit
@@ -279,7 +284,7 @@ const PartnerTable = () => {
               </div>
             </>
           ) : (
-            <div className="text-center py-12 px-6">
+            <div className="text-center py-12 px-6 bg-gradient-to-br from-gray-50 to-blue-50">
               <p className="text-gray-600 mb-6 text-lg">No partners found. Add your first partner to get started.</p>
               <CreatePartnerModal />
             </div>
@@ -287,19 +292,17 @@ const PartnerTable = () => {
         </CardContent>
       </Card>
 
-      {editingPartnerId && (
+      {editingPartnerId && findPartnerById(editingPartnerId) && (
         <EditPartnerModal 
-          partnerId={editingPartnerId} 
-          isOpen={!!editingPartnerId}
-          onClose={() => setEditingPartnerId(null)}
+          partner={findPartnerById(editingPartnerId)!} 
+          onPartnerUpdated={() => setEditingPartnerId(null)}
         />
       )}
 
-      {deletingPartnerId && (
+      {deletingPartnerId && findPartnerById(deletingPartnerId) && (
         <DeletePartnerModal 
-          partnerId={deletingPartnerId} 
-          isOpen={!!deletingPartnerId}
-          onClose={() => setDeletingPartnerId(null)}
+          partner={findPartnerById(deletingPartnerId)!} 
+          onPartnerDeleted={() => setDeletingPartnerId(null)}
         />
       )}
     </div>

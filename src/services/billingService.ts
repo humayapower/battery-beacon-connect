@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 
 export interface PaymentCalculation {
@@ -52,7 +51,7 @@ export class BillingService {
           const newPaidAmount = emi.paid_amount + amountToPay;
           const newRemainingAmount = emi.remaining_amount - amountToPay;
           
-          let newStatus = emi.payment_status;
+          let newStatus: 'paid' | 'partial' | 'due' | 'overdue' = emi.payment_status as 'paid' | 'partial' | 'due' | 'overdue';
           if (newRemainingAmount === 0) {
             newStatus = 'paid';
           } else if (newPaidAmount > 0) {
@@ -90,7 +89,7 @@ export class BillingService {
           const newPaidAmount = rent.paid_amount + amountToPay;
           const newRemainingAmount = rent.remaining_amount - amountToPay;
           
-          let newStatus = rent.payment_status;
+          let newStatus: 'paid' | 'partial' | 'due' | 'overdue' = rent.payment_status as 'paid' | 'partial' | 'due' | 'overdue';
           if (newRemainingAmount === 0) {
             newStatus = 'paid';
           } else if (newPaidAmount > 0) {

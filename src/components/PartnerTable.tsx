@@ -143,7 +143,7 @@ const PartnerTable = () => {
                       <TableHead className="font-semibold">Username</TableHead>
                       <TableHead className="font-semibold">Batteries</TableHead>
                       <TableHead className="font-semibold">Customers</TableHead>
-                      <TableHead className="font-semibold">Actions</TableHead>
+                      {/* <TableHead className="font-semibold">Actions</TableHead> */}
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -182,7 +182,7 @@ const PartnerTable = () => {
                             {partner.customer_count || 0}
                           </Badge>
                         </TableCell>
-                        <TableCell>
+                        {/* <TableCell>
                           <div className="flex items-center space-x-2">
                             <Button
                               variant="outline"
@@ -195,7 +195,7 @@ const PartnerTable = () => {
                             <EditPartnerModal partner={partner} />
                             <DeletePartnerModal partner={partner} />
                           </div>
-                        </TableCell>
+                        </TableCell> */}
                       </TableRow>
                     ))}
                   </TableBody>

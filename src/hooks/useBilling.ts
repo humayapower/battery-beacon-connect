@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { EMI, MonthlyRent, CustomerCredit, Payment, BillingDetails } from '@/types/billing';
+import { BillingService } from '@/services/billingService';
 
 export const useBilling = () => {
   const { toast } = useToast();
@@ -118,161 +119,31 @@ export const useBilling = () => {
   const processPayment = async (
     customerId: string, 
     payment: Payment,
-    targetType: 'emi' | 'rent',
+    targetType: 'emi' | 'rent' | 'auto',
     targetId?: string
   ) => {
     try {
-      let remainingAmount = payment.amount;
-      
-      // Get customer credits
-      const { data: creditData } = await supabase
-        .from('customer_credits')
-        .select('*')
-        .eq('customer_id', customerId)
-        .single();
+      const result = await BillingService.processPayment(
+        customerId,
+        payment.amount,
+        targetType,
+        payment.remarks
+      );
 
-      let currentCredit = creditData?.credit_balance || 0;
-
-      // Process EMI payment
-      if (targetType === 'emi') {
-        // Get EMIs in order (overdue/partial first, then by emi_number)
-        const { data: emis } = await supabase
-          .from('emis')
-          .select('*')
-          .eq('customer_id', customerId)
-          .neq('payment_status', 'paid')
-          .order('payment_status')
-          .order('emi_number');
-
-        if (emis) {
-          for (const emi of emis) {
-            if (remainingAmount <= 0) break;
-
-            const amountToPay = Math.min(remainingAmount, emi.remaining_amount);
-            const newPaidAmount = emi.paid_amount + amountToPay;
-            const newRemainingAmount = emi.remaining_amount - amountToPay;
-            
-            let newStatus = emi.payment_status;
-            if (newRemainingAmount === 0) {
-              newStatus = 'paid';
-            } else if (newPaidAmount > 0) {
-              newStatus = 'partial';
-            }
-
-            // Update EMI
-            await supabase
-              .from('emis')
-              .update({
-                paid_amount: newPaidAmount,
-                remaining_amount: newRemainingAmount,
-                payment_status: newStatus,
-                updated_at: new Date().toISOString()
-              })
-              .eq('id', emi.id);
-
-            // Record transaction
-            await supabase
-              .from('transactions')
-              .insert({
-                customer_id: customerId,
-                amount: amountToPay,
-                transaction_type: 'emi',
-                payment_status: 'paid',
-                transaction_date: payment.payment_date,
-                emi_id: emi.id,
-                remarks: payment.remarks
-              });
-
-            remainingAmount -= amountToPay;
-          }
-        }
+      if (result.success) {
+        toast({
+          title: "Payment processed successfully",
+          description: `Payment of ₹${payment.amount} has been recorded and distributed.`,
+        });
+      } else {
+        toast({
+          title: "Error processing payment",
+          description: result.error?.message || "Unknown error occurred",
+          variant: "destructive",
+        });
       }
 
-      // Process Rent payment
-      if (targetType === 'rent') {
-        const { data: rents } = await supabase
-          .from('monthly_rents')
-          .select('*')
-          .eq('customer_id', customerId)
-          .neq('payment_status', 'paid')
-          .order('due_date');
-
-        if (rents) {
-          for (const rent of rents) {
-            if (remainingAmount <= 0) break;
-
-            const amountToPay = Math.min(remainingAmount, rent.remaining_amount);
-            const newPaidAmount = rent.paid_amount + amountToPay;
-            const newRemainingAmount = rent.remaining_amount - amountToPay;
-            
-            let newStatus = rent.payment_status;
-            if (newRemainingAmount === 0) {
-              newStatus = 'paid';
-            } else if (newPaidAmount > 0) {
-              newStatus = 'partial';
-            }
-
-            // Update Rent
-            await supabase
-              .from('monthly_rents')
-              .update({
-                paid_amount: newPaidAmount,
-                remaining_amount: newRemainingAmount,
-                payment_status: newStatus,
-                updated_at: new Date().toISOString()
-              })
-              .eq('id', rent.id);
-
-            // Record transaction
-            await supabase
-              .from('transactions')
-              .insert({
-                customer_id: customerId,
-                amount: amountToPay,
-                transaction_type: 'rent',
-                payment_status: 'paid',
-                transaction_date: payment.payment_date,
-                monthly_rent_id: rent.id,
-                remarks: payment.remarks
-              });
-
-            remainingAmount -= amountToPay;
-          }
-        }
-      }
-
-      // Handle excess payment (add to credit)
-      if (remainingAmount > 0) {
-        const newCreditBalance = currentCredit + remainingAmount;
-        
-        await supabase
-          .from('customer_credits')
-          .upsert({
-            customer_id: customerId,
-            credit_balance: newCreditBalance,
-            updated_at: new Date().toISOString()
-          });
-
-        // Record credit transaction
-        await supabase
-          .from('transactions')
-          .insert({
-            customer_id: customerId,
-            amount: remainingAmount,
-            transaction_type: 'deposit',
-            payment_status: 'paid',
-            transaction_date: payment.payment_date,
-            credit_added: remainingAmount,
-            remarks: `Credit added from excess payment. ${payment.remarks || ''}`
-          });
-      }
-
-      toast({
-        title: "Payment processed successfully",
-        description: `Payment of ₹${payment.amount} has been recorded.`,
-      });
-
-      return { success: true };
+      return result;
     } catch (error: any) {
       console.error('Error processing payment:', error);
       toast({
@@ -303,6 +174,33 @@ export const useBilling = () => {
     }
   };
 
+  const generateProRatedRent = async (customerId: string) => {
+    try {
+      const result = await BillingService.generateProRatedRent(customerId);
+      if (result.success) {
+        toast({
+          title: "Pro-rated rent generated",
+          description: "Initial pro-rated rent has been calculated and added.",
+        });
+      } else {
+        toast({
+          title: "Error generating pro-rated rent",
+          description: result.error?.message || "Unknown error occurred",
+          variant: "destructive",
+        });
+      }
+      return result;
+    } catch (error: any) {
+      console.error('Error generating pro-rated rent:', error);
+      toast({
+        title: "Error generating pro-rated rent",
+        description: error.message,
+        variant: "destructive",
+      });
+      return { success: false, error };
+    }
+  };
+
   const updateOverdueStatus = async () => {
     try {
       const { error } = await supabase.rpc('update_overdue_status');
@@ -316,6 +214,7 @@ export const useBilling = () => {
     getBillingDetails,
     processPayment,
     generateMonthlyRents,
+    generateProRatedRent,
     updateOverdueStatus
   };
 };

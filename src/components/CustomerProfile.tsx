@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,6 +8,7 @@ import { ArrowLeft, User, Calendar, CreditCard, Battery, Users, Edit } from 'luc
 import { useCustomers } from '@/hooks/useCustomers';
 import { useBatteries } from '@/hooks/useBatteries';
 import { usePartners } from '@/hooks/usePartners';
+import CustomerBillingPage from './CustomerBillingPage';
 
 interface CustomerProfileProps {
   customerId: string;
@@ -143,9 +143,10 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({
         {/* Main Content */}
         <div className="lg:col-span-3">
           <Tabs defaultValue="personal" className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="personal">Personal Info</TabsTrigger>
               <TabsTrigger value="payment">Payment Details</TabsTrigger>
+              <TabsTrigger value="billing">Billing & Payments</TabsTrigger>
               <TabsTrigger value="assignment">Assignment</TabsTrigger>
               <TabsTrigger value="documents">Documents</TabsTrigger>
             </TabsList>
@@ -285,6 +286,14 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({
                   )}
                 </CardContent>
               </Card>
+            </TabsContent>
+
+            {/* Billing & Payments Tab */}
+            <TabsContent value="billing" className="space-y-6">
+              <CustomerBillingPage 
+                customerId={customerId} 
+                customerName={customer.name} 
+              />
             </TabsContent>
 
             {/* Assignment Tab */}

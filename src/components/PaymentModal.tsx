@@ -6,7 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useBilling } from '@/hooks/useBilling';
+import { BillingService } from '@/services/billingService';
+import { useToast } from '@/hooks/use-toast';
 
 interface PaymentModalProps {
   isOpen: boolean;
@@ -17,10 +18,10 @@ interface PaymentModalProps {
 
 const PaymentModal = ({ isOpen, onClose, customerId, onPaymentSuccess }: PaymentModalProps) => {
   const [amount, setAmount] = useState('');
-  const [paymentType, setPaymentType] = useState<'emi' | 'rent'>('emi');
+  const [paymentType, setPaymentType] = useState<'emi' | 'rent' | 'auto'>('auto');
   const [remarks, setRemarks] = useState('');
   const [loading, setLoading] = useState(false);
-  const { processPayment } = useBilling();
+  const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,20 +29,36 @@ const PaymentModal = ({ isOpen, onClose, customerId, onPaymentSuccess }: Payment
 
     setLoading(true);
     try {
-      const result = await processPayment(customerId, {
-        amount: parseFloat(amount),
-        payment_date: new Date().toISOString(),
+      const result = await BillingService.processPayment(
+        customerId,
+        parseFloat(amount),
+        paymentType,
         remarks
-      }, paymentType);
+      );
 
       if (result.success) {
+        toast({
+          title: "Payment processed successfully",
+          description: `Payment of ₹${amount} has been recorded and distributed.`,
+        });
         onPaymentSuccess();
         onClose();
         setAmount('');
         setRemarks('');
+      } else {
+        toast({
+          title: "Error processing payment",
+          description: result.error?.message || "Unknown error occurred",
+          variant: "destructive",
+        });
       }
     } catch (error) {
       console.error('Payment error:', error);
+      toast({
+        title: "Error processing payment",
+        description: "An unexpected error occurred",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
@@ -70,15 +87,19 @@ const PaymentModal = ({ isOpen, onClose, customerId, onPaymentSuccess }: Payment
 
           <div>
             <Label htmlFor="paymentType">Payment Type</Label>
-            <Select value={paymentType} onValueChange={(value: 'emi' | 'rent') => setPaymentType(value)}>
+            <Select value={paymentType} onValueChange={(value: 'emi' | 'rent' | 'auto') => setPaymentType(value)}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="emi">EMI Payment</SelectItem>
-                <SelectItem value="rent">Rent Payment</SelectItem>
+                <SelectItem value="auto">Auto (Smart Distribution)</SelectItem>
+                <SelectItem value="emi">EMI Payment Only</SelectItem>
+                <SelectItem value="rent">Rent Payment Only</SelectItem>
               </SelectContent>
             </Select>
+            <p className="text-xs text-gray-500 mt-1">
+              Auto distribution pays overdue amounts first, then current dues
+            </p>
           </div>
 
           <div>

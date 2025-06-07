@@ -1,15 +1,17 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar";
-import { Battery, Users, User, CreditCard, Home, Plus, Settings, LogOut, TrendingUp, TrendingDown, Calendar } from 'lucide-react';
+import { Battery, Users, User, CreditCard, Home, Plus, Settings, LogOut, TrendingUp, Calendar, FileText } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useBatteries } from '@/hooks/useBatteries';
 import { useCustomers } from '@/hooks/useCustomers';
 import { usePartners } from '@/hooks/usePartners';
 import { useTransactions } from '@/hooks/useTransactions';
+import { ThemeToggle } from './ThemeToggle';
 import BatteryTable from './BatteryTable';
 import PartnerTable from './PartnerTable';
 import CustomerTable from './CustomerTable';
@@ -31,11 +33,10 @@ const AdminDashboard = () => {
   const menuItems = [
     { title: "Dashboard", icon: Home, key: "overview" },
     { title: "Customers", icon: User, key: "customers" },
-    { title: "Payments", icon: CreditCard, key: "payments" },
-    { title: "Batteries", icon: Battery, key: "batteries" },
     { title: "Partners", icon: Users, key: "partners" },
-    { title: "Reports", icon: TrendingUp, key: "reports" },
-    { title: "Analytics", icon: TrendingDown, key: "analytics" },
+    { title: "Batteries", icon: Battery, key: "batteries" },
+    { title: "Payments", icon: CreditCard, key: "payments" },
+    { title: "Reports", icon: FileText, key: "reports" },
     { title: "Settings", icon: Settings, key: "settings" },
   ];
 
@@ -78,7 +79,7 @@ const AdminDashboard = () => {
     <Sidebar className="border-r">
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel className="text-lg font-semibold text-gray-800 mb-4 px-2">
+          <SidebarGroupLabel className="text-lg font-semibold mb-4 px-2">
             Battery Leasing
           </SidebarGroupLabel>
           <SidebarGroupContent>
@@ -390,6 +391,22 @@ const AdminDashboard = () => {
         return <CustomerTable isAdmin={true} />;
       case 'payments':
         return <BillingDashboard />;
+      case 'reports':
+        return (
+          <div className="text-center py-12">
+            <FileText className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
+            <h3 className="text-xl font-semibold mb-2">Reports</h3>
+            <p className="text-muted-foreground">Reports feature coming soon</p>
+          </div>
+        );
+      case 'settings':
+        return (
+          <div className="text-center py-12">
+            <Settings className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
+            <h3 className="text-xl font-semibold mb-2">Settings</h3>
+            <p className="text-muted-foreground">Settings feature coming soon</p>
+          </div>
+        );
       default:
         return <div className="text-center py-12">Section under development</div>;
     }
@@ -397,24 +414,25 @@ const AdminDashboard = () => {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-gray-50">
+      <div className="min-h-screen flex w-full">
         <AppSidebar />
         <SidebarInset className="flex-1 min-w-0">
-          <div className="border-b bg-white px-4 lg:px-6 py-3 lg:py-4">
+          <div className="border-b px-4 lg:px-6 py-3 lg:py-4">
             <div className="flex items-center justify-between">
               <SidebarTrigger className="lg:hidden" />
               <div className="flex items-center space-x-4 ml-auto">
+                <ThemeToggle />
                 <div className="relative">
                   <input
                     type="text"
-                    placeholder="Search customers, batteries, payments..."
-                    className="pl-8 pr-4 py-2 border border-gray-300 rounded-lg text-sm w-64 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Search..."
+                    className="pl-8 pr-4 py-2 border rounded-lg text-sm w-64 focus:outline-none focus:ring-2 focus:ring-primary bg-background"
                   />
-                  <Users className="w-4 h-4 absolute left-2.5 top-2.5 text-gray-400" />
+                  <Users className="w-4 h-4 absolute left-2.5 top-2.5 text-muted-foreground" />
                 </div>
                 <div className="flex items-center space-x-2">
-                  <span className="text-sm text-gray-600">Welcome, {user?.name || user?.username}</span>
-                  <Badge className="bg-blue-100 text-blue-800">Admin User</Badge>
+                  <span className="text-sm">Welcome, {user?.name || user?.username}</span>
+                  <Badge>Admin User</Badge>
                 </div>
               </div>
             </div>

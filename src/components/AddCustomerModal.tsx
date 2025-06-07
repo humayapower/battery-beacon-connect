@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus } from 'lucide-react';
+import { Plus, Upload } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useCustomers } from '@/hooks/useCustomers';
 import { useAuth } from '@/contexts/AuthContext';
@@ -103,16 +103,22 @@ const AddCustomerModal = () => {
     fetchPartners();
   }, [userRole, user, toast]);
 
-  // Fetch batteries when partner is selected
+  // Fetch batteries only when a partner is selected
   useEffect(() => {
     const fetchBatteries = async () => {
       try {
+        // Only fetch batteries if a partner is selected (not 'none')
+        if (formData.partnerId === 'none') {
+          setBatteries([]);
+          return;
+        }
+
         let query = supabase
           .from('batteries')
           .select('id, serial_number')
           .eq('status', 'available');
 
-        // If a specific partner is selected, filter by that partner
+        // Filter by selected partner
         if (formData.partnerId !== 'none') {
           query = query.eq('partner_id', formData.partnerId);
         } else if (userRole === 'partner') {
@@ -280,23 +286,23 @@ const AddCustomerModal = () => {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button className="bg-blue-600 hover:bg-blue-700 shadow-lg transition-all duration-200">
+        <Button className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg transition-all duration-200">
           <Plus className="w-4 h-4 mr-2" />
           Add Customer
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-white/95 backdrop-blur-sm border-2 border-gray-200">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Add New Customer</DialogTitle>
+          <DialogTitle className="text-2xl font-bold">Add New Customer</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Personal Information */}
-          <div className="space-y-4 p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
-            <h3 className="text-lg font-semibold text-gray-900">Personal Information</h3>
+          <div className="space-y-4 p-6 bg-muted/50 rounded-lg border">
+            <h3 className="text-lg font-semibold">Personal Information</h3>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="name" className="text-gray-700 font-medium">Full Name *</Label>
+                <Label htmlFor="name" className="font-medium">Full Name *</Label>
                 <Input
                   id="name"
                   type="text"
@@ -304,12 +310,11 @@ const AddCustomerModal = () => {
                   onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
                   placeholder="Enter customer's full name"
                   required
-                  className="border-gray-300 focus:border-blue-500"
                 />
               </div>
               
               <div>
-                <Label htmlFor="phone" className="text-gray-700 font-medium">Phone Number *</Label>
+                <Label htmlFor="phone" className="font-medium">Phone Number *</Label>
                 <Input
                   id="phone"
                   type="tel"
@@ -317,101 +322,136 @@ const AddCustomerModal = () => {
                   onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
                   placeholder="Enter phone number"
                   required
-                  className="border-gray-300 focus:border-blue-500"
                 />
               </div>
 
               <div>
-                <Label htmlFor="email" className="text-gray-700 font-medium">Email</Label>
+                <Label htmlFor="email" className="font-medium">Email</Label>
                 <Input
                   id="email"
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
                   placeholder="Enter email address"
-                  className="border-gray-300 focus:border-blue-500"
                 />
               </div>
 
               <div>
-                <Label htmlFor="joinDate" className="text-gray-700 font-medium">Join Date *</Label>
+                <Label htmlFor="joinDate" className="font-medium">Join Date *</Label>
                 <Input
                   id="joinDate"
                   type="date"
                   value={formData.joinDate}
                   onChange={(e) => setFormData(prev => ({ ...prev, joinDate: e.target.value }))}
                   required
-                  className="border-gray-300 focus:border-blue-500"
                 />
               </div>
             </div>
 
             <div>
-              <Label htmlFor="address" className="text-gray-700 font-medium">Address</Label>
+              <Label htmlFor="address" className="font-medium">Address</Label>
               <Textarea
                 id="address"
                 value={formData.address}
                 onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
                 placeholder="Enter customer's complete address"
                 rows={3}
-                className="border-gray-300 focus:border-blue-500"
               />
             </div>
 
             <div>
-              <Label htmlFor="customerPhoto" className="text-gray-700 font-medium">Customer Photo</Label>
-              <Input
-                id="customerPhoto"
-                type="file"
-                accept="image/*"
-                onChange={(e) => handleFileChange('customerPhoto', e.target.files?.[0] || null)}
-                className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 border-gray-300"
-              />
+              <Label htmlFor="customerPhoto" className="font-medium">Customer Photo</Label>
+              <div className="mt-2">
+                <Label
+                  htmlFor="customerPhoto"
+                  className="flex items-center justify-center w-full h-32 border-2 border-dashed border-muted-foreground/25 rounded-lg cursor-pointer hover:border-muted-foreground/50 transition-colors"
+                >
+                  <div className="text-center">
+                    <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
+                    <p className="text-sm text-muted-foreground">
+                      {files.customerPhoto ? files.customerPhoto.name : 'Click to upload customer photo'}
+                    </p>
+                  </div>
+                  <Input
+                    id="customerPhoto"
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleFileChange('customerPhoto', e.target.files?.[0] || null)}
+                    className="hidden"
+                  />
+                </Label>
+              </div>
             </div>
           </div>
 
-          {/* Document Upload Section */}
-          <div className="space-y-4 p-6 bg-gradient-to-br from-gray-50 to-blue-50 rounded-lg border border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900">Aadhaar Documents</h3>
+          {/* Aadhaar Documents */}
+          <div className="space-y-4 p-6 bg-muted/50 rounded-lg border">
+            <h3 className="text-lg font-semibold">Aadhaar Documents</h3>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="aadhaarFront" className="text-gray-700 font-medium">Aadhaar Front</Label>
-                <Input
-                  id="aadhaarFront"
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => handleFileChange('aadhaarFront', e.target.files?.[0] || null)}
-                  className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 border-gray-300"
-                />
+                <Label htmlFor="aadhaarFront" className="font-medium">Aadhaar Front</Label>
+                <div className="mt-2">
+                  <Label
+                    htmlFor="aadhaarFront"
+                    className="flex items-center justify-center w-full h-24 border-2 border-dashed border-muted-foreground/25 rounded-lg cursor-pointer hover:border-muted-foreground/50 transition-colors"
+                  >
+                    <div className="text-center">
+                      <Upload className="w-6 h-6 mx-auto mb-1 text-muted-foreground" />
+                      <p className="text-xs text-muted-foreground">
+                        {files.aadhaarFront ? files.aadhaarFront.name : 'Upload Aadhaar Front'}
+                      </p>
+                    </div>
+                    <Input
+                      id="aadhaarFront"
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleFileChange('aadhaarFront', e.target.files?.[0] || null)}
+                      className="hidden"
+                    />
+                  </Label>
+                </div>
               </div>
               
               <div>
-                <Label htmlFor="aadhaarBack" className="text-gray-700 font-medium">Aadhaar Back</Label>
-                <Input
-                  id="aadhaarBack"
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => handleFileChange('aadhaarBack', e.target.files?.[0] || null)}
-                  className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 border-gray-300"
-                />
+                <Label htmlFor="aadhaarBack" className="font-medium">Aadhaar Back</Label>
+                <div className="mt-2">
+                  <Label
+                    htmlFor="aadhaarBack"
+                    className="flex items-center justify-center w-full h-24 border-2 border-dashed border-muted-foreground/25 rounded-lg cursor-pointer hover:border-muted-foreground/50 transition-colors"
+                  >
+                    <div className="text-center">
+                      <Upload className="w-6 h-6 mx-auto mb-1 text-muted-foreground" />
+                      <p className="text-xs text-muted-foreground">
+                        {files.aadhaarBack ? files.aadhaarBack.name : 'Upload Aadhaar Back'}
+                      </p>
+                    </div>
+                    <Input
+                      id="aadhaarBack"
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleFileChange('aadhaarBack', e.target.files?.[0] || null)}
+                      className="hidden"
+                    />
+                  </Label>
+                </div>
               </div>
             </div>
           </div>
 
           {/* Assignment Section */}
-          <div className="space-y-4 p-6 bg-gradient-to-br from-green-50 to-blue-50 rounded-lg border border-green-200">
-            <h3 className="text-lg font-semibold text-gray-900">Assignment</h3>
+          <div className="space-y-4 p-6 bg-muted/50 rounded-lg border">
+            <h3 className="text-lg font-semibold">Assignment</h3>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {userRole === 'admin' && (
                 <div>
-                  <Label htmlFor="partner" className="text-gray-700 font-medium">Assigned Partner</Label>
+                  <Label htmlFor="partner" className="font-medium">Assigned Partner</Label>
                   <Select value={formData.partnerId} onValueChange={(value) => setFormData(prev => ({ ...prev, partnerId: value, batteryId: 'none' }))}>
-                    <SelectTrigger className="border-gray-300 focus:border-blue-500">
+                    <SelectTrigger>
                       <SelectValue placeholder="Select partner" />
                     </SelectTrigger>
-                    <SelectContent className="bg-white border-gray-200">
+                    <SelectContent>
                       <SelectItem value="none">No Partner</SelectItem>
                       {partners.map((partner) => (
                         <SelectItem key={partner.id} value={partner.id}>{partner.name}</SelectItem>
@@ -422,33 +462,40 @@ const AddCustomerModal = () => {
               )}
 
               <div>
-                <Label htmlFor="battery" className="text-gray-700 font-medium">Assigned Battery</Label>
-                <Select value={formData.batteryId} onValueChange={(value) => setFormData(prev => ({ ...prev, batteryId: value }))}>
-                  <SelectTrigger className="border-gray-300 focus:border-blue-500">
-                    <SelectValue placeholder="Select battery" />
+                <Label htmlFor="battery" className="font-medium">Assigned Battery</Label>
+                <Select 
+                  value={formData.batteryId} 
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, batteryId: value }))}
+                  disabled={formData.partnerId === 'none'}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={formData.partnerId === 'none' ? "Select a partner first" : "Select battery"} />
                   </SelectTrigger>
-                  <SelectContent className="bg-white border-gray-200">
+                  <SelectContent>
                     <SelectItem value="none">No Battery</SelectItem>
                     {batteries.map((battery) => (
                       <SelectItem key={battery.id} value={battery.id}>{battery.serial_number}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
+                {formData.partnerId === 'none' && (
+                  <p className="text-xs text-muted-foreground mt-1">Please select a partner to see available batteries</p>
+                )}
               </div>
             </div>
           </div>
 
           {/* Payment Information */}
-          <div className="space-y-4 p-6 bg-gradient-to-br from-purple-50 to-blue-50 rounded-lg border border-purple-200">
-            <h3 className="text-lg font-semibold text-gray-900">Payment Information</h3>
+          <div className="space-y-4 p-6 bg-muted/50 rounded-lg border">
+            <h3 className="text-lg font-semibold">Payment Information</h3>
             
             <div>
-              <Label htmlFor="paymentType" className="text-gray-700 font-medium">Payment Type *</Label>
+              <Label htmlFor="paymentType" className="font-medium">Payment Type *</Label>
               <Select value={formData.paymentType} onValueChange={(value: 'emi' | 'monthly_rent' | 'one_time_purchase') => setFormData(prev => ({ ...prev, paymentType: value }))}>
-                <SelectTrigger className="border-gray-300 focus:border-blue-500">
+                <SelectTrigger>
                   <SelectValue placeholder="Select payment type" />
                 </SelectTrigger>
-                <SelectContent className="bg-white border-gray-200">
+                <SelectContent>
                   <SelectItem value="emi">EMI</SelectItem>
                   <SelectItem value="monthly_rent">Subscription/Rent</SelectItem>
                   <SelectItem value="one_time_purchase">Full Purchase</SelectItem>
@@ -458,10 +505,10 @@ const AddCustomerModal = () => {
 
             {/* Payment Plan Details */}
             {formData.paymentType === 'emi' && (
-              <div className="grid grid-cols-2 gap-4 p-4 border rounded-lg bg-blue-50 border-blue-200">
-                <h4 className="col-span-2 font-semibold text-blue-800">EMI Plan Details</h4>
+              <div className="grid grid-cols-2 gap-4 p-4 border rounded-lg bg-muted/30">
+                <h4 className="col-span-2 font-semibold">EMI Plan Details</h4>
                 <div>
-                  <Label htmlFor="totalAmount" className="text-gray-700 font-medium">Total Amount (₹) *</Label>
+                  <Label htmlFor="totalAmount" className="font-medium">Total Amount (₹) *</Label>
                   <Input
                     id="totalAmount"
                     type="number"
@@ -470,11 +517,10 @@ const AddCustomerModal = () => {
                     onChange={(e) => setPaymentPlan(prev => ({ ...prev, totalAmount: e.target.value }))}
                     placeholder="Enter total amount"
                     required
-                    className="border-gray-300 focus:border-blue-500"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="downPayment" className="text-gray-700 font-medium">Down Payment (₹)</Label>
+                  <Label htmlFor="downPayment" className="font-medium">Down Payment (₹)</Label>
                   <Input
                     id="downPayment"
                     type="number"
@@ -482,11 +528,10 @@ const AddCustomerModal = () => {
                     value={paymentPlan.downPayment}
                     onChange={(e) => setPaymentPlan(prev => ({ ...prev, downPayment: e.target.value }))}
                     placeholder="Enter down payment"
-                    className="border-gray-300 focus:border-blue-500"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="emiCount" className="text-gray-700 font-medium">EMI Count (months) *</Label>
+                  <Label htmlFor="emiCount" className="font-medium">EMI Count (months) *</Label>
                   <Input
                     id="emiCount"
                     type="number"
@@ -495,11 +540,10 @@ const AddCustomerModal = () => {
                     onChange={(e) => setPaymentPlan(prev => ({ ...prev, emiCount: e.target.value }))}
                     placeholder="Number of EMIs"
                     required
-                    className="border-gray-300 focus:border-blue-500"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="emiAmount" className="text-gray-700 font-medium">EMI Amount (₹)</Label>
+                  <Label htmlFor="emiAmount" className="font-medium">EMI Amount (₹)</Label>
                   <Input
                     id="emiAmount"
                     type="number"
@@ -507,17 +551,17 @@ const AddCustomerModal = () => {
                     value={paymentPlan.emiAmount}
                     readOnly
                     placeholder="Auto-calculated"
-                    className="bg-gray-100 border-gray-300"
+                    className="bg-muted"
                   />
                 </div>
               </div>
             )}
 
             {formData.paymentType === 'monthly_rent' && (
-              <div className="grid grid-cols-2 gap-4 p-4 border rounded-lg bg-green-50 border-green-200">
-                <h4 className="col-span-2 font-semibold text-green-800">Subscription Plan Details</h4>
+              <div className="grid grid-cols-2 gap-4 p-4 border rounded-lg bg-muted/30">
+                <h4 className="col-span-2 font-semibold">Subscription Plan Details</h4>
                 <div>
-                  <Label htmlFor="monthlyRent" className="text-gray-700 font-medium">Monthly Rent (₹) *</Label>
+                  <Label htmlFor="monthlyRent" className="font-medium">Monthly Rent (₹) *</Label>
                   <Input
                     id="monthlyRent"
                     type="number"
@@ -526,11 +570,10 @@ const AddCustomerModal = () => {
                     onChange={(e) => setPaymentPlan(prev => ({ ...prev, monthlyRent: e.target.value }))}
                     placeholder="Monthly rent amount"
                     required
-                    className="border-gray-300 focus:border-blue-500"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="securityDeposit" className="text-gray-700 font-medium">Security Deposit (₹)</Label>
+                  <Label htmlFor="securityDeposit" className="font-medium">Security Deposit (₹)</Label>
                   <Input
                     id="securityDeposit"
                     type="number"
@@ -538,17 +581,16 @@ const AddCustomerModal = () => {
                     value={paymentPlan.securityDeposit}
                     onChange={(e) => setPaymentPlan(prev => ({ ...prev, securityDeposit: e.target.value }))}
                     placeholder="Security deposit"
-                    className="border-gray-300 focus:border-blue-500"
                   />
                 </div>
               </div>
             )}
 
             {formData.paymentType === 'one_time_purchase' && (
-              <div className="p-4 border rounded-lg bg-purple-50 border-purple-200">
-                <h4 className="font-semibold text-purple-800 mb-2">Purchase Details</h4>
+              <div className="p-4 border rounded-lg bg-muted/30">
+                <h4 className="font-semibold mb-2">Purchase Details</h4>
                 <div>
-                  <Label htmlFor="purchaseAmount" className="text-gray-700 font-medium">Purchase Amount (₹) *</Label>
+                  <Label htmlFor="purchaseAmount" className="font-medium">Purchase Amount (₹) *</Label>
                   <Input
                     id="purchaseAmount"
                     type="number"
@@ -557,15 +599,14 @@ const AddCustomerModal = () => {
                     onChange={(e) => setPaymentPlan(prev => ({ ...prev, purchaseAmount: e.target.value }))}
                     placeholder="Full purchase amount"
                     required
-                    className="border-gray-300 focus:border-blue-500"
                   />
                 </div>
               </div>
             )}
           </div>
 
-          <div className="flex gap-2 pt-4 border-t border-gray-200">
-            <Button type="submit" disabled={loading || uploading} className="flex-1 bg-blue-600 hover:bg-blue-700 shadow-lg">
+          <div className="flex gap-2 pt-4 border-t">
+            <Button type="submit" disabled={loading || uploading} className="flex-1">
               {loading || uploading ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
@@ -575,7 +616,7 @@ const AddCustomerModal = () => {
                 'Add Customer'
               )}
             </Button>
-            <Button type="button" variant="outline" onClick={() => {setIsOpen(false); resetForm();}} className="border-gray-300 hover:bg-gray-50">
+            <Button type="button" variant="outline" onClick={() => {setIsOpen(false); resetForm();}}>
               Cancel
             </Button>
           </div>

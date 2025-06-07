@@ -16,15 +16,24 @@ interface CreatePartnerModalProps {
   onPartnerCreated?: () => void;
 }
 
+interface PartnerFormData {
+  name: string;
+  phone: string;
+  username: string;
+  password: string;
+  address: string;
+  idType: 'aadhaar' | 'pan';
+}
+
 const CreatePartnerModal = ({ onPartnerCreated }: CreatePartnerModalProps) => {
   const [open, setOpen] = useState(false);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<PartnerFormData>({
     name: '',
     phone: '',
     username: '',
     password: '123456',
     address: '',
-    idType: 'aadhaar' as const,
+    idType: 'aadhaar',
   });
   const [files, setFiles] = useState({
     partnerPhoto: null as File | null,
@@ -128,8 +137,7 @@ const CreatePartnerModal = ({ onPartnerCreated }: CreatePartnerModalProps) => {
         formData.phone.trim(),
         formData.username.trim(),
         formData.password.trim(),
-        formData.address.trim() || undefined,
-        uploadedUrls
+        formData.address.trim() || undefined
       );
       
       toast({

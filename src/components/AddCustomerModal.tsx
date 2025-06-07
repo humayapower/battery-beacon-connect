@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -12,18 +13,30 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Customer } from '@/types';
 
+interface CustomerFormData {
+  name: string;
+  phone: string;
+  email: string;
+  address: string;
+  paymentType: 'emi' | 'monthly_rent' | 'one_time_purchase';
+  partnerId: string;
+  batteryId: string;
+  joinDate: string;
+  idType: 'aadhaar' | 'pan';
+}
+
 const AddCustomerModal = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<CustomerFormData>({
     name: '',
     phone: '',
     email: '',
     address: '',
-    paymentType: 'emi' as const,
+    paymentType: 'emi',
     partnerId: 'none',
     batteryId: 'none',
     joinDate: new Date().toISOString().split('T')[0],
-    idType: 'aadhaar' as const,
+    idType: 'aadhaar',
   });
   const [paymentPlan, setPaymentPlan] = useState({
     totalAmount: '',

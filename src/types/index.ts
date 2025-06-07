@@ -1,3 +1,4 @@
+
 export interface Partner {
   id: string;
   name: string;
@@ -23,7 +24,7 @@ export interface Battery {
   purchase_date?: string;
   last_maintenance?: string;
   location?: string;
-  status: 'available' | 'assigned' | 'maintenance';
+  status: 'available' | 'assigned' | 'maintenance' | 'faulty' | 'returned';
   partner_id?: string;
   customer_id?: string;
   imei_number?: string;

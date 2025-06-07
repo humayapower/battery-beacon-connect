@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Plus, UserPlus } from 'lucide-react';
+import { Plus, UserPlus, Upload } from 'lucide-react';
 import { useAdminFunctions } from '@/hooks/useAdminFunctions';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -166,30 +166,27 @@ const CreatePartnerModal = ({ onPartnerCreated }: CreatePartnerModalProps) => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="bg-green-600 hover:bg-green-700 shadow-lg transition-all duration-200">
+        <Button className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg transition-all duration-200">
           <Plus className="w-4 h-4 mr-2" />
           Create Partner
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-white/95 backdrop-blur-sm border-2 border-gray-200">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center space-x-2">
-            <UserPlus className="w-5 h-5 text-green-600" />
-            <span className="text-2xl font-bold bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">Create New Partner</span>
-          </DialogTitle>
-          <DialogDescription className="text-gray-600">
+          <DialogTitle className="text-2xl font-bold">Create New Partner</DialogTitle>
+          <DialogDescription>
             Add a new partner to the platform with complete profile and documents.
           </DialogDescription>
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Personal Information */}
-          <div className="space-y-4 p-6 bg-gradient-to-br from-green-50 to-blue-50 rounded-lg border border-green-200">
-            <h3 className="text-lg font-semibold text-gray-900">Personal Information</h3>
+          <div className="space-y-4 p-6 bg-muted/50 rounded-lg border">
+            <h3 className="text-lg font-semibold">Personal Information</h3>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="partnerName" className="text-gray-700 font-medium">Full Name *</Label>
+              <div>
+                <Label htmlFor="partnerName" className="font-medium">Full Name *</Label>
                 <Input
                   id="partnerName"
                   type="text"
@@ -198,12 +195,11 @@ const CreatePartnerModal = ({ onPartnerCreated }: CreatePartnerModalProps) => {
                   onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
                   required
                   disabled={loading}
-                  className="border-gray-300 focus:border-green-500"
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="partnerPhone" className="text-gray-700 font-medium">Phone Number *</Label>
+              <div>
+                <Label htmlFor="partnerPhone" className="font-medium">Phone Number *</Label>
                 <Input
                   id="partnerPhone"
                   type="tel"
@@ -212,13 +208,12 @@ const CreatePartnerModal = ({ onPartnerCreated }: CreatePartnerModalProps) => {
                   onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
                   required
                   disabled={loading}
-                  className="border-gray-300 focus:border-green-500"
                 />
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="partnerAddress" className="text-gray-700 font-medium">Address</Label>
+            <div>
+              <Label htmlFor="partnerAddress" className="font-medium">Address</Label>
               <Textarea
                 id="partnerAddress"
                 placeholder="Enter partner's complete address"
@@ -226,30 +221,42 @@ const CreatePartnerModal = ({ onPartnerCreated }: CreatePartnerModalProps) => {
                 onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
                 disabled={loading}
                 rows={3}
-                className="border-gray-300 focus:border-green-500"
               />
             </div>
 
             <div>
-              <Label htmlFor="partnerPhoto" className="text-gray-700 font-medium">Partner Photo</Label>
-              <Input
-                id="partnerPhoto"
-                type="file"
-                accept="image/*"
-                onChange={(e) => handleFileChange('partnerPhoto', e.target.files?.[0] || null)}
-                disabled={loading}
-                className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100 border-gray-300"
-              />
+              <Label htmlFor="partnerPhoto" className="font-medium">Partner Photo</Label>
+              <div className="mt-2">
+                <Label
+                  htmlFor="partnerPhoto"
+                  className="flex items-center justify-center w-full h-32 border-2 border-dashed border-muted-foreground/25 rounded-lg cursor-pointer hover:border-muted-foreground/50 transition-colors"
+                >
+                  <div className="text-center">
+                    <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
+                    <p className="text-sm text-muted-foreground">
+                      {files.partnerPhoto ? files.partnerPhoto.name : 'Click to upload partner photo'}
+                    </p>
+                  </div>
+                  <Input
+                    id="partnerPhoto"
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleFileChange('partnerPhoto', e.target.files?.[0] || null)}
+                    disabled={loading}
+                    className="hidden"
+                  />
+                </Label>
+              </div>
             </div>
           </div>
 
           {/* Login Credentials */}
-          <div className="space-y-4 p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
-            <h3 className="text-lg font-semibold text-gray-900">Login Credentials</h3>
+          <div className="space-y-4 p-6 bg-muted/50 rounded-lg border">
+            <h3 className="text-lg font-semibold">Login Credentials</h3>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="partnerUsername" className="text-gray-700 font-medium">Username *</Label>
+              <div>
+                <Label htmlFor="partnerUsername" className="font-medium">Username *</Label>
                 <Input
                   id="partnerUsername"
                   type="text"
@@ -258,12 +265,11 @@ const CreatePartnerModal = ({ onPartnerCreated }: CreatePartnerModalProps) => {
                   onChange={(e) => setFormData(prev => ({ ...prev, username: e.target.value }))}
                   required
                   disabled={loading}
-                  className="border-gray-300 focus:border-blue-500"
                 />
               </div>
               
-              <div className="space-y-2">
-                <Label htmlFor="partnerPassword" className="text-gray-700 font-medium">Password *</Label>
+              <div>
+                <Label htmlFor="partnerPassword" className="font-medium">Password *</Label>
                 <Input
                   id="partnerPassword"
                   type="password"
@@ -273,45 +279,70 @@ const CreatePartnerModal = ({ onPartnerCreated }: CreatePartnerModalProps) => {
                   required
                   minLength={6}
                   disabled={loading}
-                  className="border-gray-300 focus:border-blue-500"
                 />
               </div>
             </div>
           </div>
 
-          {/* Document Upload Section */}
-          <div className="space-y-4 p-6 bg-gradient-to-br from-gray-50 to-blue-50 rounded-lg border border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900">Aadhaar Documents</h3>
+          {/* Aadhaar Documents */}
+          <div className="space-y-4 p-6 bg-muted/50 rounded-lg border">
+            <h3 className="text-lg font-semibold">Aadhaar Documents</h3>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="aadhaarFront" className="text-gray-700 font-medium">Aadhaar Front</Label>
-                <Input
-                  id="aadhaarFront"
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => handleFileChange('aadhaarFront', e.target.files?.[0] || null)}
-                  disabled={loading}
-                  className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100 border-gray-300"
-                />
+                <Label htmlFor="aadhaarFront" className="font-medium">Aadhaar Front</Label>
+                <div className="mt-2">
+                  <Label
+                    htmlFor="aadhaarFront"
+                    className="flex items-center justify-center w-full h-24 border-2 border-dashed border-muted-foreground/25 rounded-lg cursor-pointer hover:border-muted-foreground/50 transition-colors"
+                  >
+                    <div className="text-center">
+                      <Upload className="w-6 h-6 mx-auto mb-1 text-muted-foreground" />
+                      <p className="text-xs text-muted-foreground">
+                        {files.aadhaarFront ? files.aadhaarFront.name : 'Upload Aadhaar Front'}
+                      </p>
+                    </div>
+                    <Input
+                      id="aadhaarFront"
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleFileChange('aadhaarFront', e.target.files?.[0] || null)}
+                      disabled={loading}
+                      className="hidden"
+                    />
+                  </Label>
+                </div>
               </div>
               
               <div>
-                <Label htmlFor="aadhaarBack" className="text-gray-700 font-medium">Aadhaar Back</Label>
-                <Input
-                  id="aadhaarBack"
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => handleFileChange('aadhaarBack', e.target.files?.[0] || null)}
-                  disabled={loading}
-                  className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100 border-gray-300"
-                />
+                <Label htmlFor="aadhaarBack" className="font-medium">Aadhaar Back</Label>
+                <div className="mt-2">
+                  <Label
+                    htmlFor="aadhaarBack"
+                    className="flex items-center justify-center w-full h-24 border-2 border-dashed border-muted-foreground/25 rounded-lg cursor-pointer hover:border-muted-foreground/50 transition-colors"
+                  >
+                    <div className="text-center">
+                      <Upload className="w-6 h-6 mx-auto mb-1 text-muted-foreground" />
+                      <p className="text-xs text-muted-foreground">
+                        {files.aadhaarBack ? files.aadhaarBack.name : 'Upload Aadhaar Back'}
+                      </p>
+                    </div>
+                    <Input
+                      id="aadhaarBack"
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleFileChange('aadhaarBack', e.target.files?.[0] || null)}
+                      disabled={loading}
+                      className="hidden"
+                    />
+                  </Label>
+                </div>
               </div>
             </div>
           </div>
 
-          <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-            <p className="text-sm text-blue-800">
+          <div className="p-4 border rounded-lg bg-muted/30">
+            <p className="text-sm text-muted-foreground">
               <strong>Note:</strong> Partners will log in using their username and password. 
               Phone numbers and usernames must be unique across the platform.
             </p>
@@ -323,20 +354,11 @@ const CreatePartnerModal = ({ onPartnerCreated }: CreatePartnerModalProps) => {
             </Alert>
           )}
 
-          <div className="flex justify-end space-x-2 pt-4 border-t border-gray-200">
-            <Button 
-              type="button" 
-              variant="outline" 
-              onClick={() => setOpen(false)}
-              disabled={loading}
-              className="border-gray-300 hover:bg-gray-50"
-            >
-              Cancel
-            </Button>
+          <div className="flex gap-2 pt-4 border-t">
             <Button 
               type="submit" 
               disabled={loading || uploading}
-              className="bg-green-600 hover:bg-green-700 shadow-lg"
+              className="flex-1"
             >
               {loading || uploading ? (
                 <>
@@ -349,6 +371,14 @@ const CreatePartnerModal = ({ onPartnerCreated }: CreatePartnerModalProps) => {
                   Create Partner
                 </>
               )}
+            </Button>
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => setOpen(false)}
+              disabled={loading}
+            >
+              Cancel
             </Button>
           </div>
         </form>

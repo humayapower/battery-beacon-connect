@@ -24,9 +24,6 @@ interface BatteryFormData {
   imei_number: string;
   sim_number: string;
   warranty_period: string;
-  warranty_start_date: string;
-  status: BatteryStatus;
-  location: string;
 }
 
 const AddBatteryModal = () => {
@@ -41,9 +38,6 @@ const AddBatteryModal = () => {
     imei_number: '',
     sim_number: '',
     warranty_period: '',
-    warranty_start_date: '',
-    status: 'available',
-    location: '',
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -66,9 +60,6 @@ const AddBatteryModal = () => {
       imei_number: '',
       sim_number: '',
       warranty_period: '',
-      warranty_start_date: '',
-      status: 'available',
-      location: '',
     });
     setError('');
   };
@@ -125,7 +116,8 @@ const AddBatteryModal = () => {
     }
 
     try {
-      const warrantyExpiry = calculateWarrantyExpiry(formData.warranty_start_date, formData.warranty_period);
+      // Use manufacturing date as warranty start date
+      const warrantyExpiry = calculateWarrantyExpiry(formData.manufacturing_date, formData.warranty_period);
       
       const batteryData: Omit<Battery, 'id' | 'created_at' | 'updated_at'> = {
         serial_number: formData.serial_number.trim(),
@@ -136,13 +128,13 @@ const AddBatteryModal = () => {
         capacity: formData.capacity.trim(),
         imei_number: formData.imei_number.trim() || undefined,
         sim_number: formData.sim_number.trim() || undefined,
-        status: formData.status,
+        status: 'available', // Default status
         partner_id: null,
         customer_id: null,
         warranty_period: formData.warranty_period ? parseInt(formData.warranty_period) : undefined,
         warranty_expiry: warrantyExpiry,
-        purchase_date: formData.warranty_start_date || null,
-        location: formData.location.trim() || null,
+        purchase_date: formData.manufacturing_date || null,
+        location: null, // Default location
         last_maintenance: null,
       };
 
@@ -299,58 +291,10 @@ const AddBatteryModal = () => {
             </div>
           </div>
 
-          {/* Status and Location */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900">Status & Location</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="status">Battery Status</Label>
-                <Select
-                  value={formData.status}
-                  onValueChange={(value: BatteryStatus) => 
-                    setFormData(prev => ({ ...prev, status: value }))
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="available">Available</SelectItem>
-                    <SelectItem value="assigned">Assigned</SelectItem>
-                    <SelectItem value="maintenance">Under Maintenance</SelectItem>
-                    <SelectItem value="faulty">Faulty</SelectItem>
-                    <SelectItem value="returned">Returned</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="location">Location</Label>
-                <Input
-                  id="location"
-                  type="text"
-                  placeholder="e.g., Warehouse A, Shelf 1"
-                  value={formData.location}
-                  onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
-                />
-              </div>
-            </div>
-          </div>
-
           {/* Warranty Information */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-gray-900">Warranty Information</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="warranty_start_date">Warranty Start Date</Label>
-                <Input
-                  id="warranty_start_date"
-                  type="date"
-                  value={formData.warranty_start_date}
-                  onChange={(e) => setFormData(prev => ({ ...prev, warranty_start_date: e.target.value }))}
-                />
-              </div>
-
               <div className="space-y-2">
                 <Label htmlFor="warranty_period">Warranty Period (months)</Label>
                 <Input
@@ -362,12 +306,12 @@ const AddBatteryModal = () => {
                 />
               </div>
 
-              {formData.warranty_start_date && formData.warranty_period && (
-                <div className="md:col-span-2">
+              {formData.manufacturing_date && formData.warranty_period && (
+                <div>
                   <Label>Warranty End Date</Label>
                   <p className="text-sm text-gray-600 bg-gray-50 p-2 rounded">
-                    {calculateWarrantyExpiry(formData.warranty_start_date, formData.warranty_period) 
-                      ? new Date(calculateWarrantyExpiry(formData.warranty_start_date, formData.warranty_period)!).toLocaleDateString()
+                    {calculateWarrantyExpiry(formData.manufacturing_date, formData.warranty_period) 
+                      ? new Date(calculateWarrantyExpiry(formData.manufacturing_date, formData.warranty_period)!).toLocaleDateString()
                       : 'Invalid date/period'
                     }
                   </p>

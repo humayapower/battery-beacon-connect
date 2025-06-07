@@ -153,7 +153,7 @@ const BatteryTable = ({ isAdmin }: BatteryTableProps) => {
                       <TableHead className="font-semibold">Model Number</TableHead>
                       <TableHead className="font-semibold">Status</TableHead>
                       {userRole === 'admin' && <TableHead className="font-semibold">Associated Partner</TableHead>}
-                      <TableHead className="font-semibold">Actions</TableHead>
+                      {/* <TableHead className="font-semibold">Actions</TableHead> */}
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -162,10 +162,10 @@ const BatteryTable = ({ isAdmin }: BatteryTableProps) => {
                         <TableCell className="font-medium">
                           <button
                             onClick={() => handleViewDetails(battery.id)}
-                            className="text-black-600 hover:text-blue-800 font-semibol flex items-center gap-1 transition-colors"
+                            className="text-black-600 hover:text-blue-800 font-semibold hover:underline flex items-center gap-1 transition-colors"
                           >
                             {battery.serial_number}
-                            {/* <ExternalLink className="w-3 h-3" /> */}
+                            <ExternalLink className="w-3 h-3" />
                           </button>
                         </TableCell>
                         <TableCell>
@@ -186,7 +186,7 @@ const BatteryTable = ({ isAdmin }: BatteryTableProps) => {
                             </span>
                           </TableCell>
                         )}
-                        <TableCell>
+                        {/* <TableCell>
                           <div className="flex space-x-2">
                             <Button 
                               variant="outline" 
@@ -202,7 +202,7 @@ const BatteryTable = ({ isAdmin }: BatteryTableProps) => {
                               Edit
                             </Button>
                           </div>
-                        </TableCell>
+                        </TableCell> */}
                       </TableRow>
                     ))}
                   </TableBody>

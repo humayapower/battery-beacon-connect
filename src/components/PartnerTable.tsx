@@ -155,7 +155,7 @@ const PartnerTable = () => {
                             className="text-primary hover:text-primary/80 font-semibold hover:underline transition-colors flex items-center"
                           >
                             {partner.name}
-                            <ExternalLink className="w-3 h-3 ml-1" />
+                            {/* <ExternalLink className="w-3 h-3 ml-1" /> */}
                           </button>
                         </TableCell>
                         <TableCell>

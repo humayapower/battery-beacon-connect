@@ -75,7 +75,7 @@ const BatteryTable = ({ isAdmin }: BatteryTableProps) => {
       <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center space-y-4 lg:space-y-0">
         <div className="text-center lg:text-left">
           <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-2">
-            {isAdmin ? 'Battery Inventory' : 'My Batteries'}
+            {isAdmin ? 'Battery Inventory' : 'Batteries'}
           </h2>
           <p className="text-base lg:text-lg text-gray-600">
             {isAdmin ? 'Manage battery inventory across all partners' : 'View and manage your assigned batteries'}
@@ -162,7 +162,7 @@ const BatteryTable = ({ isAdmin }: BatteryTableProps) => {
                         <TableCell className="font-medium">
                           <button
                             onClick={() => handleViewDetails(battery.id)}
-                            className="text-blue-600 hover:text-blue-800 font-semibold hover:underline flex items-center gap-1 transition-colors"
+                            className="text-black-600 hover:text-blue-800 font-semibold hover:underline flex items-center gap-1 transition-colors"
                           >
                             {battery.serial_number}
                             <ExternalLink className="w-3 h-3" />

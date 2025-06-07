@@ -162,10 +162,10 @@ const BatteryTable = ({ isAdmin }: BatteryTableProps) => {
                         <TableCell className="font-medium">
                           <button
                             onClick={() => handleViewDetails(battery.id)}
-                            className="text-black-600 hover:text-blue-800 font-semibold hover:underline flex items-center gap-1 transition-colors"
+                            className="text-black-600 hover:text-blue-800 font-semibol flex items-center gap-1 transition-colors"
                           >
                             {battery.serial_number}
-                            <ExternalLink className="w-3 h-3" />
+                            {/* <ExternalLink className="w-3 h-3" /> */}
                           </button>
                         </TableCell>
                         <TableCell>

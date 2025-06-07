@@ -1,20 +1,21 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Users, Battery, UserCheck, Eye, Phone } from 'lucide-react';
-import { Button } from "@/components/ui/button";
+import { Edit, Eye, Phone, MapPin, Users, Battery, ExternalLink } from 'lucide-react';
 import CreatePartnerModal from './CreatePartnerModal';
 import EditPartnerModal from './EditPartnerModal';
 import DeletePartnerModal from './DeletePartnerModal';
 import PartnerProfile from './PartnerProfile';
 import { usePartners } from '@/hooks/usePartners';
-import { useAuth } from '@/contexts/AuthContext';
 
 const PartnerTable = () => {
-  const { partners, loading, refetch } = usePartners();
-  const { userRole } = useAuth();
+  const { partners, loading } = usePartners();
   const [selectedPartnerId, setSelectedPartnerId] = useState<string | null>(null);
+  const [editingPartnerId, setEditingPartnerId] = useState<string | null>(null);
+  const [deletingPartnerId, setDeletingPartnerId] = useState<string | null>(null);
   const [showProfile, setShowProfile] = useState(false);
 
   const handleViewDetails = (partnerId: string) => {
@@ -27,32 +28,26 @@ const PartnerTable = () => {
     setShowProfile(false);
   };
 
+  const handleEdit = (partnerId: string) => {
+    setEditingPartnerId(partnerId);
+  };
+
+  const handleDelete = (partnerId: string) => {
+    setDeletingPartnerId(partnerId);
+  };
+
   const handlePhoneCall = (phone: string) => {
     window.open(`tel:${phone}`, '_self');
   };
 
-  if (userRole !== 'admin') {
-    return (
-      <div className="text-center py-12">
-        <p className="text-gray-600">Access denied. Admin privileges required.</p>
-      </div>
-    );
-  }
+  const handleViewAddress = (address: string) => {
+    window.open(`https://maps.google.com/?q=${encodeURIComponent(address)}`, '_blank');
+  };
 
   if (loading) {
     return (
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <h2 className="text-3xl font-bold text-gray-900">Partners</h2>
-            <p className="text-gray-600">Manage partner organizations and their access</p>
-          </div>
-          <CreatePartnerModal onPartnerCreated={refetch} />
-        </div>
-        <div className="text-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading partners...</p>
-        </div>
+      <div className="flex items-center justify-center py-12">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
       </div>
     );
   }
@@ -68,162 +63,245 @@ const PartnerTable = () => {
     );
   }
 
-  const totalBatteries = partners.reduce((sum, partner) => sum + (partner.battery_count || 0), 0);
-  const totalCustomers = partners.reduce((sum, partner) => sum + (partner.customer_count || 0), 0);
-  const activePartners = partners.length;
-
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="space-y-6 p-4 lg:p-6">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <div>
-          <h2 className="text-3xl font-bold text-gray-900">Partners</h2>
-          <p className="text-gray-600">Manage partner organizations and their access</p>
+          <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-2">Partner Management</h2>
+          <p className="text-base lg:text-lg text-gray-600">Manage your partner network and relationships</p>
         </div>
-        <CreatePartnerModal onPartnerCreated={refetch} />
+        <CreatePartnerModal />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <Card className="hover:shadow-md transition-shadow">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Total Partners</p>
-                <p className="text-2xl font-bold text-blue-600">{activePartners}</p>
-              </div>
-              <div className="p-3 rounded-full bg-blue-100">
-                <Users className="w-6 h-6 text-blue-600" />
-              </div>
-            </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <Card className="border-2 hover:shadow-lg transition-all duration-200">
+          <CardContent className="p-6 text-center">
+            <div className="text-2xl lg:text-3xl font-bold text-blue-600 mb-1">{partners.length}</div>
+            <div className="text-sm lg:text-base text-gray-600">Total Partners</div>
           </CardContent>
         </Card>
-        
-        <Card className="hover:shadow-md transition-shadow">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Active Partners</p>
-                <p className="text-2xl font-bold text-green-600">{activePartners}</p>
-              </div>
-              <div className="p-3 rounded-full bg-green-100">
-                <UserCheck className="w-6 h-6 text-green-600" />
-              </div>
+        <Card className="border-2 hover:shadow-lg transition-all duration-200">
+          <CardContent className="p-6 text-center">
+            <div className="text-2xl lg:text-3xl font-bold text-green-600 mb-1">
+              {partners.filter(p => p.battery_count && p.battery_count > 0).length}
             </div>
+            <div className="text-sm lg:text-base text-gray-600">Active Partners</div>
           </CardContent>
         </Card>
-        
-        <Card className="hover:shadow-md transition-shadow">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Total Batteries</p>
-                <p className="text-2xl font-bold text-purple-600">{totalBatteries}</p>
-              </div>
-              <div className="p-3 rounded-full bg-purple-100">
-                <Battery className="w-6 h-6 text-purple-600" />
-              </div>
+        <Card className="border-2 hover:shadow-lg transition-all duration-200">
+          <CardContent className="p-6 text-center">
+            <div className="text-2xl lg:text-3xl font-bold text-purple-600 mb-1">
+              {partners.reduce((sum, p) => sum + (p.battery_count || 0), 0)}
             </div>
+            <div className="text-sm lg:text-base text-gray-600">Total Batteries</div>
           </CardContent>
         </Card>
-        
-        <Card className="hover:shadow-md transition-shadow">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Total Customers</p>
-                <p className="text-2xl font-bold text-orange-600">{totalCustomers}</p>
-              </div>
-              <div className="p-3 rounded-full bg-orange-100">
-                <Users className="w-6 h-6 text-orange-600" />
-              </div>
+        <Card className="border-2 hover:shadow-lg transition-all duration-200">
+          <CardContent className="p-6 text-center">
+            <div className="text-2xl lg:text-3xl font-bold text-orange-600 mb-1">
+              {partners.reduce((sum, p) => sum + (p.customer_count || 0), 0)}
             </div>
+            <div className="text-sm lg:text-base text-gray-600">Total Customers</div>
           </CardContent>
         </Card>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Partner Organizations</CardTitle>
+      <Card className="border-2 shadow-lg">
+        <CardHeader className="bg-gray-50 border-b">
+          <CardTitle className="text-xl">Partner Directory</CardTitle>
         </CardHeader>
-        <CardContent>
-          {partners.length === 0 ? (
-            <div className="text-center py-12">
-              <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No partners yet</h3>
-              <p className="text-gray-600 mb-4">Get started by creating your first partner organization.</p>
-              <CreatePartnerModal onPartnerCreated={refetch} />
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Phone</TableHead>
-                    <TableHead>Batteries</TableHead>
-                    <TableHead>Customers</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {partners.map((partner) => (
-                    <TableRow key={partner.id} className="hover:bg-gray-50">
-                      <TableCell className="font-medium">
-                        <button
-                          onClick={() => handleViewDetails(partner.id)}
-                          className="text-blue-600 hover:text-blue-800 font-medium hover:underline"
-                        >
-                          {partner.name}
-                        </button>
-                      </TableCell>
-                      <TableCell>
-                        <button
-                          onClick={() => handlePhoneCall(partner.phone)}
-                          className="flex items-center space-x-1 text-blue-600 hover:text-blue-800"
-                        >
-                          <Phone className="w-4 h-4" />
-                          <span>{partner.phone}</span>
-                        </button>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center space-x-1">
-                          <Battery className="w-4 h-4 text-gray-500" />
-                          <span>{partner.battery_count || 0}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center space-x-1">
-                          <Users className="w-4 h-4 text-gray-500" />
-                          <span>{partner.customer_count || 0}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center space-x-2">
-                          <Button 
-                            variant="outline" 
-                            size="sm"
+        <CardContent className="p-0">
+          {partners.length > 0 ? (
+            <>
+              {/* Mobile Card View */}
+              <div className="block lg:hidden space-y-4 p-6">
+                {partners.map((partner) => (
+                  <Card key={partner.id} className="hover:shadow-lg transition-all duration-200 border-2">
+                    <CardContent className="p-6">
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex items-center space-x-2 flex-1">
+                          <Users className="w-5 h-5 text-blue-600 flex-shrink-0" />
+                          <button
                             onClick={() => handleViewDetails(partner.id)}
+                            className="font-semibold text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1 transition-colors"
                           >
-                            <Eye className="w-4 h-4 mr-1" />
-                            View
-                          </Button>
-                          <EditPartnerModal 
-                            partner={partner} 
-                            onPartnerUpdated={refetch} 
-                          />
-                          <DeletePartnerModal 
-                            partner={partner} 
-                            onPartnerDeleted={refetch} 
-                          />
+                            {partner.name}
+                            <ExternalLink className="w-3 h-3" />
+                          </button>
                         </div>
-                      </TableCell>
+                        <Badge className="bg-green-100 text-green-800 border-green-200">Partner</Badge>
+                      </div>
+                      
+                      <div className="space-y-3 text-sm">
+                        <div className="flex items-center space-x-2">
+                          <button
+                            onClick={() => handlePhoneCall(partner.phone)}
+                            className="flex items-center space-x-1 text-blue-600 hover:text-blue-800 transition-colors"
+                          >
+                            <Phone className="w-4 h-4 flex-shrink-0" />
+                            <span className="font-medium">{partner.phone}</span>
+                          </button>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-600 font-medium">Username:</span>
+                          <span className="font-semibold">{partner.username}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-600 font-medium">Batteries:</span>
+                          <Badge variant="outline" className="font-medium">
+                            {partner.battery_count || 0}
+                          </Badge>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-600 font-medium">Customers:</span>
+                          <Badge variant="outline" className="font-medium">
+                            {partner.customer_count || 0}
+                          </Badge>
+                        </div>
+                      </div>
+                      
+                      <div className="flex space-x-2 mt-6">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="flex-1 hover:bg-blue-50"
+                          onClick={() => handleViewDetails(partner.id)}
+                        >
+                          <Eye className="w-3 h-3 mr-1" />
+                          View
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="flex-1 hover:bg-gray-50"
+                          onClick={() => handleEdit(partner.id)}
+                        >
+                          <Edit className="w-3 h-3 mr-1" />
+                          Edit
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+
+              {/* Desktop Table View */}
+              <div className="hidden lg:block">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-gray-50/50">
+                      <TableHead className="font-semibold">Partner Name</TableHead>
+                      <TableHead className="font-semibold">Phone</TableHead>
+                      <TableHead className="font-semibold">Username</TableHead>
+                      <TableHead className="font-semibold">Batteries</TableHead>
+                      <TableHead className="font-semibold">Customers</TableHead>
+                      <TableHead className="font-semibold">Address</TableHead>
+                      <TableHead className="font-semibold">Actions</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {partners.map((partner) => (
+                      <TableRow key={partner.id} className="hover:bg-blue-50 transition-colors">
+                        <TableCell>
+                          <button
+                            onClick={() => handleViewDetails(partner.id)}
+                            className="text-blue-600 hover:text-blue-800 font-semibold hover:underline flex items-center gap-1 transition-colors"
+                          >
+                            {partner.name}
+                            <ExternalLink className="w-3 h-3" />
+                          </button>
+                        </TableCell>
+                        <TableCell>
+                          <button
+                            onClick={() => handlePhoneCall(partner.phone)}
+                            className="flex items-center space-x-1 text-blue-600 hover:text-blue-800 transition-colors"
+                          >
+                            <Phone className="w-4 h-4" />
+                            <span className="font-medium">{partner.phone}</span>
+                          </button>
+                        </TableCell>
+                        <TableCell className="font-medium">{partner.username}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center space-x-1">
+                            <Battery className="w-4 h-4 text-blue-600" />
+                            <Badge variant="outline" className="font-medium">
+                              {partner.battery_count || 0}
+                            </Badge>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center space-x-1">
+                            <Users className="w-4 h-4 text-green-600" />
+                            <Badge variant="outline" className="font-medium">
+                              {partner.customer_count || 0}
+                            </Badge>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          {partner.address ? (
+                            <button
+                              onClick={() => handleViewAddress(partner.address!)}
+                              className="flex items-center space-x-1 text-blue-600 hover:text-blue-800 max-w-[200px] truncate transition-colors"
+                            >
+                              <MapPin className="w-4 h-4 flex-shrink-0" />
+                              <span className="text-sm">{partner.address}</span>
+                            </button>
+                          ) : (
+                            <span className="text-gray-500 italic">No address</span>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex space-x-2">
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => handleViewDetails(partner.id)}
+                              className="hover:bg-blue-50"
+                            >
+                              <Eye className="w-3 h-3 mr-1" />
+                              View
+                            </Button>
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              onClick={() => handleEdit(partner.id)}
+                              className="hover:bg-gray-50"
+                            >
+                              <Edit className="w-3 h-3 mr-1" />
+                              Edit
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </>
+          ) : (
+            <div className="text-center py-12 px-6">
+              <p className="text-gray-600 mb-6 text-lg">No partners found. Add your first partner to get started.</p>
+              <CreatePartnerModal />
             </div>
           )}
         </CardContent>
       </Card>
+
+      {editingPartnerId && (
+        <EditPartnerModal 
+          partnerId={editingPartnerId} 
+          isOpen={!!editingPartnerId}
+          onClose={() => setEditingPartnerId(null)}
+        />
+      )}
+
+      {deletingPartnerId && (
+        <DeletePartnerModal 
+          partnerId={deletingPartnerId} 
+          isOpen={!!deletingPartnerId}
+          onClose={() => setDeletingPartnerId(null)}
+        />
+      )}
     </div>
   );
 };

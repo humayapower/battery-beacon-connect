@@ -80,7 +80,7 @@ const CustomerTable = ({ isAdmin }: CustomerTableProps) => {
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <div>
           <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-2">
-            {isAdmin ? 'Customer Directory' : 'My Customers'}
+            {isAdmin ? 'Customer Directory' : 'Customers'}
           </h2>
           <p className="text-base lg:text-lg text-gray-600">
             {isAdmin ? 'View all customers across partners' : 'Manage your customer relationships'}
@@ -138,7 +138,7 @@ const CustomerTable = ({ isAdmin }: CustomerTableProps) => {
                           <TableHead className="font-semibold">Battery Serial</TableHead>
                           <TableHead className="font-semibold">Status</TableHead>
                           {userRole === 'admin' && <TableHead className="font-semibold">Associated Partner</TableHead>}
-                          <TableHead className="font-semibold w-[150px]">Actions</TableHead>
+                          {/* <TableHead className="font-semibold w-[150px]">Actions</TableHead> */}
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -147,19 +147,19 @@ const CustomerTable = ({ isAdmin }: CustomerTableProps) => {
                             <TableCell>
                               <button
                                 onClick={() => handleViewDetails(customer.id)}
-                                className="text-blue-600 hover:text-blue-800 font-semibold hover:underline flex items-center gap-1 transition-colors"
+                                className="text-black-600 hover:text-blue-800 font-semibold hover:underline flex items-center gap-1 transition-colors"
                               >
                                 {customer.name}
-                                <ExternalLink className="w-3 h-3" />
+                                {/* <ExternalLink className="w-3 h-3" /> */}
                               </button>
                             </TableCell>
                             <TableCell>
                               {customer.phone ? (
                                 <button
                                   onClick={() => handlePhoneCall(customer.phone)}
-                                  className="flex items-center space-x-1 text-blue-600 hover:text-blue-800 transition-colors"
+                                  className="flex items-center space-x-1 text-black-600 hover:text-blue-800 transition-colors"
                                 >
-                                  <Phone className="w-4 h-4" />
+                                  {/* <Phone className="w-4 h-4" /> */}
                                   <span className="font-medium">{customer.phone}</span>
                                 </button>
                               ) : (
@@ -183,7 +183,7 @@ const CustomerTable = ({ isAdmin }: CustomerTableProps) => {
                                 </span>
                               </TableCell>
                             )}
-                            <TableCell>
+                            {/* <TableCell>
                               <div className="flex space-x-2">
                                 <Button 
                                   variant="outline" 
@@ -199,7 +199,7 @@ const CustomerTable = ({ isAdmin }: CustomerTableProps) => {
                                   Edit
                                 </Button>
                               </div>
-                            </TableCell>
+                            </TableCell> */}
                           </TableRow>
                         ))}
                       </TableBody>

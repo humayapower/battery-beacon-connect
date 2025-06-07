@@ -32,9 +32,11 @@ export function SearchAndFilters({
   }
 
   const handleFilterChange = (key: string, value: string) => {
-    const newFilters = { ...filters, [key]: value }
-    if (value === "") {
+    const newFilters = { ...filters }
+    if (value === "all" || value === "") {
       delete newFilters[key]
+    } else {
+      newFilters[key] = value
     }
     setFilters(newFilters)
     onFilterChange(newFilters)
@@ -89,14 +91,14 @@ export function SearchAndFilters({
             <div key={key}>
               <label className="text-sm font-medium mb-2 block">{label}</label>
               <Select
-                value={filters[key] || ""}
+                value={filters[key] || "all"}
                 onValueChange={(value) => handleFilterChange(key, value)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder={`Select ${label.toLowerCase()}`} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All</SelectItem>
+                  <SelectItem value="all">All</SelectItem>
                   {options.map(({ value, label }) => (
                     <SelectItem key={value} value={value}>
                       {label}

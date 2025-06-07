@@ -61,19 +61,6 @@ const PartnerTable = () => {
     window.open(`tel:${phone}`, '_self');
   };
 
-  const getStatusColor = (status: string | undefined) => {
-    if (!status) return 'bg-gray-100 text-gray-800';
-    
-    switch (status) {
-      case 'active':
-        return 'bg-green-100 text-green-800';
-      case 'suspended':
-        return 'bg-yellow-100 text-yellow-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
-
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -156,7 +143,6 @@ const PartnerTable = () => {
                       <TableHead className="font-semibold">Username</TableHead>
                       <TableHead className="font-semibold">Batteries</TableHead>
                       <TableHead className="font-semibold">Customers</TableHead>
-                      <TableHead className="font-semibold">Status</TableHead>
                       <TableHead className="font-semibold">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -166,9 +152,10 @@ const PartnerTable = () => {
                         <TableCell>
                           <button
                             onClick={() => handleViewProfile(partner.id)}
-                            className="text-primary hover:text-primary/80 font-semibold hover:underline transition-colors"
+                            className="text-primary hover:text-primary/80 font-semibold hover:underline transition-colors flex items-center"
                           >
                             {partner.name}
+                            <ExternalLink className="w-3 h-3 ml-1" />
                           </button>
                         </TableCell>
                         <TableCell>
@@ -191,13 +178,8 @@ const PartnerTable = () => {
                           </Badge>
                         </TableCell>
                         <TableCell className="text-center">
-                          <Badge variant="outline" className="bg-purple-50 text-purple-700">
+                          <Badge variant="outline" className="bg-green-50 text-green-700">
                             {partner.customer_count || 0}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Badge className={getStatusColor(partner.status)}>
-                            {partner.status ? (partner.status.charAt(0).toUpperCase() + partner.status.slice(1)) : 'Unknown'}
                           </Badge>
                         </TableCell>
                         <TableCell>

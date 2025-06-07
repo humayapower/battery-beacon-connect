@@ -5,9 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Plus, UserPlus, Upload } from 'lucide-react';
+import { Plus, UserPlus } from 'lucide-react';
 import { useAdminFunctions } from '@/hooks/useAdminFunctions';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -22,7 +21,6 @@ interface PartnerFormData {
   username: string;
   password: string;
   address: string;
-  idType: 'aadhaar' | 'pan';
 }
 
 const CreatePartnerModal = ({ onPartnerCreated }: CreatePartnerModalProps) => {
@@ -33,13 +31,11 @@ const CreatePartnerModal = ({ onPartnerCreated }: CreatePartnerModalProps) => {
     username: '',
     password: '123456',
     address: '',
-    idType: 'aadhaar',
   });
   const [files, setFiles] = useState({
     partnerPhoto: null as File | null,
     aadhaarFront: null as File | null,
     aadhaarBack: null as File | null,
-    panCard: null as File | null,
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -124,11 +120,6 @@ const CreatePartnerModal = ({ onPartnerCreated }: CreatePartnerModalProps) => {
         uploadedUrls.aadhaar_back_url = await uploadFile(files.aadhaarBack, 'partner-documents', `aadhaar/${fileName}`);
       }
 
-      if (files.panCard) {
-        const fileName = `${Date.now()}_pan_card.${files.panCard.name.split('.').pop()}`;
-        uploadedUrls.pan_card_url = await uploadFile(files.panCard, 'partner-documents', `pan/${fileName}`);
-      }
-
       setUploading(false);
 
       // Create partner with uploaded document URLs
@@ -163,13 +154,11 @@ const CreatePartnerModal = ({ onPartnerCreated }: CreatePartnerModalProps) => {
       username: '',
       password: '123456',
       address: '',
-      idType: 'aadhaar',
     });
     setFiles({
       partnerPhoto: null,
       aadhaarFront: null,
       aadhaarBack: null,
-      panCard: null,
     });
     setError('');
   };
@@ -177,30 +166,30 @@ const CreatePartnerModal = ({ onPartnerCreated }: CreatePartnerModalProps) => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="bg-green-600 hover:bg-green-700">
+        <Button className="bg-green-600 hover:bg-green-700 shadow-lg transition-all duration-200">
           <Plus className="w-4 h-4 mr-2" />
           Create Partner
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-white/95 backdrop-blur-sm border-2 border-gray-200">
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
-            <UserPlus className="w-5 h-5" />
-            <span>Create New Partner</span>
+            <UserPlus className="w-5 h-5 text-green-600" />
+            <span className="text-2xl font-bold bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">Create New Partner</span>
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-gray-600">
             Add a new partner to the platform with complete profile and documents.
           </DialogDescription>
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Personal Information */}
-          <div className="space-y-4">
+          <div className="space-y-4 p-6 bg-gradient-to-br from-green-50 to-blue-50 rounded-lg border border-green-200">
             <h3 className="text-lg font-semibold text-gray-900">Personal Information</h3>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="partnerName">Full Name *</Label>
+                <Label htmlFor="partnerName" className="text-gray-700 font-medium">Full Name *</Label>
                 <Input
                   id="partnerName"
                   type="text"
@@ -209,11 +198,12 @@ const CreatePartnerModal = ({ onPartnerCreated }: CreatePartnerModalProps) => {
                   onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
                   required
                   disabled={loading}
+                  className="border-gray-300 focus:border-green-500"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="partnerPhone">Phone Number *</Label>
+                <Label htmlFor="partnerPhone" className="text-gray-700 font-medium">Phone Number *</Label>
                 <Input
                   id="partnerPhone"
                   type="tel"
@@ -222,12 +212,13 @@ const CreatePartnerModal = ({ onPartnerCreated }: CreatePartnerModalProps) => {
                   onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
                   required
                   disabled={loading}
+                  className="border-gray-300 focus:border-green-500"
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="partnerAddress">Address</Label>
+              <Label htmlFor="partnerAddress" className="text-gray-700 font-medium">Address</Label>
               <Textarea
                 id="partnerAddress"
                 placeholder="Enter partner's complete address"
@@ -235,17 +226,30 @@ const CreatePartnerModal = ({ onPartnerCreated }: CreatePartnerModalProps) => {
                 onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
                 disabled={loading}
                 rows={3}
+                className="border-gray-300 focus:border-green-500"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="partnerPhoto" className="text-gray-700 font-medium">Partner Photo</Label>
+              <Input
+                id="partnerPhoto"
+                type="file"
+                accept="image/*"
+                onChange={(e) => handleFileChange('partnerPhoto', e.target.files?.[0] || null)}
+                disabled={loading}
+                className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100 border-gray-300"
               />
             </div>
           </div>
 
           {/* Login Credentials */}
-          <div className="space-y-4">
+          <div className="space-y-4 p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
             <h3 className="text-lg font-semibold text-gray-900">Login Credentials</h3>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="partnerUsername">Username *</Label>
+                <Label htmlFor="partnerUsername" className="text-gray-700 font-medium">Username *</Label>
                 <Input
                   id="partnerUsername"
                   type="text"
@@ -254,11 +258,12 @@ const CreatePartnerModal = ({ onPartnerCreated }: CreatePartnerModalProps) => {
                   onChange={(e) => setFormData(prev => ({ ...prev, username: e.target.value }))}
                   required
                   disabled={loading}
+                  className="border-gray-300 focus:border-blue-500"
                 />
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="partnerPassword">Password *</Label>
+                <Label htmlFor="partnerPassword" className="text-gray-700 font-medium">Password *</Label>
                 <Input
                   id="partnerPassword"
                   type="password"
@@ -268,86 +273,44 @@ const CreatePartnerModal = ({ onPartnerCreated }: CreatePartnerModalProps) => {
                   required
                   minLength={6}
                   disabled={loading}
+                  className="border-gray-300 focus:border-blue-500"
                 />
               </div>
             </div>
           </div>
 
           {/* Document Upload Section */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900">Documents & Photo</h3>
+          <div className="space-y-4 p-6 bg-gradient-to-br from-gray-50 to-blue-50 rounded-lg border border-gray-200">
+            <h3 className="text-lg font-semibold text-gray-900">Aadhaar Documents</h3>
             
-            <div>
-              <Label htmlFor="idType">ID Type</Label>
-              <Select value={formData.idType} onValueChange={(value: 'aadhaar' | 'pan') => setFormData(prev => ({ ...prev, idType: value }))}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select ID type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="aadhaar">Aadhaar Card</SelectItem>
-                  <SelectItem value="pan">PAN Card</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="partnerPhoto">Partner Photo</Label>
+                <Label htmlFor="aadhaarFront" className="text-gray-700 font-medium">Aadhaar Front</Label>
                 <Input
-                  id="partnerPhoto"
+                  id="aadhaarFront"
                   type="file"
                   accept="image/*"
-                  onChange={(e) => handleFileChange('partnerPhoto', e.target.files?.[0] || null)}
+                  onChange={(e) => handleFileChange('aadhaarFront', e.target.files?.[0] || null)}
                   disabled={loading}
-                  className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100"
+                  className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100 border-gray-300"
                 />
               </div>
-
-              {formData.idType === 'aadhaar' && (
-                <>
-                  <div>
-                    <Label htmlFor="aadhaarFront">Aadhaar Front</Label>
-                    <Input
-                      id="aadhaarFront"
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => handleFileChange('aadhaarFront', e.target.files?.[0] || null)}
-                      disabled={loading}
-                      className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100"
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="aadhaarBack">Aadhaar Back</Label>
-                    <Input
-                      id="aadhaarBack"
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => handleFileChange('aadhaarBack', e.target.files?.[0] || null)}
-                      disabled={loading}
-                      className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100"
-                    />
-                  </div>
-                </>
-              )}
-
-              {formData.idType === 'pan' && (
-                <div>
-                  <Label htmlFor="panCard">PAN Card</Label>
-                  <Input
-                    id="panCard"
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => handleFileChange('panCard', e.target.files?.[0] || null)}
-                    disabled={loading}
-                    className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100"
-                  />
-                </div>
-              )}
+              
+              <div>
+                <Label htmlFor="aadhaarBack" className="text-gray-700 font-medium">Aadhaar Back</Label>
+                <Input
+                  id="aadhaarBack"
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => handleFileChange('aadhaarBack', e.target.files?.[0] || null)}
+                  disabled={loading}
+                  className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100 border-gray-300"
+                />
+              </div>
             </div>
           </div>
 
-          <div className="bg-blue-50 p-3 rounded-md">
+          <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
             <p className="text-sm text-blue-800">
               <strong>Note:</strong> Partners will log in using their username and password. 
               Phone numbers and usernames must be unique across the platform.
@@ -360,19 +323,20 @@ const CreatePartnerModal = ({ onPartnerCreated }: CreatePartnerModalProps) => {
             </Alert>
           )}
 
-          <div className="flex justify-end space-x-2 pt-4 border-t">
+          <div className="flex justify-end space-x-2 pt-4 border-t border-gray-200">
             <Button 
               type="button" 
               variant="outline" 
               onClick={() => setOpen(false)}
               disabled={loading}
+              className="border-gray-300 hover:bg-gray-50"
             >
               Cancel
             </Button>
             <Button 
               type="submit" 
               disabled={loading || uploading}
-              className="bg-green-600 hover:bg-green-700"
+              className="bg-green-600 hover:bg-green-700 shadow-lg"
             >
               {loading || uploading ? (
                 <>

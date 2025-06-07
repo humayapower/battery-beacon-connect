@@ -1,10 +1,9 @@
 
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Edit, Eye, Phone, MapPin, Users, Battery, ExternalLink } from 'lucide-react';
+import { Phone, MapPin, Users, Battery, ExternalLink } from 'lucide-react';
 import CreatePartnerModal from './CreatePartnerModal';
 import EditPartnerModal from './EditPartnerModal';
 import DeletePartnerModal from './DeletePartnerModal';
@@ -26,14 +25,6 @@ const PartnerTable = () => {
   const handleCloseProfile = () => {
     setSelectedPartnerId(null);
     setShowProfile(false);
-  };
-
-  const handleEdit = (partnerId: string) => {
-    setEditingPartnerId(partnerId);
-  };
-
-  const handleDelete = (partnerId: string) => {
-    setDeletingPartnerId(partnerId);
   };
 
   const handlePhoneCall = (phone: string) => {
@@ -164,27 +155,6 @@ const PartnerTable = () => {
                           </Badge>
                         </div>
                       </div>
-                      
-                      <div className="flex space-x-2 mt-6">
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="flex-1 hover:bg-blue-50 border-blue-200 text-blue-700 hover:border-blue-300 transition-all duration-200"
-                          onClick={() => handleViewDetails(partner.id)}
-                        >
-                          <Eye className="w-3 h-3 mr-1" />
-                          View
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="flex-1 hover:bg-gray-50 border-gray-200 text-gray-700 hover:border-gray-300 transition-all duration-200"
-                          onClick={() => handleEdit(partner.id)}
-                        >
-                          <Edit className="w-3 h-3 mr-1" />
-                          Edit
-                        </Button>
-                      </div>
                     </CardContent>
                   </Card>
                 ))}
@@ -201,7 +171,6 @@ const PartnerTable = () => {
                       <TableHead className="font-semibold text-gray-700">Batteries</TableHead>
                       <TableHead className="font-semibold text-gray-700">Customers</TableHead>
                       <TableHead className="font-semibold text-gray-700">Address</TableHead>
-                      <TableHead className="font-semibold text-gray-700">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -254,28 +223,6 @@ const PartnerTable = () => {
                           ) : (
                             <span className="text-gray-500 italic">No address</span>
                           )}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex space-x-2">
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              onClick={() => handleViewDetails(partner.id)}
-                              className="hover:bg-blue-50 border-blue-200 text-blue-700 hover:border-blue-300 transition-all duration-200"
-                            >
-                              <Eye className="w-3 h-3 mr-1" />
-                              View
-                            </Button>
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              onClick={() => handleEdit(partner.id)}
-                              className="hover:bg-gray-50 border-gray-200 text-gray-700 hover:border-gray-300 transition-all duration-200"
-                            >
-                              <Edit className="w-3 h-3 mr-1" />
-                              Edit
-                            </Button>
-                          </div>
                         </TableCell>
                       </TableRow>
                     ))}

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -6,33 +5,26 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus } from 'lucide-react';
+import { Plus, Upload } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useCustomers } from '@/hooks/useCustomers';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Customer } from '@/types';
 
-interface AddCustomerModalProps {
-  // You can add props here if needed
-}
-
 const AddCustomerModal = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [name, setName] = useState('');
-  const [phone, setPhone] = useState('');
-  const [email, setEmail] = useState('');
-  const [address, setAddress] = useState('');
-  const [paymentType, setPaymentType] = useState<'emi' | 'monthly_rent' | 'one_time_purchase'>('emi');
-  const [partnerId, setPartnerId] = useState<string | 'none'>('none');
-  const [batteryId, setBatteryId] = useState<string | 'none'>('none');
-  const [joinDate, setJoinDate] = useState('');
-  const [loading, setLoading] = useState(false);
-  const { toast } = useToast();
-  const { addCustomer } = useCustomers();
-  const { userRole, user } = useAuth();
-  const [partners, setPartners] = useState<{ id: string; name: string; }[]>([]);
-  const [batteries, setBatteries] = useState<{ id: string; serial_number: string; }[]>([]);
+  const [formData, setFormData] = useState({
+    name: '',
+    phone: '',
+    email: '',
+    address: '',
+    paymentType: 'emi' as const,
+    partnerId: 'none',
+    batteryId: 'none',
+    joinDate: new Date().toISOString().split('T')[0],
+    idType: 'aadhaar' as const,
+  });
   const [paymentPlan, setPaymentPlan] = useState({
     totalAmount: '',
     downPayment: '',
@@ -42,6 +34,19 @@ const AddCustomerModal = () => {
     monthlyRent: '',
     purchaseAmount: ''
   });
+  const [files, setFiles] = useState({
+    customerPhoto: null as File | null,
+    aadhaarFront: null as File | null,
+    aadhaarBack: null as File | null,
+    panCard: null as File | null,
+  });
+  const [uploading, setUploading] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
+  const { addCustomer } = useCustomers();
+  const { userRole, user } = useAuth();
+  const [partners, setPartners] = useState<{ id: string; name: string; }[]>([]);
+  const [batteries, setBatteries] = useState<{ id: string; serial_number: string; }[]>([]);
 
   useEffect(() => {
     const fetchPartners = async () => {
@@ -108,38 +113,83 @@ const AddCustomerModal = () => {
     fetchBatteries();
   }, [userRole, user, toast]);
 
-  const handlePaymentPlanChange = (field: string, value: string) => {
-    setPaymentPlan(prev => ({ ...prev, [field]: value }));
+  const handleFileChange = (field: keyof typeof files, file: File | null) => {
+    setFiles(prev => ({ ...prev, [field]: file }));
+  };
+
+  const uploadFile = async (file: File, bucket: string, path: string) => {
+    const { data, error } = await supabase.storage
+      .from(bucket)
+      .upload(path, file, {
+        cacheControl: '3600',
+        upsert: true
+      });
+
+    if (error) throw error;
+    
+    const { data: publicUrlData } = supabase.storage
+      .from(bucket)
+      .getPublicUrl(path);
+
+    return publicUrlData.publicUrl;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setUploading(true);
 
     try {
+      // Upload files if present
+      const uploadedUrls: any = {};
+      
+      if (files.customerPhoto) {
+        const fileName = `${Date.now()}_customer_photo.${files.customerPhoto.name.split('.').pop()}`;
+        uploadedUrls.customer_photo_url = await uploadFile(files.customerPhoto, 'customer-documents', `photos/${fileName}`);
+      }
+
+      if (files.aadhaarFront) {
+        const fileName = `${Date.now()}_aadhaar_front.${files.aadhaarFront.name.split('.').pop()}`;
+        uploadedUrls.aadhaar_front_url = await uploadFile(files.aadhaarFront, 'customer-documents', `aadhaar/${fileName}`);
+      }
+
+      if (files.aadhaarBack) {
+        const fileName = `${Date.now()}_aadhaar_back.${files.aadhaarBack.name.split('.').pop()}`;
+        uploadedUrls.aadhaar_back_url = await uploadFile(files.aadhaarBack, 'customer-documents', `aadhaar/${fileName}`);
+      }
+
+      if (files.panCard) {
+        const fileName = `${Date.now()}_pan_card.${files.panCard.name.split('.').pop()}`;
+        uploadedUrls.pan_card_url = await uploadFile(files.panCard, 'customer-documents', `pan/${fileName}`);
+      }
+
+      setUploading(false);
+
       const customerData: Omit<Customer, 'id' | 'created_at' | 'updated_at'> = {
-        name,
-        phone,
-        email: email || undefined,
-        address: address || undefined,
-        payment_type: paymentType,
-        partner_id: partnerId === 'none' ? null : partnerId,
-        battery_id: batteryId === 'none' ? null : batteryId,
-        join_date: joinDate,
-        status: 'active' as const, // Fix: explicitly cast as const
+        name: formData.name,
+        phone: formData.phone,
+        email: formData.email || undefined,
+        address: formData.address || undefined,
+        payment_type: formData.paymentType,
+        partner_id: formData.partnerId === 'none' ? null : formData.partnerId,
+        battery_id: formData.batteryId === 'none' ? null : formData.batteryId,
+        join_date: formData.joinDate,
+        status: 'active' as const,
+        id_type: formData.idType,
+        ...uploadedUrls,
         // Add billing plan data
-        ...(paymentType === 'emi' && {
+        ...(formData.paymentType === 'emi' && {
           total_amount: paymentPlan.totalAmount ? parseFloat(paymentPlan.totalAmount) : undefined,
           down_payment: paymentPlan.downPayment ? parseFloat(paymentPlan.downPayment) : undefined,
           emi_count: paymentPlan.emiCount ? parseInt(paymentPlan.emiCount) : undefined,
           emi_amount: paymentPlan.emiAmount ? parseFloat(paymentPlan.emiAmount) : undefined,
-          emi_start_date: joinDate
+          emi_start_date: formData.joinDate
         }),
-        ...(paymentType === 'monthly_rent' && {
+        ...(formData.paymentType === 'monthly_rent' && {
           monthly_rent: paymentPlan.monthlyRent ? parseFloat(paymentPlan.monthlyRent) : undefined,
           security_deposit: paymentPlan.securityDeposit ? parseFloat(paymentPlan.securityDeposit) : undefined
         }),
-        ...(paymentType === 'one_time_purchase' && {
+        ...(formData.paymentType === 'one_time_purchase' && {
           purchase_amount: paymentPlan.purchaseAmount ? parseFloat(paymentPlan.purchaseAmount) : undefined
         })
       };
@@ -149,7 +199,7 @@ const AddCustomerModal = () => {
       if (result?.success) {
         toast({
           title: "Customer added successfully",
-          description: `Customer ${name} has been added.`,
+          description: `Customer ${formData.name} has been added with all documents.`,
         });
         setIsOpen(false);
         resetForm();
@@ -169,18 +219,22 @@ const AddCustomerModal = () => {
       });
     } finally {
       setLoading(false);
+      setUploading(false);
     }
   };
 
   const resetForm = () => {
-    setName('');
-    setPhone('');
-    setEmail('');
-    setAddress('');
-    setPaymentType('emi');
-    setPartnerId('none');
-    setBatteryId('none');
-    setJoinDate('');
+    setFormData({
+      name: '',
+      phone: '',
+      email: '',
+      address: '',
+      paymentType: 'emi',
+      partnerId: 'none',
+      batteryId: 'none',
+      joinDate: new Date().toISOString().split('T')[0],
+      idType: 'aadhaar',
+    });
     setPaymentPlan({
       totalAmount: '',
       downPayment: '',
@@ -189,6 +243,12 @@ const AddCustomerModal = () => {
       securityDeposit: '',
       monthlyRent: '',
       purchaseAmount: ''
+    });
+    setFiles({
+      customerPhoto: null,
+      aadhaarFront: null,
+      aadhaarBack: null,
+      panCard: null,
     });
   };
 
@@ -200,205 +260,314 @@ const AddCustomerModal = () => {
           Add Customer
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Add New Customer</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <Label htmlFor="name">Name</Label>
-            <Input
-              id="name"
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Enter customer name"
-              required
-            />
-          </div>
-          <div>
-            <Label htmlFor="phone">Phone</Label>
-            <Input
-              id="phone"
-              type="tel"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder="Enter phone number"
-              required
-            />
-          </div>
-          <div>
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter email address"
-            />
-          </div>
-          <div>
-            <Label htmlFor="address">Address</Label>
-            <Textarea
-              id="address"
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
-              placeholder="Enter customer address"
-              rows={3}
-            />
-          </div>
-          <div>
-            <Label htmlFor="paymentType">Payment Type</Label>
-            <Select value={paymentType} onValueChange={(value: 'emi' | 'monthly_rent' | 'one_time_purchase') => setPaymentType(value)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select payment type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="emi">EMI</SelectItem>
-                <SelectItem value="monthly_rent">Monthly Rent</SelectItem>
-                <SelectItem value="one_time_purchase">One-time Purchase</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          {userRole === 'admin' && (
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Personal Information */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-gray-900">Personal Information</h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="name">Full Name *</Label>
+                <Input
+                  id="name"
+                  type="text"
+                  value={formData.name}
+                  onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                  placeholder="Enter customer's full name"
+                  required
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="phone">Phone Number *</Label>
+                <Input
+                  id="phone"
+                  type="tel"
+                  value={formData.phone}
+                  onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+                  placeholder="Enter phone number"
+                  required
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                  placeholder="Enter email address"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="joinDate">Join Date *</Label>
+                <Input
+                  id="joinDate"
+                  type="date"
+                  value={formData.joinDate}
+                  onChange={(e) => setFormData(prev => ({ ...prev, joinDate: e.target.value }))}
+                  required
+                />
+              </div>
+            </div>
+
             <div>
-              <Label htmlFor="partner">Partner</Label>
-              <Select value={partnerId} onValueChange={setPartnerId}>
+              <Label htmlFor="address">Address</Label>
+              <Textarea
+                id="address"
+                value={formData.address}
+                onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
+                placeholder="Enter customer's complete address"
+                rows={3}
+              />
+            </div>
+          </div>
+
+          {/* Document Upload Section */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-gray-900">Documents & Photo</h3>
+            
+            <div>
+              <Label htmlFor="idType">ID Type</Label>
+              <Select value={formData.idType} onValueChange={(value: 'aadhaar' | 'pan') => setFormData(prev => ({ ...prev, idType: value }))}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select partner" />
+                  <SelectValue placeholder="Select ID type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">None</SelectItem>
-                  {partners.map((partner) => (
-                    <SelectItem key={partner.id} value={partner.id}>{partner.name}</SelectItem>
-                  ))}
+                  <SelectItem value="aadhaar">Aadhaar Card</SelectItem>
+                  <SelectItem value="pan">PAN Card</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-          )}
-          <div>
-            <Label htmlFor="battery">Battery</Label>
-            <Select value={batteryId} onValueChange={setBatteryId}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select battery" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">None</SelectItem>
-                {batteries.map((battery) => (
-                  <SelectItem key={battery.id} value={battery.id}>{battery.serial_number}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="customerPhoto">Customer Photo</Label>
+                <Input
+                  id="customerPhoto"
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => handleFileChange('customerPhoto', e.target.files?.[0] || null)}
+                  className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                />
+              </div>
+
+              {formData.idType === 'aadhaar' && (
+                <>
+                  <div>
+                    <Label htmlFor="aadhaarFront">Aadhaar Front</Label>
+                    <Input
+                      id="aadhaarFront"
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleFileChange('aadhaarFront', e.target.files?.[0] || null)}
+                      className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="aadhaarBack">Aadhaar Back</Label>
+                    <Input
+                      id="aadhaarBack"
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleFileChange('aadhaarBack', e.target.files?.[0] || null)}
+                      className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                    />
+                  </div>
+                </>
+              )}
+
+              {formData.idType === 'pan' && (
+                <div>
+                  <Label htmlFor="panCard">PAN Card</Label>
+                  <Input
+                    id="panCard"
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleFileChange('panCard', e.target.files?.[0] || null)}
+                    className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                  />
+                </div>
+              )}
+            </div>
           </div>
-          <div>
-            <Label htmlFor="joinDate">Join Date</Label>
-            <Input
-              id="joinDate"
-              type="date"
-              value={joinDate}
-              onChange={(e) => setJoinDate(e.target.value)}
-            />
+
+          {/* Assignment Section */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-gray-900">Assignment</h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {userRole === 'admin' && (
+                <div>
+                  <Label htmlFor="partner">Assigned Partner</Label>
+                  <Select value={formData.partnerId} onValueChange={(value) => setFormData(prev => ({ ...prev, partnerId: value }))}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select partner" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">No Partner</SelectItem>
+                      {partners.map((partner) => (
+                        <SelectItem key={partner.id} value={partner.id}>{partner.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
+              <div>
+                <Label htmlFor="battery">Assigned Battery</Label>
+                <Select value={formData.batteryId} onValueChange={(value) => setFormData(prev => ({ ...prev, batteryId: value }))}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select battery" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">No Battery</SelectItem>
+                    {batteries.map((battery) => (
+                      <SelectItem key={battery.id} value={battery.id}>{battery.serial_number}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
           </div>
 
-          {/* Payment Plan Details */}
-          {paymentType === 'emi' && (
-            <div className="grid grid-cols-2 gap-4 p-4 border rounded-lg bg-blue-50">
-              <h3 className="col-span-2 font-semibold text-blue-800">EMI Plan Details</h3>
-              <div>
-                <Label htmlFor="totalAmount">Total Amount (₹)</Label>
-                <Input
-                  id="totalAmount"
-                  type="number"
-                  step="0.01"
-                  value={paymentPlan.totalAmount}
-                  onChange={(e) => handlePaymentPlanChange('totalAmount', e.target.value)}
-                  placeholder="Enter total amount"
-                />
-              </div>
-              <div>
-                <Label htmlFor="downPayment">Down Payment (₹)</Label>
-                <Input
-                  id="downPayment"
-                  type="number"
-                  step="0.01"
-                  value={paymentPlan.downPayment}
-                  onChange={(e) => handlePaymentPlanChange('downPayment', e.target.value)}
-                  placeholder="Enter down payment"
-                />
-              </div>
-              <div>
-                <Label htmlFor="emiCount">EMI Count (months)</Label>
-                <Input
-                  id="emiCount"
-                  type="number"
-                  min="1"
-                  value={paymentPlan.emiCount}
-                  onChange={(e) => handlePaymentPlanChange('emiCount', e.target.value)}
-                  placeholder="Enter number of EMIs"
-                />
-              </div>
-              <div>
-                <Label htmlFor="emiAmount">EMI Amount (₹)</Label>
-                <Input
-                  id="emiAmount"
-                  type="number"
-                  step="0.01"
-                  value={paymentPlan.emiAmount}
-                  onChange={(e) => handlePaymentPlanChange('emiAmount', e.target.value)}
-                  placeholder="Enter EMI amount"
-                />
-              </div>
+          {/* Payment Information */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-gray-900">Payment Information</h3>
+            
+            <div>
+              <Label htmlFor="paymentType">Payment Type *</Label>
+              <Select value={formData.paymentType} onValueChange={(value: 'emi' | 'monthly_rent' | 'one_time_purchase') => setFormData(prev => ({ ...prev, paymentType: value }))}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select payment type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="emi">EMI</SelectItem>
+                  <SelectItem value="monthly_rent">Subscription/Rent</SelectItem>
+                  <SelectItem value="one_time_purchase">Full Purchase</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-          )}
 
-          {paymentType === 'monthly_rent' && (
-            <div className="grid grid-cols-2 gap-4 p-4 border rounded-lg bg-green-50">
-              <h3 className="col-span-2 font-semibold text-green-800">Monthly Rent Plan Details</h3>
-              <div>
-                <Label htmlFor="monthlyRent">Monthly Rent (₹)</Label>
-                <Input
-                  id="monthlyRent"
-                  type="number"
-                  step="0.01"
-                  value={paymentPlan.monthlyRent}
-                  onChange={(e) => handlePaymentPlanChange('monthlyRent', e.target.value)}
-                  placeholder="Enter monthly rent"
-                />
+            {/* Payment Plan Details */}
+            {formData.paymentType === 'emi' && (
+              <div className="grid grid-cols-2 gap-4 p-4 border rounded-lg bg-blue-50">
+                <h4 className="col-span-2 font-semibold text-blue-800">EMI Plan Details</h4>
+                <div>
+                  <Label htmlFor="totalAmount">Total Amount (₹) *</Label>
+                  <Input
+                    id="totalAmount"
+                    type="number"
+                    step="0.01"
+                    value={paymentPlan.totalAmount}
+                    onChange={(e) => setPaymentPlan(prev => ({ ...prev, totalAmount: e.target.value }))}
+                    placeholder="Enter total amount"
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="downPayment">Down Payment (₹)</Label>
+                  <Input
+                    id="downPayment"
+                    type="number"
+                    step="0.01"
+                    value={paymentPlan.downPayment}
+                    onChange={(e) => setPaymentPlan(prev => ({ ...prev, downPayment: e.target.value }))}
+                    placeholder="Enter down payment"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="emiCount">EMI Count (months) *</Label>
+                  <Input
+                    id="emiCount"
+                    type="number"
+                    min="1"
+                    value={paymentPlan.emiCount}
+                    onChange={(e) => setPaymentPlan(prev => ({ ...prev, emiCount: e.target.value }))}
+                    placeholder="Number of EMIs"
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="emiAmount">EMI Amount (₹) *</Label>
+                  <Input
+                    id="emiAmount"
+                    type="number"
+                    step="0.01"
+                    value={paymentPlan.emiAmount}
+                    onChange={(e) => setPaymentPlan(prev => ({ ...prev, emiAmount: e.target.value }))}
+                    placeholder="Monthly EMI amount"
+                    required
+                  />
+                </div>
               </div>
-              <div>
-                <Label htmlFor="securityDeposit">Security Deposit (₹)</Label>
-                <Input
-                  id="securityDeposit"
-                  type="number"
-                  step="0.01"
-                  value={paymentPlan.securityDeposit}
-                  onChange={(e) => handlePaymentPlanChange('securityDeposit', e.target.value)}
-                  placeholder="Enter security deposit"
-                />
-              </div>
-            </div>
-          )}
+            )}
 
-          {paymentType === 'one_time_purchase' && (
-            <div className="p-4 border rounded-lg bg-purple-50">
-              <h3 className="font-semibold text-purple-800 mb-2">One-time Purchase Details</h3>
-              <div>
-                <Label htmlFor="purchaseAmount">Purchase Amount (₹)</Label>
-                <Input
-                  id="purchaseAmount"
-                  type="number"
-                  step="0.01"
-                  value={paymentPlan.purchaseAmount}
-                  onChange={(e) => handlePaymentPlanChange('purchaseAmount', e.target.value)}
-                  placeholder="Enter purchase amount"
-                />
+            {formData.paymentType === 'monthly_rent' && (
+              <div className="grid grid-cols-2 gap-4 p-4 border rounded-lg bg-green-50">
+                <h4 className="col-span-2 font-semibold text-green-800">Subscription Plan Details</h4>
+                <div>
+                  <Label htmlFor="monthlyRent">Monthly Rent (₹) *</Label>
+                  <Input
+                    id="monthlyRent"
+                    type="number"
+                    step="0.01"
+                    value={paymentPlan.monthlyRent}
+                    onChange={(e) => setPaymentPlan(prev => ({ ...prev, monthlyRent: e.target.value }))}
+                    placeholder="Monthly rent amount"
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="securityDeposit">Security Deposit (₹)</Label>
+                  <Input
+                    id="securityDeposit"
+                    type="number"
+                    step="0.01"
+                    value={paymentPlan.securityDeposit}
+                    onChange={(e) => setPaymentPlan(prev => ({ ...prev, securityDeposit: e.target.value }))}
+                    placeholder="Security deposit"
+                  />
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
-          <div className="flex gap-2">
-            <Button type="submit" disabled={loading} className="flex-1">
-              {loading ? 'Adding...' : 'Add Customer'}
+            {formData.paymentType === 'one_time_purchase' && (
+              <div className="p-4 border rounded-lg bg-purple-50">
+                <h4 className="font-semibold text-purple-800 mb-2">Purchase Details</h4>
+                <div>
+                  <Label htmlFor="purchaseAmount">Purchase Amount (₹) *</Label>
+                  <Input
+                    id="purchaseAmount"
+                    type="number"
+                    step="0.01"
+                    value={paymentPlan.purchaseAmount}
+                    onChange={(e) => setPaymentPlan(prev => ({ ...prev, purchaseAmount: e.target.value }))}
+                    placeholder="Full purchase amount"
+                    required
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="flex gap-2 pt-4 border-t">
+            <Button type="submit" disabled={loading || uploading} className="flex-1">
+              {loading || uploading ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  {uploading ? 'Uploading...' : 'Adding...'}
+                </>
+              ) : (
+                'Add Customer'
+              )}
             </Button>
             <Button type="button" variant="outline" onClick={() => {setIsOpen(false); resetForm();}}>
               Cancel

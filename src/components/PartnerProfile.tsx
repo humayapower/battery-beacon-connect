@@ -4,7 +4,9 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, User, Phone, MapPin, Battery, Users, CreditCard } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { ArrowLeft, User, Phone, MapPin, Battery, Users, CreditCard, Edit } from 'lucide-react';
 import { usePartners } from '@/hooks/usePartners';
 import { useBatteries } from '@/hooks/useBatteries';
 import { useCustomers } from '@/hooks/useCustomers';
@@ -61,6 +63,21 @@ const PartnerProfile: React.FC<PartnerProfileProps> = ({
   const activeCustomers = partnerCustomers.filter(c => c.status === 'active').length;
   const monthlyRevenue = partnerTransactions.filter(t => t.payment_status === 'paid').reduce((sum, t) => sum + t.amount, 0);
 
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'available':
+        return 'bg-green-100 text-green-800';
+      case 'assigned':
+        return 'bg-blue-100 text-blue-800';
+      case 'maintenance':
+        return 'bg-orange-100 text-orange-800';
+      case 'active':
+        return 'bg-green-100 text-green-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -79,90 +96,19 @@ const PartnerProfile: React.FC<PartnerProfileProps> = ({
             <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">{partner.name}</h1>
             <p className="text-gray-600">Partner ID: {partner.id}</p>
           </div>
-          <Badge className="bg-green-100 text-green-800">Partner</Badge>
+          <div className="flex items-center gap-2">
+            <Badge className="bg-green-100 text-green-800">Partner</Badge>
+            <Button variant="outline" size="sm">
+              <Edit className="w-4 h-4 mr-2" />
+              Edit
+            </Button>
+          </div>
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Main Partner Info */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Personal Information */}
-          <Card>
-            <CardHeader className="flex flex-row items-center gap-4">
-              <div className="p-3 bg-blue-100 rounded-full">
-                <User className="w-6 h-6 text-blue-600" />
-              </div>
-              <div>
-                <CardTitle>Partner Information</CardTitle>
-                <CardDescription>Contact details and basic information</CardDescription>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium text-gray-500">Full Name</label>
-                  <p className="text-lg font-semibold">{partner.name}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-500">Username</label>
-                  <p className="text-lg font-semibold">{partner.username}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-500">Phone</label>
-                  <p className="text-lg font-semibold">{partner.phone}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-500">Joined Date</label>
-                  <p className="text-lg font-semibold">
-                    {new Date(partner.created_at).toLocaleDateString()}
-                  </p>
-                </div>
-              </div>
-              {partner.address && (
-                <div>
-                  <label className="text-sm font-medium text-gray-500">Address</label>
-                  <p className="text-lg font-semibold">{partner.address}</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Performance Overview */}
-          <Card>
-            <CardHeader className="flex flex-row items-center gap-4">
-              <div className="p-3 bg-purple-100 rounded-full">
-                <CreditCard className="w-6 h-6 text-purple-600" />
-              </div>
-              <div>
-                <CardTitle>Performance Overview</CardTitle>
-                <CardDescription>Key performance metrics and statistics</CardDescription>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="text-center p-4 bg-blue-50 rounded-lg">
-                  <Battery className="w-8 h-8 text-blue-600 mx-auto mb-2" />
-                  <p className="text-2xl font-bold text-blue-600">{partnerBatteries.length}</p>
-                  <p className="text-sm text-gray-600">Total Batteries</p>
-                </div>
-                <div className="text-center p-4 bg-green-50 rounded-lg">
-                  <Users className="w-8 h-8 text-green-600 mx-auto mb-2" />
-                  <p className="text-2xl font-bold text-green-600">{activeCustomers}</p>
-                  <p className="text-sm text-gray-600">Active Customers</p>
-                </div>
-                <div className="text-center p-4 bg-purple-50 rounded-lg">
-                  <CreditCard className="w-8 h-8 text-purple-600 mx-auto mb-2" />
-                  <p className="text-2xl font-bold text-purple-600">₹{monthlyRevenue.toLocaleString()}</p>
-                  <p className="text-sm text-gray-600">Total Revenue</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Sidebar */}
-        <div className="space-y-6">
-          {/* Partner Photo */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        {/* Partner Photo */}
+        <div className="lg:col-span-1">
           <Card>
             <CardContent className="p-6">
               <div className="aspect-square bg-gray-100 rounded-lg flex items-center justify-center mb-4">
@@ -172,57 +118,253 @@ const PartnerProfile: React.FC<PartnerProfileProps> = ({
                 <h3 className="font-semibold text-lg">{partner.name}</h3>
                 <p className="text-gray-600">{partner.username}</p>
                 <p className="text-gray-600">{partner.phone}</p>
+                <Badge className="bg-green-100 text-green-800 mt-2">Active Partner</Badge>
               </div>
             </CardContent>
           </Card>
 
           {/* Quick Stats */}
-          <Card>
+          <Card className="mt-4">
             <CardHeader>
               <CardTitle className="text-lg">Quick Stats</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="flex justify-between">
-                <span className="text-sm text-gray-600">Total Customers</span>
-                <span className="font-semibold">{partnerCustomers.length}</span>
+                <span className="text-sm text-gray-600">Total Batteries</span>
+                <span className="font-semibold">{partnerBatteries.length}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-600">Available</span>
+                <span className="font-semibold text-green-600">{availableBatteries}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-600">Assigned</span>
+                <span className="font-semibold text-blue-600">{assignedBatteries}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-sm text-gray-600">Active Customers</span>
                 <span className="font-semibold">{activeCustomers}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-sm text-gray-600">Available Batteries</span>
-                <span className="font-semibold">{availableBatteries}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-gray-600">Assigned Batteries</span>
-                <span className="font-semibold">{assignedBatteries}</span>
+                <span className="text-sm text-gray-600">Total Revenue</span>
+                <span className="font-semibold">₹{monthlyRevenue.toLocaleString()}</span>
               </div>
             </CardContent>
           </Card>
+        </div>
 
-          {/* Contact Actions */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Contact</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <Button variant="outline" className="w-full justify-start" asChild>
-                <a href={`tel:${partner.phone}`}>
-                  <Phone className="w-4 h-4 mr-2" />
-                  Call Partner
-                </a>
-              </Button>
-              {partner.address && (
-                <Button variant="outline" className="w-full justify-start" asChild>
-                  <a href={`https://maps.google.com/?q=${encodeURIComponent(partner.address)}`} target="_blank" rel="noopener noreferrer">
-                    <MapPin className="w-4 h-4 mr-2" />
-                    View Address
-                  </a>
-                </Button>
-              )}
-            </CardContent>
-          </Card>
+        {/* Main Content */}
+        <div className="lg:col-span-3">
+          <Tabs defaultValue="personal" className="w-full">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="personal">Personal Info</TabsTrigger>
+              <TabsTrigger value="batteries">Batteries</TabsTrigger>
+              <TabsTrigger value="customers">Customers</TabsTrigger>
+            </TabsList>
+
+            {/* Personal Information Tab */}
+            <TabsContent value="personal" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <User className="w-5 h-5" />
+                    Personal Information
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Full Name</label>
+                      <p className="text-lg font-semibold">{partner.name}</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Username</label>
+                      <p className="text-lg font-semibold">{partner.username}</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Phone Number</label>
+                      <p className="text-lg font-semibold">{partner.phone}</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Joined Date</label>
+                      <p className="text-lg font-semibold">
+                        {new Date(partner.created_at).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </div>
+                  {partner.address && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Address</label>
+                      <p className="text-lg font-semibold">{partner.address}</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Identity Documents */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Identity Documents</CardTitle>
+                  <CardDescription>Aadhaar and other identification documents</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="text-center p-6 border-2 border-dashed border-gray-300 rounded-lg">
+                      <div className="text-gray-400 mb-2">Aadhaar Front</div>
+                      <p className="text-sm text-gray-500">Document not uploaded</p>
+                    </div>
+                    <div className="text-center p-6 border-2 border-dashed border-gray-300 rounded-lg">
+                      <div className="text-gray-400 mb-2">Aadhaar Back</div>
+                      <p className="text-sm text-gray-500">Document not uploaded</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Contact Actions */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Quick Actions</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <Button variant="outline" className="w-full justify-start" asChild>
+                    <a href={`tel:${partner.phone}`}>
+                      <Phone className="w-4 h-4 mr-2" />
+                      Call Partner
+                    </a>
+                  </Button>
+                  {partner.address && (
+                    <Button variant="outline" className="w-full justify-start" asChild>
+                      <a href={`https://maps.google.com/?q=${encodeURIComponent(partner.address)}`} target="_blank" rel="noopener noreferrer">
+                        <MapPin className="w-4 h-4 mr-2" />
+                        View Address
+                      </a>
+                    </Button>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Assigned Batteries Tab */}
+            <TabsContent value="batteries" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Battery className="w-5 h-5" />
+                    Assigned Batteries ({partnerBatteries.length})
+                  </CardTitle>
+                  <CardDescription>
+                    List of all batteries assigned to this partner with their current status
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {partnerBatteries.length > 0 ? (
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Serial Number</TableHead>
+                          <TableHead>Model</TableHead>
+                          <TableHead>Capacity</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead>Customer</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {partnerBatteries.map((battery) => {
+                          const assignedCustomer = battery.customer_id 
+                            ? customers.find(c => c.id === battery.customer_id)
+                            : null;
+                          
+                          return (
+                            <TableRow key={battery.id}>
+                              <TableCell className="font-medium">{battery.serial_number}</TableCell>
+                              <TableCell>{battery.model}</TableCell>
+                              <TableCell>{battery.capacity}</TableCell>
+                              <TableCell>
+                                <Badge className={getStatusColor(battery.status)}>
+                                  {battery.status}
+                                </Badge>
+                              </TableCell>
+                              <TableCell>
+                                {assignedCustomer ? assignedCustomer.name : 'Unassigned'}
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
+                  ) : (
+                    <div className="text-center py-8">
+                      <Battery className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                      <h3 className="text-lg font-semibold mb-2">No Batteries Assigned</h3>
+                      <p className="text-gray-600">This partner doesn't have any batteries assigned yet.</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Assigned Customers Tab */}
+            <TabsContent value="customers" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Users className="w-5 h-5" />
+                    Assigned Customers ({partnerCustomers.length})
+                  </CardTitle>
+                  <CardDescription>
+                    List of all customers assigned to this partner
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {partnerCustomers.length > 0 ? (
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Customer Name</TableHead>
+                          <TableHead>Phone</TableHead>
+                          <TableHead>Battery Serial</TableHead>
+                          <TableHead>Payment Type</TableHead>
+                          <TableHead>Status</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {partnerCustomers.map((customer) => {
+                          const assignedBattery = customer.battery_id 
+                            ? batteries.find(b => b.id === customer.battery_id)
+                            : null;
+                          
+                          return (
+                            <TableRow key={customer.id}>
+                              <TableCell className="font-medium">{customer.name}</TableCell>
+                              <TableCell>{customer.phone}</TableCell>
+                              <TableCell>
+                                {assignedBattery ? assignedBattery.serial_number : 'No Battery'}
+                              </TableCell>
+                              <TableCell className="capitalize">
+                                {customer.payment_type.replace('_', ' ')}
+                              </TableCell>
+                              <TableCell>
+                                <Badge className={getStatusColor(customer.status)}>
+                                  {customer.status}
+                                </Badge>
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
+                  ) : (
+                    <div className="text-center py-8">
+                      <Users className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                      <h3 className="text-lg font-semibold mb-2">No Customers Assigned</h3>
+                      <p className="text-gray-600">This partner doesn't have any customers assigned yet.</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
     </div>

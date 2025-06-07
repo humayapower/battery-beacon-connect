@@ -1,14 +1,16 @@
-import React from 'react';
+
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, User, Calendar, CreditCard, Battery, Users, Edit } from 'lucide-react';
+import { ArrowLeft, User, Calendar, CreditCard, Battery, Users, Edit, Plus } from 'lucide-react';
 import { useCustomers } from '@/hooks/useCustomers';
 import { useBatteries } from '@/hooks/useBatteries';
 import { usePartners } from '@/hooks/usePartners';
 import CustomerBillingPage from './CustomerBillingPage';
+import PaymentModal from './PaymentModal';
 
 interface CustomerProfileProps {
   customerId: string;
@@ -25,6 +27,7 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({
   const { customers } = useCustomers();
   const { batteries } = useBatteries();
   const { partners } = usePartners();
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
 
   const customer = customers.find(c => c.id === customerId);
   const battery = customer?.battery_id ? batteries.find(b => b.id === customer.battery_id) : null;
@@ -36,6 +39,11 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({
     } else {
       navigate(-1);
     }
+  };
+
+  const handlePaymentSuccess = () => {
+    // Refresh data or handle success
+    window.location.reload();
   };
 
   if (!customer) {
@@ -105,6 +113,15 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({
             <Badge className={getPaymentTypeColor(customer.payment_type)}>
               {customer.payment_type.replace('_', ' ').toUpperCase()}
             </Badge>
+            <Button 
+              variant="default" 
+              size="sm"
+              onClick={() => setIsPaymentModalOpen(true)}
+              className="flex items-center gap-2"
+            >
+              <Plus className="w-4 h-4" />
+              Record Payment
+            </Button>
             <Button variant="outline" size="sm">
               <Edit className="w-4 h-4 mr-2" />
               Edit
@@ -143,9 +160,8 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({
         {/* Main Content */}
         <div className="lg:col-span-3">
           <Tabs defaultValue="personal" className="w-full">
-            <TabsList className="grid w-full grid-cols-5">
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="personal">Personal Info</TabsTrigger>
-              <TabsTrigger value="payment">Payment Details</TabsTrigger>
               <TabsTrigger value="billing">Billing & Payments</TabsTrigger>
               <TabsTrigger value="assignment">Assignment</TabsTrigger>
               <TabsTrigger value="documents">Documents</TabsTrigger>
@@ -189,15 +205,13 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({
                   )}
                 </CardContent>
               </Card>
-            </TabsContent>
 
-            {/* Payment Details Tab */}
-            <TabsContent value="payment" className="space-y-6">
+              {/* Payment Plan Information */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <CreditCard className="w-5 h-5" />
-                    Payment Information
+                    Payment Plan Information
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -220,7 +234,7 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({
                     </div>
                   </div>
 
-                  {/* EMI Details */}
+                  {/* EMI Details - Only show for EMI customers */}
                   {customer.payment_type === 'emi' && (
                     <div className="p-4 border rounded-lg bg-blue-50">
                       <h4 className="font-semibold mb-3 text-blue-800">EMI Plan Details</h4>
@@ -257,7 +271,7 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({
                     </div>
                   )}
 
-                  {/* Monthly Rent Details */}
+                  {/* Monthly Rent Details - Only show for monthly rent customers */}
                   {customer.payment_type === 'monthly_rent' && (
                     <div className="p-4 border rounded-lg bg-purple-50">
                       <h4 className="font-semibold mb-3 text-purple-800">Monthly Rent Plan Details</h4>
@@ -274,7 +288,7 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({
                     </div>
                   )}
 
-                  {/* One-time Purchase Details */}
+                  {/* One-time Purchase Details - Only show for purchase customers */}
                   {customer.payment_type === 'one_time_purchase' && (
                     <div className="p-4 border rounded-lg bg-green-50">
                       <h4 className="font-semibold mb-3 text-green-800">Purchase Details</h4>
@@ -398,6 +412,14 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({
           </Tabs>
         </div>
       </div>
+
+      {/* Payment Modal */}
+      <PaymentModal
+        isOpen={isPaymentModalOpen}
+        onClose={() => setIsPaymentModalOpen(false)}
+        customerId={customerId}
+        onPaymentSuccess={handlePaymentSuccess}
+      />
     </div>
   );
 };

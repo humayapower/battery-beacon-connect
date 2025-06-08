@@ -159,12 +159,12 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({
 
           {/* Personal Information */}
           <Card>
-            <CardHeader>
-              {/* <CardTitle className="flex items-center gap-2 text-lg">
+            {/* <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg">
                 <User className="w-5 h-5" />
                 Personal Details
-              </CardTitle> */}
-            </CardHeader>
+              </CardTitle> 
+            </CardHeader> */}
             <CardContent className="space-y-4">
               <div className="space-y-3">
                 <div>

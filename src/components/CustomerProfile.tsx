@@ -103,7 +103,7 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({
           </Button>
           <div className="flex-1">
             <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">{customer.name}</h1>
-            <p className="text-gray-600">Customer ID: {customer.customer_id || customer.id}</p>
+            {/* <p className="text-gray-600">Customer ID: {customer.customer_id || customer.id}</p> */}
           </div>
           <div className="flex items-center gap-2">
             <Badge className={getStatusColor(customer.status)}>
@@ -147,38 +147,38 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({
                   <User className="w-16 h-16 text-gray-400" />
                 )}
               </div>
-              <div className="text-center">
+              {/* <div className="text-center">
                 <h3 className="font-semibold text-lg">{customer.name}</h3>
                 <p className="text-gray-600">{customer.phone}</p>
                 <Badge className={getStatusColor(customer.status)} variant="secondary">
                   {customer.status.charAt(0).toUpperCase() + customer.status.slice(1)}
                 </Badge>
-              </div>
+              </div> */}
             </CardContent>
           </Card>
 
           {/* Personal Information */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
+              {/* <CardTitle className="flex items-center gap-2 text-lg">
                 <User className="w-5 h-5" />
                 Personal Details
-              </CardTitle>
+              </CardTitle> */}
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-3">
                 <div>
-                  <label className="text-sm font-medium text-gray-500">Full Name</label>
+                  {/* <label className="text-sm font-medium text-gray-500">Full Name</label> */}
                   <p className="font-semibold">{customer.name}</p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-500">Phone Number</label>
+                  {/* <label className="text-sm font-medium text-gray-500">Phone Number</label> */}
                   <p className="font-semibold">{customer.phone}</p>
                 </div>
-                <div>
+                {/* <div>
                   <label className="text-sm font-medium text-gray-500">Email</label>
                   <p className="font-semibold">{customer.email || 'N/A'}</p>
-                </div>
+                </div> */}
                 <div>
                   <label className="text-sm font-medium text-gray-500">Join Date</label>
                   <p className="font-semibold">

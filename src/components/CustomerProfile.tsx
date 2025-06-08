@@ -1,4 +1,5 @@
-import React, { useState, useRef } from 'react';
+
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -32,29 +33,28 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({
   const [billingData, setBillingData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const fetchingRef = useRef(false);
+  const hasFetchedRef = useRef(false);
 
-  const customer = customers.find(c => c.id === customerId);
-  const battery = customer?.battery_id ? batteries.find(b => b.id === customer.battery_id) : null;
-  const partner = customer?.partner_id ? partners.find(p => p.id === customer.partner_id) : null;
+  const customer = useMemo(() => customers.find(c => c.id === customerId), [customers, customerId]);
+  const battery = useMemo(() => customer?.battery_id ? batteries.find(b => b.id === customer.battery_id) : null, [customer, batteries]);
+  const partner = useMemo(() => customer?.partner_id ? partners.find(p => p.id === customer.partner_id) : null, [customer, partners]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const fetchBillingData = async () => {
-      if (customerId && !fetchingRef.current) {
-        fetchingRef.current = true;
-        setLoading(true);
-        setError(null);
-        
-        try {
-          const data = await getBillingDetails(customerId);
-          setBillingData(data);
-        } catch (err: any) {
-          console.error('Failed to fetch billing data:', err);
-          setError(err.message || 'Failed to load billing data');
-        } finally {
-          setLoading(false);
-          fetchingRef.current = false;
-        }
+      if (!customerId || hasFetchedRef.current) return;
+      
+      hasFetchedRef.current = true;
+      setLoading(true);
+      setError(null);
+      
+      try {
+        const data = await getBillingDetails(customerId);
+        setBillingData(data);
+      } catch (err: any) {
+        console.error('Failed to fetch billing data:', err);
+        setError(err.message || 'Failed to load billing data');
+      } finally {
+        setLoading(false);
       }
     };
     
@@ -70,6 +70,7 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({
   };
 
   const handlePaymentSuccess = () => {
+    hasFetchedRef.current = false; // Reset flag to allow refetch
     window.location.reload();
   };
 

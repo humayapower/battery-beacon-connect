@@ -75,7 +75,7 @@ const CustomerBillingPage = ({ customerId, customerName }: CustomerBillingPagePr
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      {/* <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">{customerName} - Billing</h1>
           <p className="text-gray-600">Financial account and payment history</p>
@@ -84,7 +84,7 @@ const CustomerBillingPage = ({ customerId, customerName }: CustomerBillingPagePr
           <Plus className="w-4 h-4 mr-2" />
           Record Payment
         </Button>
-      </div>
+      </div> */}
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">

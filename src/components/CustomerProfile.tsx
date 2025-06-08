@@ -41,7 +41,13 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({
 
   useEffect(() => {
     const fetchBillingData = async () => {
-      if (!customerId || hasFetchedRef.current) return;
+      if (!customerId || !customer || hasFetchedRef.current) return;
+      
+      // Skip billing data fetch for one-time purchase customers
+      if (customer.payment_type === 'one_time_purchase') {
+        setLoading(false);
+        return;
+      }
       
       hasFetchedRef.current = true;
       setLoading(true);
@@ -116,6 +122,19 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString();
+  };
+
+  const getPaymentTypeLabel = (paymentType: string) => {
+    switch (paymentType) {
+      case 'emi':
+        return 'EMI';
+      case 'monthly_rent':
+        return 'RENTAL';
+      case 'one_time_purchase':
+        return 'PURCHASE';
+      default:
+        return paymentType.toUpperCase();
+    }
   };
 
   // Determine what schedule to show based on customer type
@@ -361,6 +380,22 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({
     }
   };
 
+  if (!customer) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <Card className="w-full max-w-md">
+          <CardContent className="p-6 text-center">
+            <h2 className="text-xl font-semibold mb-2">Customer Not Found</h2>
+            <p className="text-gray-600 mb-4">The customer you're looking for doesn't exist.</p>
+            {showBackButton && (
+              <Button onClick={handleBack}>Go Back</Button>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -383,10 +418,7 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({
               {customer.status.charAt(0).toUpperCase() + customer.status.slice(1)}
             </Badge>
             <Badge className={getPaymentTypeColor(customer.payment_type)}>
-              {customer.payment_type === 'emi' ? 'EMI' : 
-               customer.payment_type === 'monthly_rent' ? 'RENTAL' : 
-               customer.payment_type === 'one_time_purchase' ? 'PURCHASE' : 
-               customer.payment_type.replace('_', ' ').toUpperCase()}
+              {getPaymentTypeLabel(customer.payment_type)}
             </Badge>
             {customer.payment_type !== 'one_time_purchase' && (
               <Button 

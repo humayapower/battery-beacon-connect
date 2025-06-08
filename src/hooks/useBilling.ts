@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -10,34 +9,47 @@ export const useBilling = () => {
 
   const getBillingDetails = async (customerId: string): Promise<BillingDetails | null> => {
     try {
-      // Fetch EMIs
+      console.log('Fetching billing details for customer:', customerId);
+      
+      // Add a small delay to prevent rapid successive calls
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // Fetch EMIs with better error handling
       const { data: emisData, error: emisError } = await supabase
         .from('emis')
         .select('*')
         .eq('customer_id', customerId)
         .order('emi_number');
 
-      if (emisError) throw emisError;
+      if (emisError && emisError.code !== 'PGRST116') {
+        console.error('Error fetching EMIs:', emisError);
+        throw emisError;
+      }
 
-      // Fetch Monthly Rents
+      // Fetch Monthly Rents with better error handling
       const { data: rentsData, error: rentsError } = await supabase
         .from('monthly_rents')
         .select('*')
         .eq('customer_id', customerId)
         .order('rent_month', { ascending: false });
 
-      if (rentsError) throw rentsError;
+      if (rentsError && rentsError.code !== 'PGRST116') {
+        console.error('Error fetching rents:', rentsError);
+        throw rentsError;
+      }
 
-      // Fetch Customer Credits
+      // Fetch Customer Credits with better error handling
       const { data: credits, error: creditsError } = await supabase
         .from('customer_credits')
         .select('*')
         .eq('customer_id', customerId)
         .single();
 
-      if (creditsError && creditsError.code !== 'PGRST116') throw creditsError;
+      if (creditsError && creditsError.code !== 'PGRST116') {
+        console.error('Error fetching credits:', creditsError);
+      }
 
-      // Fetch Transactions
+      // Fetch Transactions with better error handling
       const { data: transactions, error: transactionsError } = await supabase
         .from('transactions')
         .select(`
@@ -48,7 +60,10 @@ export const useBilling = () => {
         .eq('customer_id', customerId)
         .order('transaction_date', { ascending: false });
 
-      if (transactionsError) throw transactionsError;
+      if (transactionsError && transactionsError.code !== 'PGRST116') {
+        console.error('Error fetching transactions:', transactionsError);
+        throw transactionsError;
+      }
 
       // Type cast the data to ensure proper typing
       const emis: EMI[] = (emisData || []).map(emi => ({
@@ -95,6 +110,7 @@ export const useBilling = () => {
         };
       }
 
+      console.log('Successfully fetched billing details');
       return {
         emis,
         rents,
@@ -107,12 +123,27 @@ export const useBilling = () => {
       };
     } catch (error: any) {
       console.error('Error fetching billing details:', error);
-      toast({
-        title: "Error fetching billing details",
-        description: error.message,
-        variant: "destructive",
-      });
-      return null;
+      
+      // Don't show toast for network errors to prevent spam
+      if (!error.message?.includes('Load failed')) {
+        toast({
+          title: "Error fetching billing details",
+          description: error.message,
+          variant: "destructive",
+        });
+      }
+      
+      // Return empty structure instead of null to prevent flickering
+      return {
+        emis: [],
+        rents: [],
+        credits: { id: '', customer_id: customerId, credit_balance: 0, updated_at: '' },
+        transactions: [],
+        totalPaid: 0,
+        totalDue: 0,
+        nextDueDate: null,
+        emiProgress: undefined
+      };
     }
   };
 

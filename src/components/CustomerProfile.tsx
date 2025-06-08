@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -32,6 +31,8 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [billingData, setBillingData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const fetchingRef = useRef(false);
 
   const customer = customers.find(c => c.id === customerId);
   const battery = customer?.battery_id ? batteries.find(b => b.id === customer.battery_id) : null;
@@ -39,11 +40,21 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({
 
   React.useEffect(() => {
     const fetchBillingData = async () => {
-      if (customerId) {
+      if (customerId && !fetchingRef.current) {
+        fetchingRef.current = true;
         setLoading(true);
-        const data = await getBillingDetails(customerId);
-        setBillingData(data);
-        setLoading(false);
+        setError(null);
+        
+        try {
+          const data = await getBillingDetails(customerId);
+          setBillingData(data);
+        } catch (err: any) {
+          console.error('Failed to fetch billing data:', err);
+          setError(err.message || 'Failed to load billing data');
+        } finally {
+          setLoading(false);
+          fetchingRef.current = false;
+        }
       }
     };
     
@@ -61,22 +72,6 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({
   const handlePaymentSuccess = () => {
     window.location.reload();
   };
-
-  if (!customer) {
-    return (
-      <div className="flex items-center justify-center p-8">
-        <Card className="w-full max-w-md">
-          <CardContent className="p-6 text-center">
-            <h2 className="text-xl font-semibold mb-2">Customer Not Found</h2>
-            <p className="text-gray-600 mb-4">The customer you're looking for doesn't exist.</p>
-            {showBackButton && (
-              <Button onClick={handleBack}>Go Back</Button>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -119,6 +114,22 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString();
   };
+
+  if (!customer) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <Card className="w-full max-w-md">
+          <CardContent className="p-6 text-center">
+            <h2 className="text-xl font-semibold mb-2">Customer Not Found</h2>
+            <p className="text-gray-600 mb-4">The customer you're looking for doesn't exist.</p>
+            {showBackButton && (
+              <Button onClick={handleBack}>Go Back</Button>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -334,7 +345,7 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({
               </CardHeader>
               <CardContent>
                 {/* EMI Progress */}
-                {billingData?.emiProgress && (
+                {!loading && billingData?.emiProgress && (
                   <div className="mb-4 p-3 bg-blue-50 rounded-lg">
                     <div className="flex items-center mb-2">
                       <TrendingUp className="w-4 h-4 mr-2 text-blue-600" />
@@ -350,7 +361,23 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({
                   </div>
                 )}
 
-                {!loading && billingData?.emis && billingData.emis.length > 0 ? (
+                {/* Loading State */}
+                {loading && (
+                  <div className="text-center py-4">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
+                    <p className="text-sm text-gray-600 mt-2">Loading EMI schedule...</p>
+                  </div>
+                )}
+
+                {/* Error State */}
+                {error && (
+                  <div className="text-center py-4">
+                    <p className="text-sm text-red-600">{error}</p>
+                  </div>
+                )}
+
+                {/* EMI Schedule Table */}
+                {!loading && !error && billingData?.emis && billingData.emis.length > 0 ? (
                   <div className="max-h-80 overflow-y-auto">
                     <Table>
                       <TableHeader>
@@ -377,7 +404,7 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({
                       </TableBody>
                     </Table>
                   </div>
-                ) : (
+                ) : !loading && !error && (
                   <p className="text-center text-gray-600 py-4 text-sm">
                     {customer.payment_type === 'emi' ? 'No EMI schedule available.' : 'Customer is not on EMI plan.'}
                   </p>
@@ -387,7 +414,7 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({
           </div>
 
           {/* Summary Cards */}
-          {billingData && (
+          {!loading && billingData && (
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <Card>
                 <CardContent className="p-4 text-center">
@@ -424,6 +451,13 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({
               <CardTitle>Transaction History</CardTitle>
             </CardHeader>
             <CardContent>
+              {loading && (
+                <div className="text-center py-4">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
+                  <p className="text-sm text-gray-600 mt-2">Loading transactions...</p>
+                </div>
+              )}
+
               {!loading && billingData?.transactions && billingData.transactions.length > 0 ? (
                 <Table>
                   <TableHeader>
@@ -451,7 +485,7 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({
                     ))}
                   </TableBody>
                 </Table>
-              ) : (
+              ) : !loading && (
                 <p className="text-center text-gray-600 py-4">No transactions found.</p>
               )}
             </CardContent>

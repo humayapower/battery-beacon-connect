@@ -19,9 +19,9 @@ export const useBilling = () => {
       return pendingRequest;
     }
 
-    // Check cache first (cache for 30 seconds)
+    // Check cache first (cache for 5 minutes)
     const cached = cacheRef.current.get(customerId);
-    if (cached && Date.now() - cached.timestamp < 30000) {
+    if (cached && Date.now() - cached.timestamp < 300000) {
       console.log('Using cached data for customer:', customerId);
       return cached.data;
     }
@@ -29,70 +29,123 @@ export const useBilling = () => {
     // Create a new request promise
     const requestPromise = (async (): Promise<BillingDetails | null> => {
       try {
-        // Fetch EMIs with better error handling
-        const { data: emisData, error: emisError } = await supabase
-          .from('emis')
-          .select('*')
-          .eq('customer_id', customerId)
-          .order('emi_number');
-
-        if (emisError && emisError.code !== 'PGRST116') {
-          console.error('Error fetching EMIs:', emisError);
-          throw emisError;
-        }
-
-        // Fetch Monthly Rents with better error handling
-        const { data: rentsData, error: rentsError } = await supabase
-          .from('monthly_rents')
-          .select('*')
-          .eq('customer_id', customerId)
-          .order('rent_month', { ascending: false });
-
-        if (rentsError && rentsError.code !== 'PGRST116') {
-          console.error('Error fetching rents:', rentsError);
-          throw rentsError;
-        }
-
-        // Fetch Customer Credits with better error handling
-        const { data: credits, error: creditsError } = await supabase
-          .from('customer_credits')
-          .select('*')
-          .eq('customer_id', customerId)
+        // First get customer details to check payment type
+        const { data: customerData, error: customerError } = await supabase
+          .from('customers')
+          .select('payment_type')
+          .eq('id', customerId)
           .single();
 
-        if (creditsError && creditsError.code !== 'PGRST116') {
-          console.error('Error fetching credits:', creditsError);
+        if (customerError) {
+          console.error('Error fetching customer:', customerError);
+          throw customerError;
         }
 
-        // Fetch Transactions with better error handling
-        const { data: transactions, error: transactionsError } = await supabase
-          .from('transactions')
-          .select(`
-            *,
-            emis:emi_id (emi_number, amount),
-            monthly_rents:monthly_rent_id (rent_month, amount)
-          `)
-          .eq('customer_id', customerId)
-          .order('transaction_date', { ascending: false });
+        // For one-time purchase customers, return minimal billing details
+        if (customerData.payment_type === 'one_time_purchase') {
+          const result = {
+            emis: [],
+            rents: [],
+            credits: { id: '', customer_id: customerId, credit_balance: 0, updated_at: '' },
+            transactions: [],
+            totalPaid: 0,
+            totalDue: 0,
+            nextDueDate: null,
+            emiProgress: undefined
+          };
+          
+          // Cache the result
+          cacheRef.current.set(customerId, { data: result, timestamp: Date.now() });
+          console.log('Returned minimal billing details for one-time purchase customer');
+          return result;
+        }
 
-        if (transactionsError && transactionsError.code !== 'PGRST116') {
-          console.error('Error fetching transactions:', transactionsError);
-          throw transactionsError;
+        // For EMI and rental customers, fetch full billing details
+        const fetchPromises = [];
+
+        // Fetch EMIs if EMI customer
+        if (customerData.payment_type === 'emi') {
+          fetchPromises.push(
+            supabase
+              .from('emis')
+              .select('*')
+              .eq('customer_id', customerId)
+              .order('emi_number')
+          );
+        } else {
+          fetchPromises.push(Promise.resolve({ data: [], error: null }));
+        }
+
+        // Fetch Monthly Rents if rental customer
+        if (customerData.payment_type === 'monthly_rent') {
+          fetchPromises.push(
+            supabase
+              .from('monthly_rents')
+              .select('*')
+              .eq('customer_id', customerId)
+              .order('rent_month', { ascending: false })
+          );
+        } else {
+          fetchPromises.push(Promise.resolve({ data: [], error: null }));
+        }
+
+        // Fetch Customer Credits
+        fetchPromises.push(
+          supabase
+            .from('customer_credits')
+            .select('*')
+            .eq('customer_id', customerId)
+            .single()
+        );
+
+        // Fetch Transactions
+        fetchPromises.push(
+          supabase
+            .from('transactions')
+            .select(`
+              *,
+              emis:emi_id (emi_number, amount),
+              monthly_rents:monthly_rent_id (rent_month, amount)
+            `)
+            .eq('customer_id', customerId)
+            .order('transaction_date', { ascending: false })
+        );
+
+        const [emisResult, rentsResult, creditsResult, transactionsResult] = await Promise.all(fetchPromises);
+
+        // Handle errors for critical data
+        if (emisResult.error && emisResult.error.code !== 'PGRST116') {
+          console.error('Error fetching EMIs:', emisResult.error);
+          throw emisResult.error;
+        }
+
+        if (rentsResult.error && rentsResult.error.code !== 'PGRST116') {
+          console.error('Error fetching rents:', rentsResult.error);
+          throw rentsResult.error;
+        }
+
+        if (creditsResult.error && creditsResult.error.code !== 'PGRST116') {
+          console.error('Error fetching credits:', creditsResult.error);
+        }
+
+        if (transactionsResult.error && transactionsResult.error.code !== 'PGRST116') {
+          console.error('Error fetching transactions:', transactionsResult.error);
+          throw transactionsResult.error;
         }
 
         // Type cast the data to ensure proper typing
-        const emis: EMI[] = (emisData || []).map(emi => ({
+        const emis: EMI[] = (emisResult.data || []).map(emi => ({
           ...emi,
           payment_status: emi.payment_status as 'due' | 'paid' | 'partial' | 'overdue'
         }));
 
-        const rents: MonthlyRent[] = (rentsData || []).map(rent => ({
+        const rents: MonthlyRent[] = (rentsResult.data || []).map(rent => ({
           ...rent,
           payment_status: rent.payment_status as 'due' | 'paid' | 'partial' | 'overdue'
         }));
 
         // Calculate totals
-        const totalPaid = transactions?.reduce((sum, t) => sum + t.amount, 0) || 0;
+        const totalPaid = transactionsResult.data?.reduce((sum, t) => sum + t.amount, 0) || 0;
         
         const totalEmisDue = emis?.filter(e => e.payment_status !== 'paid')
           .reduce((sum, e) => sum + e.remaining_amount, 0) || 0;
@@ -128,8 +181,8 @@ export const useBilling = () => {
         const result = {
           emis,
           rents,
-          credits: credits || { id: '', customer_id: customerId, credit_balance: 0, updated_at: '' },
-          transactions: transactions || [],
+          credits: creditsResult.data || { id: '', customer_id: customerId, credit_balance: 0, updated_at: '' },
+          transactions: transactionsResult.data || [],
           totalPaid,
           totalDue,
           nextDueDate,

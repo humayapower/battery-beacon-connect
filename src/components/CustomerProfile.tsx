@@ -129,9 +129,11 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Customer Photo */}
-        <div className="lg:col-span-1">
+      {/* Main Layout with New Structure */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left Side - Photo and Personal Information */}
+        <div className="lg:col-span-1 space-y-6">
+          {/* Customer Photo */}
           <Card>
             <CardContent className="p-6">
               <div className="aspect-square bg-gray-100 rounded-lg flex items-center justify-center mb-4">
@@ -154,58 +156,104 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({
               </div>
             </CardContent>
           </Card>
-        </div>
 
-        {/* Main Content */}
-        <div className="lg:col-span-3 space-y-6">
           {/* Personal Information */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex items-center gap-2 text-lg">
                 <User className="w-5 h-5" />
-                Personal Information
+                Personal Details
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-3">
                 <div>
                   <label className="text-sm font-medium text-gray-500">Full Name</label>
-                  <p className="text-lg font-semibold">{customer.name}</p>
+                  <p className="font-semibold">{customer.name}</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-500">Phone Number</label>
-                  <p className="text-lg font-semibold">{customer.phone}</p>
+                  <p className="font-semibold">{customer.phone}</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-500">Email</label>
-                  <p className="text-lg font-semibold">{customer.email || 'N/A'}</p>
+                  <p className="font-semibold">{customer.email || 'N/A'}</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-500">Join Date</label>
-                  <p className="text-lg font-semibold">
+                  <p className="font-semibold">
                     {customer.join_date ? new Date(customer.join_date).toLocaleDateString() : 'N/A'}
                   </p>
                 </div>
+                {customer.address && (
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Address</label>
+                    <p className="font-semibold">{customer.address}</p>
+                  </div>
+                )}
               </div>
-              {customer.address && (
-                <div>
-                  <label className="text-sm font-medium text-gray-500">Address</label>
-                  <p className="text-lg font-semibold">{customer.address}</p>
-                </div>
-              )}
             </CardContent>
           </Card>
 
+          {/* Battery and Partner Information */}
+          {(battery || partner) && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Battery className="w-5 h-5" />
+                  Battery & Partner Details
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {battery && (
+                  <div>
+                    <h4 className="font-semibold mb-2 text-blue-700">Assigned Battery</h4>
+                    <div className="flex items-center gap-3 p-3 border rounded-lg bg-blue-50">
+                      <div className="p-2 bg-blue-100 rounded-full">
+                        <Battery className="w-4 h-4 text-blue-600" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-semibold">{battery.serial_number}</p>
+                        <p className="text-sm text-gray-600">{battery.model} - {battery.capacity}</p>
+                        <Badge className="bg-blue-100 text-blue-800 mt-1">{battery.status}</Badge>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {partner && (
+                  <div>
+                    <h4 className="font-semibold mb-2 text-green-700">Assigned Partner</h4>
+                    <div className="flex items-center gap-3 p-3 border rounded-lg bg-green-50">
+                      <div className="p-2 bg-green-100 rounded-full">
+                        <Users className="w-4 h-4 text-green-600" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-semibold">{partner.name}</p>
+                        <p className="text-sm text-gray-600">{partner.phone}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+        </div>
+
+        {/* Right Side - Plan Information, EMI Progress, and Billing */}
+        <div className="lg:col-span-2 space-y-6">
           {/* Payment Plan Information */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <CreditCard className="w-5 h-5" />
-                Payment Plan Information
+                {customer.payment_type === 'emi' ? 'EMI Plan Details' : 
+                 customer.payment_type === 'monthly_rent' ? 'Monthly Rent Plan Details' : 
+                 'Payment Plan Information'}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div>
                   <label className="text-sm font-medium text-gray-500">Payment Type</label>
                   <div className="flex items-center gap-2">
@@ -227,7 +275,6 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({
               {/* EMI Details - Only show for EMI customers */}
               {customer.payment_type === 'emi' && (
                 <div className="p-4 border rounded-lg bg-blue-50">
-                  <h4 className="font-semibold mb-3 text-blue-800">EMI Plan Details</h4>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="text-sm font-medium text-gray-500">Total Amount</label>
@@ -264,7 +311,6 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({
               {/* Monthly Rent Details - Only show for monthly rent customers */}
               {customer.payment_type === 'monthly_rent' && (
                 <div className="p-4 border rounded-lg bg-purple-50">
-                  <h4 className="font-semibold mb-3 text-purple-800">Monthly Rent Plan Details</h4>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="text-sm font-medium text-gray-500">Monthly Rent Amount</label>
@@ -281,7 +327,6 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({
               {/* One-time Purchase Details - Only show for purchase customers */}
               {customer.payment_type === 'one_time_purchase' && (
                 <div className="p-4 border rounded-lg bg-green-50">
-                  <h4 className="font-semibold mb-3 text-green-800">Purchase Details</h4>
                   <div>
                     <label className="text-sm font-medium text-gray-500">Purchase Amount</label>
                     <p className="text-lg font-semibold">₹{customer.purchase_amount?.toLocaleString() || 'N/A'}</p>
@@ -290,50 +335,6 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({
               )}
             </CardContent>
           </Card>
-
-          {/* Assignment Information */}
-          {(battery || partner) && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Battery className="w-5 h-5" />
-                  Assignment Information
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {battery && (
-                  <div>
-                    <h4 className="font-semibold mb-2">Assigned Battery</h4>
-                    <div className="flex items-center gap-3 p-3 border rounded-lg bg-blue-50">
-                      <div className="p-2 bg-blue-100 rounded-full">
-                        <Battery className="w-4 h-4 text-blue-600" />
-                      </div>
-                      <div>
-                        <p className="font-semibold">{battery.serial_number}</p>
-                        <p className="text-sm text-gray-600">{battery.model} - {battery.capacity}</p>
-                        <Badge className="bg-blue-100 text-blue-800 mt-1">{battery.status}</Badge>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {partner && (
-                  <div>
-                    <h4 className="font-semibold mb-2">Assigned Partner</h4>
-                    <div className="flex items-center gap-3 p-3 border rounded-lg bg-green-50">
-                      <div className="p-2 bg-green-100 rounded-full">
-                        <Users className="w-4 h-4 text-green-600" />
-                      </div>
-                      <div>
-                        <p className="font-semibold">{partner.name}</p>
-                        <p className="text-sm text-gray-600">{partner.phone}</p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          )}
 
           {/* EMI Progress and Transaction List */}
           <CustomerBillingPage 

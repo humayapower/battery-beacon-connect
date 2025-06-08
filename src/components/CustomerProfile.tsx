@@ -4,11 +4,13 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, User, Calendar, CreditCard, Battery, Users, Edit, Plus } from 'lucide-react';
+import { Progress } from "@/components/ui/progress";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { ArrowLeft, User, Calendar, CreditCard, Battery, Users, Edit, Plus, TrendingUp } from 'lucide-react';
 import { useCustomers } from '@/hooks/useCustomers';
 import { useBatteries } from '@/hooks/useBatteries';
 import { usePartners } from '@/hooks/usePartners';
-import CustomerBillingPage from './CustomerBillingPage';
+import { useBilling } from '@/hooks/useBilling';
 import PaymentModal from './PaymentModal';
 
 interface CustomerProfileProps {
@@ -26,11 +28,27 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({
   const { customers } = useCustomers();
   const { batteries } = useBatteries();
   const { partners } = usePartners();
+  const { getBillingDetails } = useBilling();
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [billingData, setBillingData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
   const customer = customers.find(c => c.id === customerId);
   const battery = customer?.battery_id ? batteries.find(b => b.id === customer.battery_id) : null;
   const partner = customer?.partner_id ? partners.find(p => p.id === customer.partner_id) : null;
+
+  React.useEffect(() => {
+    const fetchBillingData = async () => {
+      if (customerId) {
+        setLoading(true);
+        const data = await getBillingDetails(customerId);
+        setBillingData(data);
+        setLoading(false);
+      }
+    };
+    
+    fetchBillingData();
+  }, [customerId, getBillingDetails]);
 
   const handleBack = () => {
     if (onBack) {
@@ -41,7 +59,6 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({
   };
 
   const handlePaymentSuccess = () => {
-    // Refresh data or handle success
     window.location.reload();
   };
 
@@ -59,7 +76,7 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({
         </Card>
       </div>
     );
-  };
+  }
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -68,6 +85,14 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({
       case 'inactive':
         return 'bg-gray-100 text-gray-800';
       case 'suspended':
+        return 'bg-red-100 text-red-800';
+      case 'paid':
+        return 'bg-green-100 text-green-800';
+      case 'partial':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'due':
+        return 'bg-blue-100 text-blue-800';
+      case 'overdue':
         return 'bg-red-100 text-red-800';
       default:
         return 'bg-gray-100 text-gray-800';
@@ -87,6 +112,14 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({
     }
   };
 
+  const formatCurrency = (amount: number) => {
+    return `₹${amount.toLocaleString('en-IN')}`;
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString();
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -103,7 +136,6 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({
           </Button>
           <div className="flex-1">
             <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">{customer.name}</h1>
-            {/* <p className="text-gray-600">Customer ID: {customer.customer_id || customer.id}</p> */}
           </div>
           <div className="flex items-center gap-2">
             <Badge className={getStatusColor(customer.status)}>
@@ -129,14 +161,14 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({
         </div>
       )}
 
-      {/* Main Layout with New Structure */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Side - Photo and Personal Information */}
-        <div className="lg:col-span-1 space-y-6">
-          {/* Customer Photo */}
+      {/* Main Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        {/* Left Side - Photo and Information */}
+        <div className="lg:col-span-1 space-y-4">
+          {/* Customer Photo - Reduced Size */}
           <Card>
-            <CardContent className="p-6">
-              <div className="aspect-square bg-gray-100 rounded-lg flex items-center justify-center mb-4">
+            <CardContent className="p-4">
+              <div className="w-32 h-32 bg-gray-100 rounded-lg flex items-center justify-center mb-3 mx-auto">
                 {customer.customer_photo_url ? (
                   <img 
                     src={customer.customer_photo_url} 
@@ -144,78 +176,60 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({
                     className="w-full h-full object-cover rounded-lg"
                   />
                 ) : (
-                  <User className="w-16 h-16 text-gray-400" />
+                  <User className="w-12 h-12 text-gray-400" />
                 )}
               </div>
-              {/* <div className="text-center">
-                <h3 className="font-semibold text-lg">{customer.name}</h3>
-                <p className="text-gray-600">{customer.phone}</p>
-                <Badge className={getStatusColor(customer.status)} variant="secondary">
-                  {customer.status.charAt(0).toUpperCase() + customer.status.slice(1)}
-                </Badge>
-              </div> */}
             </CardContent>
           </Card>
 
           {/* Personal Information */}
           <Card>
-            {/* <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <User className="w-5 h-5" />
-                Personal Details
-              </CardTitle> 
-            </CardHeader> */}
-            <CardContent className="space-y-4">
-              <div className="space-y-3">
-                <div>
-                  {/* <label className="text-sm font-medium text-gray-500">Full Name</label> */}
-                  <p className="font-semibold">{customer.name}</p>
-                </div>
-                <div>
-                  {/* <label className="text-sm font-medium text-gray-500">Phone Number</label> */}
-                  <p className="font-semibold">{customer.phone}</p>
-                </div>
-                {/* <div>
-                  <label className="text-sm font-medium text-gray-500">Email</label>
-                  <p className="font-semibold">{customer.email || 'N/A'}</p>
-                </div> */}
-                <div>
-                  <label className="text-sm font-medium text-gray-500">Join Date</label>
-                  <p className="font-semibold">
-                    {customer.join_date ? new Date(customer.join_date).toLocaleDateString() : 'N/A'}
-                  </p>
-                </div>
-                {customer.address && (
-                  <div>
-                    <label className="text-sm font-medium text-gray-500">Address</label>
-                    <p className="font-semibold">{customer.address}</p>
-                  </div>
-                )}
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm">Personal Information</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div>
+                <p className="font-semibold text-sm">{customer.name}</p>
               </div>
+              <div>
+                <p className="font-semibold text-sm">{customer.phone}</p>
+              </div>
+              <div>
+                <label className="text-xs font-medium text-gray-500">Join Date</label>
+                <p className="font-semibold text-sm">
+                  {customer.join_date ? new Date(customer.join_date).toLocaleDateString() : 'N/A'}
+                </p>
+              </div>
+              {customer.address && (
+                <div>
+                  <label className="text-xs font-medium text-gray-500">Address</label>
+                  <p className="font-semibold text-sm">{customer.address}</p>
+                </div>
+              )}
             </CardContent>
           </Card>
 
           {/* Battery and Partner Information */}
           {(battery || partner) && (
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <Battery className="w-5 h-5" />
-                  Battery & Partner Details
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-sm">
+                  <Battery className="w-4 h-4" />
+                  Battery & Partner
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-3">
                 {battery && (
                   <div>
-                    <h4 className="font-semibold mb-2 text-blue-700">Assigned Battery</h4>
-                    <div className="flex items-center gap-3 p-3 border rounded-lg bg-blue-50">
-                      <div className="p-2 bg-blue-100 rounded-full">
-                        <Battery className="w-4 h-4 text-blue-600" />
+                    <h4 className="font-semibold mb-2 text-xs text-blue-700">Assigned Battery</h4>
+                    <div className="flex items-center gap-2 p-2 border rounded-lg bg-blue-50">
+                      <div className="p-1 bg-blue-100 rounded-full">
+                        <Battery className="w-3 h-3 text-blue-600" />
                       </div>
                       <div className="flex-1">
-                        <p className="font-semibold">{battery.serial_number}</p>
-                        <p className="text-sm text-gray-600">{battery.model} - {battery.capacity}</p>
-                        <Badge className="bg-blue-100 text-blue-800 mt-1">{battery.status}</Badge>
+                        <p className="font-semibold text-sm">{battery.serial_number}</p>
+                        <p className="text-xs text-gray-600">{battery.model} - {battery.capacity}</p>
+                        <Badge className="bg-blue-100 text-blue-800 text-xs mt-1">{battery.status}</Badge>
                       </div>
                     </div>
                   </div>
@@ -223,14 +237,14 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({
 
                 {partner && (
                   <div>
-                    <h4 className="font-semibold mb-2 text-green-700">Assigned Partner</h4>
-                    <div className="flex items-center gap-3 p-3 border rounded-lg bg-green-50">
-                      <div className="p-2 bg-green-100 rounded-full">
-                        <Users className="w-4 h-4 text-green-600" />
+                    <h4 className="font-semibold mb-2 text-xs text-green-700">Assigned Partner</h4>
+                    <div className="flex items-center gap-2 p-2 border rounded-lg bg-green-50">
+                      <div className="p-1 bg-green-100 rounded-full">
+                        <Users className="w-3 h-3 text-green-600" />
                       </div>
                       <div className="flex-1">
-                        <p className="font-semibold">{partner.name}</p>
-                        <p className="text-sm text-gray-600">{partner.phone}</p>
+                        <p className="font-semibold text-sm">{partner.name}</p>
+                        <p className="text-xs text-gray-600">{partner.phone}</p>
                       </div>
                     </div>
                   </div>
@@ -240,49 +254,31 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({
           )}
         </div>
 
-        {/* Right Side - Plan Information, EMI Progress, and Billing */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Payment Plan Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <CreditCard className="w-5 h-5" />
-                {customer.payment_type === 'emi' ? 'EMI Details' : 
-                 customer.payment_type === 'monthly_rent' ? 'Monthly Rent Details' : 
-                 'Payment Plan Information'}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                <div>
-                  <label className="text-sm font-medium text-gray-500">Payment Type</label>
-                  <div className="flex items-center gap-2">
-                    <Badge className={getPaymentTypeColor(customer.payment_type)}>
-                      {customer.payment_type.replace('_', ' ').toUpperCase()}
-                    </Badge>
-                  </div>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-500">Status</label>
-                  <div className="flex items-center gap-2">
-                    <Badge className={getStatusColor(customer.status)}>
-                      {customer.status.charAt(0).toUpperCase() + customer.status.slice(1)}
-                    </Badge>
-                  </div>
-                </div>
-              </div> */}
-
-              {/* EMI Details - Only show for EMI customers */}
-              {customer.payment_type === 'emi' && (
-                <div className="p-4 border rounded-lg bg-blue-50">
-                  <div className="grid grid-cols-2 gap-4">
+        {/* Right Side - EMI Details, Schedule, Summary, and Transactions */}
+        <div className="lg:col-span-3 space-y-6">
+          {/* Upper Section - EMI Details and Schedule */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Left - EMI Details */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <CreditCard className="w-5 h-5" />
+                  {customer.payment_type === 'emi' ? 'EMI Details' : 
+                   customer.payment_type === 'monthly_rent' ? 'Monthly Rent Details' : 
+                   'Payment Plan Information'}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* EMI Details */}
+                {customer.payment_type === 'emi' && (
+                  <div className="space-y-3">
                     <div>
                       <label className="text-sm font-medium text-gray-500">Total Amount</label>
-                      <p className="text-lg font-semibold">₹{customer.total_amount?.toLocaleString() || 'N/A'}</p>
+                      <p className="text-lg font-semibold">{formatCurrency(customer.total_amount || 0)}</p>
                     </div>
                     <div>
                       <label className="text-sm font-medium text-gray-500">Down Payment</label>
-                      <p className="text-lg font-semibold">₹{customer.down_payment?.toLocaleString() || '0'}</p>
+                      <p className="text-lg font-semibold">{formatCurrency(customer.down_payment || 0)}</p>
                     </div>
                     <div>
                       <label className="text-sm font-medium text-gray-500">EMI Count</label>
@@ -290,57 +286,176 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({
                     </div>
                     <div>
                       <label className="text-sm font-medium text-gray-500">EMI Amount</label>
-                      <p className="text-lg font-semibold">₹{customer.emi_amount?.toLocaleString() || 'N/A'}</p>
+                      <p className="text-lg font-semibold">{formatCurrency(customer.emi_amount || 0)}</p>
                     </div>
                     <div>
                       <label className="text-sm font-medium text-gray-500">EMI Start Date</label>
                       <p className="text-lg font-semibold">
-                        {customer.emi_start_date ? new Date(customer.emi_start_date).toLocaleDateString() : 'N/A'}
+                        {customer.emi_start_date ? formatDate(customer.emi_start_date) : 'N/A'}
                       </p>
                     </div>
                     <div>
                       <label className="text-sm font-medium text-gray-500">Next Due Date</label>
                       <p className="text-lg font-semibold">
-                        {customer.next_due_date ? new Date(customer.next_due_date).toLocaleDateString() : 'N/A'}
+                        {customer.next_due_date ? formatDate(customer.next_due_date) : 'N/A'}
                       </p>
                     </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              {/* Monthly Rent Details - Only show for monthly rent customers */}
-              {customer.payment_type === 'monthly_rent' && (
-                <div className="p-4 border rounded-lg bg-purple-50">
-                  <div className="grid grid-cols-2 gap-4">
+                {/* Monthly Rent Details */}
+                {customer.payment_type === 'monthly_rent' && (
+                  <div className="space-y-3">
                     <div>
                       <label className="text-sm font-medium text-gray-500">Monthly Rent Amount</label>
-                      <p className="text-lg font-semibold">₹{customer.monthly_rent?.toLocaleString() || 'N/A'}</p>
+                      <p className="text-lg font-semibold">{formatCurrency(customer.monthly_rent || 0)}</p>
                     </div>
                     <div>
                       <label className="text-sm font-medium text-gray-500">Security Deposit</label>
-                      <p className="text-lg font-semibold">₹{customer.security_deposit?.toLocaleString() || '0'}</p>
+                      <p className="text-lg font-semibold">{formatCurrency(customer.security_deposit || 0)}</p>
                     </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              {/* One-time Purchase Details - Only show for purchase customers */}
-              {customer.payment_type === 'one_time_purchase' && (
-                <div className="p-4 border rounded-lg bg-green-50">
+                {/* One-time Purchase Details */}
+                {customer.payment_type === 'one_time_purchase' && (
                   <div>
                     <label className="text-sm font-medium text-gray-500">Purchase Amount</label>
-                    <p className="text-lg font-semibold">₹{customer.purchase_amount?.toLocaleString() || 'N/A'}</p>
+                    <p className="text-lg font-semibold">{formatCurrency(customer.purchase_amount || 0)}</p>
                   </div>
-                </div>
+                )}
+
+                {/* EMI Progress */}
+                {billingData?.emiProgress && (
+                  <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+                    <div className="flex items-center mb-2">
+                      <TrendingUp className="w-4 h-4 mr-2 text-blue-600" />
+                      <span className="text-sm font-medium">EMI Progress</span>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span>Progress: {billingData.emiProgress.paid}/{billingData.emiProgress.total} EMIs paid</span>
+                        <span>{billingData.emiProgress.percentage}%</span>
+                      </div>
+                      <Progress value={billingData.emiProgress.percentage} className="w-full" />
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Right - EMI Schedule List */}
+            <Card>
+              <CardHeader>
+                <CardTitle>EMI Schedule</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {!loading && billingData?.emis && billingData.emis.length > 0 ? (
+                  <div className="max-h-80 overflow-y-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="text-xs">EMI #</TableHead>
+                          <TableHead className="text-xs">Amount</TableHead>
+                          <TableHead className="text-xs">Due Date</TableHead>
+                          <TableHead className="text-xs">Status</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {billingData.emis.map((emi: any) => (
+                          <TableRow key={emi.id}>
+                            <TableCell className="text-sm">{emi.emi_number}/{emi.total_emi_count}</TableCell>
+                            <TableCell className="text-sm">{formatCurrency(emi.amount)}</TableCell>
+                            <TableCell className="text-sm">{formatDate(emi.due_date)}</TableCell>
+                            <TableCell>
+                              <Badge className={`${getStatusColor(emi.payment_status)} text-xs`}>
+                                {emi.payment_status}
+                              </Badge>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                ) : (
+                  <p className="text-center text-gray-600 py-4 text-sm">
+                    {customer.payment_type === 'emi' ? 'No EMI schedule available.' : 'Customer is not on EMI plan.'}
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Summary Cards */}
+          {billingData && (
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <Card>
+                <CardContent className="p-4 text-center">
+                  <div className="text-xl font-bold text-green-600">{formatCurrency(billingData.totalPaid)}</div>
+                  <div className="text-sm text-gray-600">Total Paid</div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-4 text-center">
+                  <div className="text-xl font-bold text-red-600">{formatCurrency(billingData.totalDue)}</div>
+                  <div className="text-sm text-gray-600">Outstanding Balance</div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-4 text-center">
+                  <div className="text-xl font-bold text-blue-600">{formatCurrency(billingData.credits?.credit_balance || 0)}</div>
+                  <div className="text-sm text-gray-600">Credit Balance</div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-4 text-center">
+                  <div className="text-xl font-bold text-purple-600">
+                    {billingData.nextDueDate ? formatDate(billingData.nextDueDate) : 'No Due'}
+                  </div>
+                  <div className="text-sm text-gray-600">Next Due Date</div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {/* Transaction List */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Transaction History</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {!loading && billingData?.transactions && billingData.transactions.length > 0 ? (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead>Amount</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Remarks</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {billingData.transactions.map((transaction: any) => (
+                      <TableRow key={transaction.id}>
+                        <TableCell>{formatDate(transaction.transaction_date)}</TableCell>
+                        <TableCell className="capitalize">{transaction.transaction_type}</TableCell>
+                        <TableCell>{formatCurrency(transaction.amount)}</TableCell>
+                        <TableCell>
+                          <Badge className={getStatusColor(transaction.payment_status)}>
+                            {transaction.payment_status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>{transaction.remarks || '-'}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              ) : (
+                <p className="text-center text-gray-600 py-4">No transactions found.</p>
               )}
             </CardContent>
           </Card>
-
-          {/* EMI Progress and Transaction List */}
-          <CustomerBillingPage 
-            customerId={customerId} 
-            customerName={customer.name} 
-          />
 
           {/* Documents */}
           <Card>

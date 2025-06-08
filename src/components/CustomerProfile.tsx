@@ -168,7 +168,7 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({
           {/* Customer Photo - Reduced Size */}
           <Card>
             <CardContent className="p-4">
-              <div className="w-32 h-32 bg-gray-100 rounded-lg flex items-center justify-center mb-3 mx-auto">
+              <div className="w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center mb-3 mx-auto">
                 {customer.customer_photo_url ? (
                   <img 
                     src={customer.customer_photo_url} 
@@ -176,7 +176,7 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({
                     className="w-full h-full object-cover rounded-lg"
                   />
                 ) : (
-                  <User className="w-12 h-12 text-gray-400" />
+                  <User className="w-8 h-8 text-gray-400" />
                 )}
               </div>
             </CardContent>
@@ -324,10 +324,18 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({
                     <p className="text-lg font-semibold">{formatCurrency(customer.purchase_amount || 0)}</p>
                   </div>
                 )}
+              </CardContent>
+            </Card>
 
+            {/* Right - EMI Schedule List */}
+            <Card>
+              <CardHeader>
+                <CardTitle>EMI Schedule</CardTitle>
+              </CardHeader>
+              <CardContent>
                 {/* EMI Progress */}
                 {billingData?.emiProgress && (
-                  <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+                  <div className="mb-4 p-3 bg-blue-50 rounded-lg">
                     <div className="flex items-center mb-2">
                       <TrendingUp className="w-4 h-4 mr-2 text-blue-600" />
                       <span className="text-sm font-medium">EMI Progress</span>
@@ -341,15 +349,7 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({
                     </div>
                   </div>
                 )}
-              </CardContent>
-            </Card>
 
-            {/* Right - EMI Schedule List */}
-            <Card>
-              <CardHeader>
-                <CardTitle>EMI Schedule</CardTitle>
-              </CardHeader>
-              <CardContent>
                 {!loading && billingData?.emis && billingData.emis.length > 0 ? (
                   <div className="max-h-80 overflow-y-auto">
                     <Table>

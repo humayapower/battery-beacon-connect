@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowLeft, User, Calendar, CreditCard, Battery, Users, Edit, Plus, TrendingUp, Receipt, DollarSign, Phone, MapPin } from 'lucide-react';
+import { ArrowLeft, User, Calendar, CreditCard, Battery, Users, Edit, Plus, TrendingUp, Receipt, DollarSign, Phone, MapPin, ChevronLeft, ChevronRight, FileText } from 'lucide-react';
 import { useCustomers } from '@/hooks/useCustomers';
 import { useBatteries } from '@/hooks/useBatteries';
 import { usePartners } from '@/hooks/usePartners';
@@ -34,7 +34,35 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({
   const [billingData, setBillingData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
   const hasFetchedRef = useRef(false);
+
+  // Handle touch events for swipe
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > 50;
+    const isRightSwipe = distance < -50;
+
+    if (isLeftSwipe && currentSlide === 0) {
+      setCurrentSlide(1);
+    }
+    if (isRightSwipe && currentSlide === 1) {
+      setCurrentSlide(0);
+    }
+  };
 
   const customer = useMemo(() => customers.find(c => c.id === customerId), [customers, customerId]);
   const battery = useMemo(() => customer?.battery_id ? batteries.find(b => b.id === customer.battery_id) : null, [customer, batteries]);
@@ -327,32 +355,32 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({
   const renderPaymentDetails = () => {
     if (customer.payment_type === 'emi') {
       return (
-        <div className={isMobile ? "space-y-2" : "space-y-3"}>
+        <div className={isMobile ? "grid grid-cols-2 gap-x-6 gap-y-4" : "space-y-3"}>
           <div>
             <label className="text-xs font-medium text-muted-foreground">Total Amount</label>
-            <p className={isMobile ? "text-base font-semibold" : "text-lg font-semibold"}>{formatCurrency(customer.total_amount || 0)}</p>
+            <p className="text-base font-semibold text-foreground">{formatCurrency(customer.total_amount || 0)}</p>
           </div>
           <div>
             <label className="text-xs font-medium text-muted-foreground">Down Payment</label>
-            <p className={isMobile ? "text-base font-semibold" : "text-lg font-semibold"}>{formatCurrency(customer.down_payment || 0)}</p>
+            <p className="text-base font-semibold text-foreground">{formatCurrency(customer.down_payment || 0)}</p>
           </div>
           <div>
             <label className="text-xs font-medium text-muted-foreground">EMI Count</label>
-            <p className={isMobile ? "text-base font-semibold" : "text-lg font-semibold"}>{customer.emi_count || 'N/A'} months</p>
+            <p className="text-base font-semibold text-foreground">{customer.emi_count || 'N/A'} months</p>
           </div>
           <div>
             <label className="text-xs font-medium text-muted-foreground">EMI Amount</label>
-            <p className={isMobile ? "text-base font-semibold" : "text-lg font-semibold"}>{formatCurrency(customer.emi_amount || 0)}</p>
+            <p className="text-base font-semibold text-foreground">{formatCurrency(customer.emi_amount || 0)}</p>
           </div>
           <div>
             <label className="text-xs font-medium text-muted-foreground">EMI Start Date</label>
-            <p className={isMobile ? "text-base font-semibold" : "text-lg font-semibold"}>
+            <p className="text-base font-semibold text-foreground">
               {customer.emi_start_date ? formatDate(customer.emi_start_date) : 'N/A'}
             </p>
           </div>
           <div>
             <label className="text-xs font-medium text-muted-foreground">Next Due Date</label>
-            <p className={isMobile ? "text-base font-semibold" : "text-lg font-semibold"}>
+            <p className="text-base font-semibold text-foreground">
               {customer.next_due_date ? formatDate(customer.next_due_date) : 'N/A'}
             </p>
           </div>
@@ -360,18 +388,18 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({
       );
     } else if (customer.payment_type === 'monthly_rent') {
       return (
-        <div className={isMobile ? "space-y-2" : "space-y-3"}>
+        <div className={isMobile ? "grid grid-cols-2 gap-x-6 gap-y-4" : "space-y-3"}>
           <div>
-            <label className="text-xs font-medium text-muted-foreground">Monthly Rent Amount</label>
-            <p className={isMobile ? "text-base font-semibold" : "text-lg font-semibold"}>{formatCurrency(customer.monthly_rent || 0)}</p>
+            <label className="text-xs font-medium text-muted-foreground">Monthly Rent</label>
+            <p className="text-base font-semibold text-foreground">{formatCurrency(customer.monthly_rent || 0)}</p>
           </div>
           <div>
             <label className="text-xs font-medium text-muted-foreground">Security Deposit</label>
-            <p className={isMobile ? "text-base font-semibold" : "text-lg font-semibold"}>{formatCurrency(customer.security_deposit || 0)}</p>
+            <p className="text-base font-semibold text-foreground">{formatCurrency(customer.security_deposit || 0)}</p>
           </div>
-          <div>
+          <div className="col-span-2">
             <label className="text-xs font-medium text-muted-foreground">Join Date</label>
-            <p className={isMobile ? "text-base font-semibold" : "text-lg font-semibold"}>
+            <p className="text-base font-semibold text-foreground">
               {customer.join_date ? formatDate(customer.join_date) : 'N/A'}
             </p>
           </div>
@@ -379,20 +407,27 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({
       );
     } else if (customer.payment_type === 'one_time_purchase') {
       return (
-        <div className={isMobile ? "space-y-2" : "space-y-3"}>
-          <div>
-            <label className="text-xs font-medium text-muted-foreground">Purchase Amount</label>
-            <p className={isMobile ? "text-base font-semibold" : "text-lg font-semibold"}>{formatCurrency(customer.purchase_amount || 0)}</p>
+        <div className={isMobile ? "space-y-4" : "space-y-3"}>
+          <div className="grid grid-cols-2 gap-x-6 gap-y-4">
+            <div>
+              <label className="text-xs font-medium text-muted-foreground">Purchase Amount</label>
+              <p className="text-base font-semibold text-foreground">{formatCurrency(customer.purchase_amount || 0)}</p>
+            </div>
+            <div>
+              <label className="text-xs font-medium text-muted-foreground">Purchase Date</label>
+              <p className="text-base font-semibold text-foreground">
+                {customer.join_date ? formatDate(customer.join_date) : 'N/A'}
+              </p>
+            </div>
           </div>
-          <div>
-            <label className="text-xs font-medium text-muted-foreground">Purchase Date</label>
-            <p className={isMobile ? "text-base font-semibold" : "text-lg font-semibold"}>
-              {customer.join_date ? formatDate(customer.join_date) : 'N/A'}
-            </p>
-          </div>
-          <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
-            <p className="text-sm text-green-700 dark:text-green-400 font-medium">✓ Payment Complete</p>
-            <p className="text-xs text-green-600 dark:text-green-500">This customer has completed their purchase.</p>
+          <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+            <div className="flex items-center gap-2">
+              <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
+                <div className="w-2 h-2 bg-white rounded-full"></div>
+              </div>
+              <p className="text-sm text-green-700 dark:text-green-400 font-medium">Payment Complete</p>
+            </div>
+            <p className="text-xs text-green-600 dark:text-green-500 mt-1">This customer has completed their purchase.</p>
           </div>
         </div>
       );
@@ -417,272 +452,373 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({
 
   if (isMobile) {
     return (
-      <div className="space-y-4 p-4">
-        {/* Mobile Header */}
-        {showBackButton && (
-          <div className="flex items-center gap-3 mb-4">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={handleBack}
-              className="flex items-center gap-2"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Back
-            </Button>
-          </div>
-        )}
-
-        {/* Customer Basic Info Card */}
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-start gap-3">
-              <div className="w-16 h-16 bg-muted rounded-lg flex items-center justify-center flex-shrink-0">
-                {customer.customer_photo_url ? (
-                  <img 
-                    src={customer.customer_photo_url} 
-                    alt={customer.name}
-                    className="w-full h-full object-cover rounded-lg"
-                  />
-                ) : (
-                  <User className="w-6 h-6 text-muted-foreground" />
-                )}
-              </div>
-              <div className="flex-1 min-w-0">
-                <h1 className="text-lg font-bold text-foreground truncate">{customer.name}</h1>
-                <div className="flex items-center gap-2 mt-1">
-                  <Phone className="w-3 h-3 text-muted-foreground" />
-                  <span className="text-sm text-muted-foreground">{customer.phone}</span>
-                </div>
-                <div className="flex items-center gap-2 mt-1 mb-2">
-                  <Calendar className="w-3 h-3 text-muted-foreground" />
-                  <span className="text-sm text-muted-foreground">
-                    {customer.join_date ? formatDate(customer.join_date) : 'N/A'}
-                  </span>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  <Badge className={getStatusColor(customer.status)}>
-                    {customer.status.charAt(0).toUpperCase() + customer.status.slice(1)}
-                  </Badge>
-                  <Badge className={getPaymentTypeColor(customer.payment_type)}>
-                    {getPaymentTypeLabel(customer.payment_type)}
-                  </Badge>
-                </div>
-              </div>
-            </div>
-            
-            {customer.address && (
-              <div className="flex items-start gap-2 mt-3 pt-3 border-t">
-                <MapPin className="w-3 h-3 text-muted-foreground mt-0.5 flex-shrink-0" />
-                <span className="text-sm text-muted-foreground">{customer.address}</span>
-              </div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
+        {/* Modern Mobile Header with Action Buttons */}
+        <div className="sticky top-0 z-10 bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg border-b border-slate-200/50 dark:border-slate-700/50">
+          <div className="flex items-center justify-between p-4">
+            {showBackButton && (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={handleBack}
+                className="flex items-center gap-2 hover:bg-slate-100 dark:hover:bg-slate-800"
+              >
+                <ArrowLeft className="w-5 h-5" />
+              </Button>
             )}
-          </CardContent>
-        </Card>
-
-        {/* Action Buttons */}
-        <div className="flex gap-2">
-          {customer.payment_type !== 'one_time_purchase' && (
-            <Button 
-              className="flex-1"
-              onClick={() => setIsPaymentModalOpen(true)}
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Record Payment
-            </Button>
-          )}
-          <Button variant="outline" className="flex-1">
-            <Edit className="w-4 h-4 mr-2" />
-            Edit
-          </Button>
+            <div className="flex-1 text-center">
+              <h1 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Customer Profile</h1>
+            </div>
+            <div className="flex items-center gap-2">
+              {customer.payment_type !== 'one_time_purchase' && (
+                <Button 
+                  size="sm"
+                  className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-lg px-3"
+                  onClick={() => setIsPaymentModalOpen(true)}
+                >
+                  <Plus className="w-4 h-4" />
+                </Button>
+              )}
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 rounded-lg px-3"
+              >
+                <Edit className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
         </div>
 
-        {/* Payment Details */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-base">
-              <CreditCard className="w-4 h-4" />
-              {customer.payment_type === 'emi' ? 'EMI Details' : 
-               customer.payment_type === 'monthly_rent' ? 'Rental Details' : 
-               'Purchase Details'}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {renderPaymentDetails()}
-          </CardContent>
-        </Card>
+        <div className="p-4 space-y-6">
+          {/* Swipable Customer Info & Documents Carousel */}
+          <div className="relative">
+            <Card className="overflow-hidden bg-white dark:bg-slate-800 border-0 shadow-lg">
+              <div 
+                className="relative overflow-hidden"
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
+              >
+                <div 
+                  className="flex transition-transform duration-300 ease-in-out"
+                  style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+                >
+                  {/* Slide 1: Personal Information */}
+                  <div className="w-full flex-shrink-0">
+                    <CardContent className="p-6">
+                      <div className="flex items-center gap-4">
+                        <div className="relative">
+                          <div className="w-20 h-20 bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/50 dark:to-indigo-900/50 rounded-2xl flex items-center justify-center shadow-inner">
+                            {customer.customer_photo_url ? (
+                              <img 
+                                src={customer.customer_photo_url} 
+                                alt={customer.name}
+                                className="w-full h-full object-cover rounded-2xl"
+                              />
+                            ) : (
+                              <User className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+                            )}
+                          </div>
+                          <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-2 border-white dark:border-slate-900 flex items-center justify-center">
+                            <div className="w-2 h-2 bg-white rounded-full"></div>
+                          </div>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 truncate">{customer.name}</h2>
+                          <div className="flex items-center gap-2 mt-1">
+                            <Phone className="w-4 h-4 text-slate-500 dark:text-slate-400" />
+                            <span className="text-slate-600 dark:text-slate-300 font-medium">{customer.phone}</span>
+                          </div>
+                          <div className="flex items-center gap-2 mt-1">
+                            <Calendar className="w-4 h-4 text-slate-500 dark:text-slate-400" />
+                            <span className="text-sm text-slate-500 dark:text-slate-400">
+                              Joined {customer.join_date ? formatDate(customer.join_date) : 'N/A'}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="flex flex-wrap gap-2 mt-4">
+                        <Badge className={`${getStatusColor(customer.status)} rounded-full px-3 py-1 font-medium`}>
+                          {customer.status.charAt(0).toUpperCase() + customer.status.slice(1)}
+                        </Badge>
+                        <Badge className={`${getPaymentTypeColor(customer.payment_type)} rounded-full px-3 py-1 font-medium`}>
+                          {getPaymentTypeLabel(customer.payment_type)}
+                        </Badge>
+                      </div>
 
-        {/* Schedule */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-base">
-              {scheduleData && <scheduleData.icon className="w-4 h-4" />}
-              {scheduleData?.title || 'Schedule'}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {renderScheduleContent()}
-          </CardContent>
-        </Card>
+                      {customer.address && (
+                        <div className="flex items-start gap-3 mt-4 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
+                          <MapPin className="w-4 h-4 text-slate-500 dark:text-slate-400 mt-0.5 flex-shrink-0" />
+                          <span className="text-sm text-slate-600 dark:text-slate-300">{customer.address}</span>
+                        </div>
+                      )}
+                    </CardContent>
+                  </div>
 
-        {/* Summary Cards - Only show for EMI and Rental customers */}
-        {customer.payment_type !== 'one_time_purchase' && !loading && billingData && (
-          <div className="grid grid-cols-2 gap-3">
-            <Card>
-              <CardContent className="p-3 text-center">
-                <div className="text-base font-bold text-green-600 dark:text-green-400">{formatCurrency(billingData.totalPaid)}</div>
-                <div className="text-xs text-muted-foreground">Total Paid</div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-3 text-center">
-                <div className="text-base font-bold text-red-600 dark:text-red-400">{formatCurrency(billingData.totalDue)}</div>
-                <div className="text-xs text-muted-foreground">Outstanding</div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-3 text-center">
-                <div className="text-base font-bold text-blue-600 dark:text-blue-400">{formatCurrency(billingData.credits?.credit_balance || 0)}</div>
-                <div className="text-xs text-muted-foreground">Credit Balance</div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-3 text-center">
-                <div className="text-sm font-bold text-purple-600 dark:text-purple-400">
-                  {billingData.nextDueDate ? formatDate(billingData.nextDueDate) : 'No Due'}
+                  {/* Slide 2: Identity Documents */}
+                  <div className="w-full flex-shrink-0">
+                    <CardContent className="p-6">
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="p-2 bg-slate-100 dark:bg-slate-700 rounded-xl">
+                          <FileText className="w-5 h-5 text-slate-600 dark:text-slate-400" />
+                        </div>
+                        <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Identity Documents</h3>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="text-center">
+                          <div className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">Aadhaar Front</div>
+                          {customer.aadhaar_front_url ? (
+                            <img 
+                              src={customer.aadhaar_front_url} 
+                              alt="Aadhaar Front" 
+                              className="w-full h-24 object-cover rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm"
+                            />
+                          ) : (
+                            <div className="w-full h-24 border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-xl flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-800/50">
+                              <User className="w-6 h-6 text-slate-400 mb-1" />
+                              <span className="text-xs text-slate-500 dark:text-slate-400">Not uploaded</span>
+                            </div>
+                          )}
+                        </div>
+                        <div className="text-center">
+                          <div className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">Aadhaar Back</div>
+                          {customer.aadhaar_back_url ? (
+                            <img 
+                              src={customer.aadhaar_back_url} 
+                              alt="Aadhaar Back" 
+                              className="w-full h-24 object-cover rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm"
+                            />
+                          ) : (
+                            <div className="w-full h-24 border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-xl flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-800/50">
+                              <User className="w-6 h-6 text-slate-400 mb-1" />
+                              <span className="text-xs text-slate-500 dark:text-slate-400">Not uploaded</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </div>
                 </div>
-                <div className="text-xs text-muted-foreground">Next Due</div>
-              </CardContent>
+
+                {/* Navigation arrows */}
+                <button
+                  onClick={() => setCurrentSlide(currentSlide === 0 ? 1 : 0)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 w-8 h-8 bg-white dark:bg-slate-700 rounded-full shadow-lg flex items-center justify-center hover:bg-slate-50 dark:hover:bg-slate-600 transition-colors"
+                >
+                  {currentSlide === 0 ? (
+                    <ChevronRight className="w-4 h-4 text-slate-600 dark:text-slate-300" />
+                  ) : (
+                    <ChevronLeft className="w-4 h-4 text-slate-600 dark:text-slate-300" />
+                  )}
+                </button>
+              </div>
+
+              {/* Slide indicators */}
+              <div className="flex justify-center gap-2 pb-4">
+                {[0, 1].map((index) => (
+                  <button
+                    key={index}
+                    onClick={() => setCurrentSlide(index)}
+                    className={`w-2 h-2 rounded-full transition-colors ${
+                      currentSlide === index 
+                        ? 'bg-blue-600 dark:bg-blue-400' 
+                        : 'bg-slate-300 dark:bg-slate-600'
+                    }`}
+                  />
+                ))}
+              </div>
             </Card>
           </div>
-        )}
 
-        {/* Battery and Partner Info */}
-        {(battery || partner) && (
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-base">
-                <Battery className="w-4 h-4" />
-                Assignment Details
+
+          {/* Modern Payment Details */}
+          <Card className="bg-white/70 dark:bg-slate-800/70 backdrop-blur border-0 shadow-lg rounded-2xl">
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-3 text-lg font-semibold">
+                <div className="p-2 bg-gradient-to-br from-emerald-100 to-teal-100 dark:from-emerald-900/50 dark:to-teal-900/50 rounded-xl">
+                  <CreditCard className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                </div>
+                {customer.payment_type === 'emi' ? 'EMI Details' : 
+                 customer.payment_type === 'monthly_rent' ? 'Rental Details' : 
+                 'Purchase Details'}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              {battery && (
-                <div>
-                  <h4 className="font-medium mb-2 text-sm text-blue-700 dark:text-blue-400">Assigned Battery</h4>
-                  <div className="flex items-center gap-3 p-3 border rounded-lg bg-blue-50 dark:bg-blue-900/20">
-                    <div className="p-2 bg-blue-100 dark:bg-blue-800 rounded-full">
-                      <Battery className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="font-medium text-sm">{battery.serial_number}</p>
-                      <p className="text-xs text-muted-foreground">{battery.model} - {battery.capacity}</p>
-                      <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-800 dark:text-blue-200 text-xs mt-1">{battery.status}</Badge>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {partner && (
-                <div>
-                  <h4 className="font-medium mb-2 text-sm text-green-700 dark:text-green-400">Assigned Partner</h4>
-                  <div className="flex items-center gap-3 p-3 border rounded-lg bg-green-50 dark:bg-green-900/20">
-                    <div className="p-2 bg-green-100 dark:bg-green-800 rounded-full">
-                      <Users className="w-4 h-4 text-green-600 dark:text-green-400" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="font-medium text-sm">{partner.name}</p>
-                      <p className="text-xs text-muted-foreground">{partner.phone}</p>
-                    </div>
-                  </div>
-                </div>
-              )}
+              {renderPaymentDetails()}
             </CardContent>
           </Card>
-        )}
 
-        {/* Recent Transactions - Only show for EMI and Rental customers */}
-        {customer.payment_type !== 'one_time_purchase' && !loading && billingData?.transactions && billingData.transactions.length > 0 && (
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base">Recent Transactions</CardTitle>
+          {/* Modern Summary Cards - Only show for EMI and Rental customers */}
+          {customer.payment_type !== 'one_time_purchase' && !loading && billingData && (
+            <div className="grid grid-cols-2 gap-4">
+              <Card className="bg-white/70 dark:bg-slate-800/70 backdrop-blur border-0 shadow-lg rounded-2xl">
+                <CardContent className="p-4 text-center">
+                  <div className="w-8 h-8 bg-slate-100 dark:bg-slate-700 rounded-lg flex items-center justify-center mx-auto mb-2">
+                    <TrendingUp className="w-4 h-4 text-green-600 dark:text-green-400" />
+                  </div>
+                  <div className="text-lg font-bold text-green-600 dark:text-green-400">{formatCurrency(billingData.totalPaid)}</div>
+                  <div className="text-xs text-muted-foreground font-medium">Total Paid</div>
+                </CardContent>
+              </Card>
+              <Card className="bg-white/70 dark:bg-slate-800/70 backdrop-blur border-0 shadow-lg rounded-2xl">
+                <CardContent className="p-4 text-center">
+                  <div className="w-8 h-8 bg-slate-100 dark:bg-slate-700 rounded-lg flex items-center justify-center mx-auto mb-2">
+                    <DollarSign className="w-4 h-4 text-red-600 dark:text-red-400" />
+                  </div>
+                  <div className="text-lg font-bold text-red-600 dark:text-red-400">{formatCurrency(billingData.totalDue)}</div>
+                  <div className="text-xs text-muted-foreground font-medium">Outstanding</div>
+                </CardContent>
+              </Card>
+              <Card className="bg-white/70 dark:bg-slate-800/70 backdrop-blur border-0 shadow-lg rounded-2xl">
+                <CardContent className="p-4 text-center">
+                  <div className="w-8 h-8 bg-slate-100 dark:bg-slate-700 rounded-lg flex items-center justify-center mx-auto mb-2">
+                    <CreditCard className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <div className="text-lg font-bold text-blue-600 dark:text-blue-400">{formatCurrency(billingData.credits?.credit_balance || 0)}</div>
+                  <div className="text-xs text-muted-foreground font-medium">Credit Balance</div>
+                </CardContent>
+              </Card>
+              <Card className="bg-white/70 dark:bg-slate-800/70 backdrop-blur border-0 shadow-lg rounded-2xl">
+                <CardContent className="p-4 text-center">
+                  <div className="w-8 h-8 bg-slate-100 dark:bg-slate-700 rounded-lg flex items-center justify-center mx-auto mb-2">
+                    <Calendar className="w-4 h-4 text-slate-600 dark:text-slate-400" />
+                  </div>
+                  <div className="text-sm font-bold text-foreground">
+                    {billingData.nextDueDate ? formatDate(billingData.nextDueDate) : 'No Due'}
+                  </div>
+                  <div className="text-xs text-muted-foreground font-medium">Next Due</div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {/* Modern Schedule Section */}
+          <Card className="bg-white/70 dark:bg-slate-800/70 backdrop-blur border-0 shadow-lg rounded-2xl">
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-3 text-lg font-semibold">
+                <div className="p-2 bg-gradient-to-br from-violet-100 to-purple-100 dark:from-violet-900/50 dark:to-purple-900/50 rounded-xl">
+                  {scheduleData && <scheduleData.icon className="w-5 h-5 text-violet-600 dark:text-violet-400" />}
+                </div>
+                {scheduleData?.title || 'Schedule'}
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-2">
-                {billingData.transactions.slice(0, 3).map((transaction: any) => (
-                  <div key={transaction.id} className="flex justify-between items-center p-2 border rounded">
-                    <div>
-                      <div className="text-sm font-medium">{formatDate(transaction.transaction_date)}</div>
-                      <div className="text-xs text-muted-foreground capitalize">{transaction.transaction_type}</div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-sm font-medium">{formatCurrency(transaction.amount)}</div>
-                      <Badge className={`${getStatusColor(transaction.payment_status)} text-xs`}>
-                        {transaction.payment_status}
-                      </Badge>
-                    </div>
-                  </div>
-                ))}
-                {billingData.transactions.length > 3 && (
-                  <div className="text-center pt-2">
-                    <Button variant="outline" size="sm">
-                      View All Transactions
-                    </Button>
-                  </div>
-                )}
-              </div>
+              {renderScheduleContent()}
             </CardContent>
           </Card>
-        )}
 
-        {/* Documents */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base">Identity Documents</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="text-center">
-                <div className="text-xs text-muted-foreground mb-2">Aadhaar Front</div>
-                {customer.aadhaar_front_url ? (
-                  <img 
-                    src={customer.aadhaar_front_url} 
-                    alt="Aadhaar Front" 
-                    className="w-full h-20 object-cover rounded border-2 border-dashed border-muted"
-                  />
-                ) : (
-                  <div className="w-full h-20 border-2 border-dashed border-muted rounded flex items-center justify-center">
-                    <span className="text-xs text-muted-foreground">Not uploaded</span>
+          {/* Modern Battery and Partner Info */}
+          {(battery || partner) && (
+            <Card className="bg-white/70 dark:bg-slate-800/70 backdrop-blur border-0 shadow-lg rounded-2xl">
+              <CardHeader className="pb-4">
+                <CardTitle className="flex items-center gap-3 text-lg font-semibold">
+                  <div className="p-2 bg-gradient-to-br from-amber-100 to-orange-100 dark:from-amber-900/50 dark:to-orange-900/50 rounded-xl">
+                    <Battery className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                  </div>
+                  Assignment Details
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {battery && (
+                  <div className="bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/30 p-4 rounded-xl">
+                    <h4 className="font-semibold mb-3 text-blue-800 dark:text-blue-300 flex items-center gap-2">
+                      <Battery className="w-4 h-4" />
+                      Assigned Battery
+                    </h4>
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/50 rounded-xl flex items-center justify-center">
+                        <Battery className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-semibold text-slate-900 dark:text-slate-100">{battery.serial_number}</p>
+                        <p className="text-sm text-slate-600 dark:text-slate-400">{battery.model} - {battery.capacity}</p>
+                        <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-800 dark:text-blue-200 text-xs mt-1 rounded-full">
+                          {battery.status}
+                        </Badge>
+                      </div>
+                    </div>
                   </div>
                 )}
-              </div>
-              <div className="text-center">
-                <div className="text-xs text-muted-foreground mb-2">Aadhaar Back</div>
-                {customer.aadhaar_back_url ? (
-                  <img 
-                    src={customer.aadhaar_back_url} 
-                    alt="Aadhaar Back" 
-                    className="w-full h-20 object-cover rounded border-2 border-dashed border-muted"
-                  />
-                ) : (
-                  <div className="w-full h-20 border-2 border-dashed border-muted rounded flex items-center justify-center">
-                    <span className="text-xs text-muted-foreground">Not uploaded</span>
+
+                {partner && (
+                  <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 p-4 rounded-xl">
+                    <h4 className="font-semibold mb-3 text-green-800 dark:text-green-300 flex items-center gap-2">
+                      <Users className="w-4 h-4" />
+                      Assigned Partner
+                    </h4>
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-green-100 dark:bg-green-900/50 rounded-xl flex items-center justify-center">
+                        <Users className="w-6 h-6 text-green-600 dark:text-green-400" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-semibold text-slate-900 dark:text-slate-100">{partner.name}</p>
+                        <p className="text-sm text-slate-600 dark:text-slate-400">{partner.phone}</p>
+                      </div>
+                    </div>
                   </div>
                 )}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+              </CardContent>
+            </Card>
+          )}
 
-        {/* Payment Modal */}
-        {customer.payment_type !== 'one_time_purchase' && (
-          <PaymentModal
-            isOpen={isPaymentModalOpen}
-            onClose={() => setIsPaymentModalOpen(false)}
-            customerId={customerId}
-            onPaymentSuccess={handlePaymentSuccess}
-          />
-        )}
+          {/* Modern Recent Transactions - Only show for EMI and Rental customers */}
+          {customer.payment_type !== 'one_time_purchase' && !loading && billingData?.transactions && billingData.transactions.length > 0 && (
+            <Card className="bg-white/70 dark:bg-slate-800/70 backdrop-blur border-0 shadow-lg rounded-2xl">
+              <CardHeader className="pb-4">
+                <CardTitle className="flex items-center gap-3 text-lg font-semibold">
+                  <div className="p-2 bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-900/50 dark:to-purple-900/50 rounded-xl">
+                    <Receipt className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                  </div>
+                  Recent Transactions
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {billingData.transactions.slice(0, 3).map((transaction: any) => (
+                    <div key={transaction.id} className="flex justify-between items-center p-4 bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-800/50 dark:to-slate-700/50 rounded-xl">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-indigo-100 dark:bg-indigo-900/50 rounded-xl flex items-center justify-center">
+                          <Receipt className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                        </div>
+                        <div>
+                          <div className="font-medium text-slate-900 dark:text-slate-100">{formatDate(transaction.transaction_date)}</div>
+                          <div className="text-sm text-slate-600 dark:text-slate-400 capitalize">{transaction.transaction_type}</div>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-bold text-slate-900 dark:text-slate-100">{formatCurrency(transaction.amount)}</div>
+                        <Badge className={`${getStatusColor(transaction.payment_status)} text-xs rounded-full`}>
+                          {transaction.payment_status}
+                        </Badge>
+                      </div>
+                    </div>
+                  ))}
+                  {billingData.transactions.length > 3 && (
+                    <div className="text-center pt-2">
+                      <Button variant="outline" size="sm" className="rounded-xl border-2">
+                        View All Transactions
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+
+          {/* Payment Modal */}
+          {customer.payment_type !== 'one_time_purchase' && (
+            <PaymentModal
+              isOpen={isPaymentModalOpen}
+              onClose={() => setIsPaymentModalOpen(false)}
+              customerId={customerId}
+              onPaymentSuccess={handlePaymentSuccess}
+            />
+          )}
+        </div>
       </div>
     );
   }

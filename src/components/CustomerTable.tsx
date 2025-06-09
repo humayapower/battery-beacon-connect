@@ -1,8 +1,10 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { getPaymentTypeColor, getPaymentTypeLabel } from '@/utils/statusColors';
+import { usePhoneCall } from '@/hooks/usePhoneCall';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Edit, Eye, Phone, ExternalLink } from 'lucide-react';
@@ -26,6 +28,8 @@ const CustomerTable = ({ isAdmin }: CustomerTableProps) => {
   const [showProfile, setShowProfile] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [filters, setFilters] = useState<Record<string, string>>({});
+  
+  const handlePhoneCall = usePhoneCall();
 
   const filterOptions = [
     {
@@ -77,27 +81,21 @@ const CustomerTable = ({ isAdmin }: CustomerTableProps) => {
     setShowProfile(false);
   };
 
-  const handlePhoneCall = (phone: string) => {
-    window.open(`tel:${phone}`, '_self');
-  };
 
   const getPartnerName = (customer: any) => {
     if (!customer.partner_id) return 'Unassigned';
     return customer.partner?.name || 'Unknown Partner';
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'active':
-        return 'bg-green-100 text-green-800 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800';
-      case 'inactive':
-        return 'bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700';
-      case 'suspended':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800';
-      default:
-        return 'bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700';
-    }
-  };
+  // Memoize filter options to prevent unnecessary re-renders
+  const memoizedFilterOptions = useMemo(() => filterOptions, []);
+
+  // Memoize customer stats for performance
+  const customerStats = useMemo(() => ({
+    total: filteredCustomers.length,
+    emi: filteredCustomers.filter(c => c.payment_type === 'emi').length,
+    rental: filteredCustomers.filter(c => c.payment_type === 'monthly_rent').length
+  }), [filteredCustomers]);
 
   if (loading) {
     return (
@@ -135,7 +133,7 @@ const CustomerTable = ({ isAdmin }: CustomerTableProps) => {
       <SearchAndFilters
         onSearchChange={setSearchTerm}
         onFilterChange={setFilters}
-        filterOptions={filterOptions}
+        filterOptions={memoizedFilterOptions}
         placeholder="Search customers by name, phone, email, or battery serial..."
       />
 
@@ -143,14 +141,14 @@ const CustomerTable = ({ isAdmin }: CustomerTableProps) => {
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-4">
         <Card className="border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:shadow-md transition-shadow">
           <CardContent className="p-3 lg:p-4 text-center">
-            <div className="text-lg lg:text-xl font-semibold text-blue-600 dark:text-blue-400 mb-0.5">{filteredCustomers.length}</div>
+            <div className="text-lg lg:text-xl font-semibold text-blue-600 dark:text-blue-400 mb-0.5">{customerStats.total}</div>
             <div className="text-xs text-slate-600 dark:text-slate-400 font-medium">Total Customers</div>
           </CardContent>
         </Card>
         <Card className="border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:shadow-md transition-shadow">
           <CardContent className="p-3 lg:p-4 text-center">
             <div className="text-lg lg:text-xl font-semibold text-green-600 dark:text-green-400 mb-0.5">
-              {filteredCustomers.filter(c => c.payment_type === 'emi').length}
+              {customerStats.emi}
             </div>
             <div className="text-xs text-slate-600 dark:text-slate-400 font-medium">EMI Customers</div>
           </CardContent>
@@ -158,7 +156,7 @@ const CustomerTable = ({ isAdmin }: CustomerTableProps) => {
         <Card className="border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:shadow-md transition-shadow">
           <CardContent className="p-3 lg:p-4 text-center">
             <div className="text-lg lg:text-xl font-semibold text-purple-600 dark:text-purple-400 mb-0.5">
-              {filteredCustomers.filter(c => c.payment_type === 'monthly_rent').length}
+              {customerStats.rental}
             </div>
             <div className="text-xs text-slate-600 dark:text-slate-400 font-medium">Rental Customers</div>
           </CardContent>
@@ -187,7 +185,7 @@ const CustomerTable = ({ isAdmin }: CustomerTableProps) => {
                           <TableHead className="font-semibold text-gray-900 dark:text-gray-100">Customer Name</TableHead>
                           <TableHead className="font-semibold text-gray-900 dark:text-gray-100">Phone</TableHead>
                           <TableHead className="font-semibold text-gray-900 dark:text-gray-100">Battery Serial</TableHead>
-                          <TableHead className="font-semibold text-gray-900 dark:text-gray-100">Status</TableHead>
+                          <TableHead className="font-semibold text-gray-900 dark:text-gray-100">Payment Type</TableHead>
                           {userRole === 'admin' && <TableHead className="font-semibold text-gray-900 dark:text-gray-100">Associated Partner</TableHead>}
                         </TableRow>
                       </TableHeader>
@@ -220,8 +218,8 @@ const CustomerTable = ({ isAdmin }: CustomerTableProps) => {
                               </Badge>
                             </TableCell>
                             <TableCell>
-                              <Badge className={getStatusColor(customer.status)}>
-                                {customer.status.charAt(0).toUpperCase() + customer.status.slice(1)}
+                              <Badge className={getPaymentTypeColor(customer.payment_type)} variant="outline">
+                                {getPaymentTypeLabel(customer.payment_type)}
                               </Badge>
                             </TableCell>
                             {userRole === 'admin' && (

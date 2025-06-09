@@ -1,9 +1,10 @@
 
-import { useState } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Search, Filter, X } from "lucide-react"
+import { useDebounce } from "@/hooks/useDebounce"
 
 interface SearchAndFiltersProps {
   onSearchChange: (search: string) => void
@@ -26,9 +27,19 @@ export function SearchAndFilters({
   const [filters, setFilters] = useState<Record<string, string>>({})
   const [showFilters, setShowFilters] = useState(false)
 
+  // Debounce search to improve performance
+  const debouncedSearch = useDebounce(search, 300)
+
+  // Memoize filter options to prevent unnecessary re-renders
+  const memoizedFilterOptions = useMemo(() => filterOptions, [filterOptions])
+
+  // Effect to handle debounced search
+  useEffect(() => {
+    onSearchChange(debouncedSearch)
+  }, [debouncedSearch, onSearchChange])
+
   const handleSearchChange = (value: string) => {
     setSearch(value)
-    onSearchChange(value)
   }
 
   const handleFilterChange = (key: string, value: string) => {
@@ -85,9 +96,9 @@ export function SearchAndFilters({
         )}
       </div>
 
-      {showFilters && filterOptions.length > 0 && (
+      {showFilters && memoizedFilterOptions.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 border rounded-lg bg-muted/50">
-          {filterOptions.map(({ key, label, options }) => (
+          {memoizedFilterOptions.map(({ key, label, options }) => (
             <div key={key}>
               <label className="text-sm font-medium mb-2 block">{label}</label>
               <Select

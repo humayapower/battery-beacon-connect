@@ -1,11 +1,10 @@
 
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Battery, Calendar, Wrench, User, Users, Edit } from 'lucide-react';
+import { ArrowLeft, Battery, Calendar, Wrench, User, Users, Edit, MapPin } from 'lucide-react';
 import { useBatteries } from '@/hooks/useBatteries';
 import { useCustomers } from '@/hooks/useCustomers';
 import { usePartners } from '@/hooks/usePartners';
@@ -14,12 +13,16 @@ interface BatteryProfileProps {
   batteryId: string;
   onBack?: () => void;
   showBackButton?: boolean;
+  onCustomerClick?: (customerId: string) => void;
+  onPartnerClick?: (partnerId: string) => void;
 }
 
 const BatteryProfile: React.FC<BatteryProfileProps> = ({ 
   batteryId, 
   onBack, 
-  showBackButton = true 
+  showBackButton = true,
+  onCustomerClick,
+  onPartnerClick
 }) => {
   const navigate = useNavigate();
   const { batteries } = useBatteries();
@@ -35,6 +38,18 @@ const BatteryProfile: React.FC<BatteryProfileProps> = ({
       onBack();
     } else {
       navigate(-1);
+    }
+  };
+
+  const handleCustomerClick = () => {
+    if (customer && onCustomerClick) {
+      onCustomerClick(customer.id);
+    }
+  };
+
+  const handlePartnerClick = () => {
+    if (partner && onPartnerClick) {
+      onPartnerClick(partner.id);
     }
   };
 
@@ -79,262 +94,184 @@ const BatteryProfile: React.FC<BatteryProfileProps> = ({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 p-4 lg:p-6">
       {/* Header */}
       {showBackButton && (
-        <div className="flex items-center gap-4">
-          <Button 
-            variant="outline" 
-            size="sm" 
+        <div className="flex items-center justify-between">
+          {/* Left Section - Back Arrow */}
+          <button 
             onClick={handleBack}
-            className="flex items-center gap-2"
+            className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-md transition-colors"
           >
-            <ArrowLeft className="w-4 h-4" />
-            Back
-          </Button>
-          <div className="flex-1">
-            <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">Battery Details</h1>
-            <p className="text-gray-600">Serial Number: {battery.serial_number}</p>
-          </div>
+            <ArrowLeft className="w-5 h-5 text-slate-600 dark:text-slate-400" />
+          </button>
+
+          {/* Right Section - Status & Actions */}
           <div className="flex items-center gap-2">
-            <Badge className={getStatusColor(battery.status)}>
+            <Badge className={`${getStatusColor(battery.status)} border text-xs px-2 py-1`} variant="outline">
               {battery.status.charAt(0).toUpperCase() + battery.status.slice(1)}
             </Badge>
-            <Button variant="outline" size="sm">
-              <Edit className="w-4 h-4 mr-2" />
-              Edit
+            <Button variant="outline" size="sm" className="flex items-center gap-2">
+              <Edit className="w-4 h-4" />
+              <span className="hidden sm:inline">Edit</span>
             </Button>
           </div>
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Battery Image */}
-        <div className="lg:col-span-1">
-          <Card>
-            <CardContent className="p-6">
-              <div className="aspect-square bg-gray-100 rounded-lg flex items-center justify-center mb-4">
-                <Battery className="w-16 h-16 text-gray-400" />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* Technical Specifications */}
+        <Card className="border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
+          <CardHeader className="border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
+            <CardTitle className="text-base text-slate-900 dark:text-slate-100 font-medium flex items-center gap-2">
+              <Battery className="w-4 h-4" />
+              Technical Specifications
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-3">
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+              <div>
+                <label className="text-xs font-medium text-slate-500 dark:text-slate-400">Serial Number</label>
+                <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 font-mono">{battery.serial_number}</p>
               </div>
-              <div className="text-center">
-                <h3 className="font-semibold text-lg">{battery.model}</h3>
-                <p className="text-gray-600">{battery.serial_number}</p>
-                <Badge className={getStatusColor(battery.status)} variant="secondary">
-                  {battery.status.charAt(0).toUpperCase() + battery.status.slice(1)}
-                </Badge>
+              <div>
+                <label className="text-xs font-medium text-slate-500 dark:text-slate-400">Model Name</label>
+                <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">{battery.model_name || battery.model}</p>
+              </div>
+              <div>
+                <label className="text-xs font-medium text-slate-500 dark:text-slate-400">Model Number</label>
+                <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">{battery.model}</p>
+              </div>
+              <div>
+                <label className="text-xs font-medium text-slate-500 dark:text-slate-400">Capacity</label>
+                <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">{battery.capacity}</p>
+              </div>
+              <div>
+                <label className="text-xs font-medium text-slate-500 dark:text-slate-400">Voltage</label>
+                <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">{battery.voltage ? `${battery.voltage}V` : 'N/A'}</p>
+              </div>
+              <div>
+                <label className="text-xs font-medium text-slate-500 dark:text-slate-400">Manufacturing Date</label>
+                <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                  {battery.manufacturing_date ? new Date(battery.manufacturing_date).toLocaleDateString() : 'N/A'}
+                </p>
+              </div>
+              <div>
+                <label className="text-xs font-medium text-slate-500 dark:text-slate-400">IMEI Number</label>
+                <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 font-mono">{battery.imei_number || 'N/A'}</p>
+              </div>
+              <div>
+                <label className="text-xs font-medium text-slate-500 dark:text-slate-400">SIM Number</label>
+                <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 font-mono">{battery.sim_number || 'N/A'}</p>
+              </div>
+              <div>
+                <label className="text-xs font-medium text-slate-500 dark:text-slate-400">Location</label>
+                <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-1">
+                  <MapPin className="w-3 h-3" />
+                  {battery.location || 'N/A'}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Assignment Information */}
+        {(customer || partner) && (
+          <Card className="border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 lg:col-span-2">
+            {/* <CardHeader className="border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
+              <CardTitle className="text-base text-slate-900 dark:text-slate-100 font-medium flex items-center gap-2">
+                <Users className="w-4 h-4" />
+                Assignment Information
+              </CardTitle>
+            </CardHeader> */}
+            <CardContent className="p-3">
+              <div className="flex items-center justify-around gap-8">
+                {customer && (
+                  <div className="text-center">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="p-1.5 bg-blue-100 dark:bg-blue-900/20 rounded-full">
+                        <User className="w-3 h-3 text-blue-600 dark:text-blue-400" />
+                      </div>
+                      <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Customer</span>
+                    </div>
+                    <button 
+                      onClick={handleCustomerClick}
+                      className="text-sm font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:underline transition-colors"
+                    >
+                      {customer.name}
+                    </button>
+                  </div>
+                )}
+
+                {partner && (
+                  <div className="text-center">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="p-1.5 bg-green-100 dark:bg-green-900/20 rounded-full">
+                        <Users className="w-3 h-3 text-green-600 dark:text-green-400" />
+                      </div>
+                      <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Partner</span>
+                    </div>
+                    <button 
+                      onClick={handlePartnerClick}
+                      className="text-sm font-semibold text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-300 hover:underline transition-colors"
+                    >
+                      {partner.name}
+                    </button>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
-        </div>
+        )}
 
-        {/* Main Content */}
-        <div className="lg:col-span-3">
-          <Tabs defaultValue="specifications" className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="specifications">Specifications</TabsTrigger>
-              <TabsTrigger value="warranty">Warranty</TabsTrigger>
-              <TabsTrigger value="assignment">Assignment</TabsTrigger>
-              <TabsTrigger value="health">Health</TabsTrigger>
-            </TabsList>
+        {!customer && !partner && (
+          <Card className="border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 lg:col-span-2">
+            <CardContent className="p-8 text-center">
+              <Battery className="w-12 h-12 text-slate-400 mx-auto mb-3" />
+              <h3 className="text-base font-semibold mb-2 text-slate-900 dark:text-slate-100">Not Assigned</h3>
+              <p className="text-sm text-slate-600 dark:text-slate-400">This battery is not currently assigned to any customer or partner.</p>
+            </CardContent>
+          </Card>
+        )}
 
-            {/* Specifications Tab */}
-            <TabsContent value="specifications" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Battery className="w-5 h-5" />
-                    Technical Specifications
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-sm font-medium text-gray-500">Serial Number</label>
-                      <p className="text-lg font-semibold">{battery.serial_number}</p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-gray-500">Model Name</label>
-                      <p className="text-lg font-semibold">{battery.model_name || battery.model}</p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-gray-500">Model Number</label>
-                      <p className="text-lg font-semibold">{battery.model}</p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-gray-500">Capacity</label>
-                      <p className="text-lg font-semibold">{battery.capacity}</p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-gray-500">Voltage</label>
-                      <p className="text-lg font-semibold">{battery.voltage ? `${battery.voltage}V` : 'N/A'}</p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-gray-500">Manufacturing Date</label>
-                      <p className="text-lg font-semibold">
-                        {battery.manufacturing_date ? new Date(battery.manufacturing_date).toLocaleDateString() : 'N/A'}
-                      </p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-gray-500">IMEI Number</label>
-                      <p className="text-lg font-semibold">{battery.imei_number || 'N/A'}</p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-gray-500">SIM Number</label>
-                      <p className="text-lg font-semibold">{battery.sim_number || 'N/A'}</p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-gray-500">Location</label>
-                      <p className="text-lg font-semibold">{battery.location || 'N/A'}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
+        {/* Warranty & Maintenance */}
+        <Card className="border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
+          <CardHeader className="border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
+            <CardTitle className="text-base text-slate-900 dark:text-slate-100 font-medium flex items-center gap-2">
+              <Calendar className="w-4 h-4" />
+              Warranty & Maintenance
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-3">
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+              <div>
+                <label className="text-xs font-medium text-slate-500 dark:text-slate-400">Warranty Period</label>
+                <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">{battery.warranty_period ? `${battery.warranty_period} months` : 'N/A'}</p>
+              </div>
+              <div>
+                <label className="text-xs font-medium text-slate-500 dark:text-slate-400">Purchase Date</label>
+                <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                  {battery.purchase_date ? new Date(battery.purchase_date).toLocaleDateString() : 'N/A'}
+                </p>
+              </div>
+              <div>
+                <label className="text-xs font-medium text-slate-500 dark:text-slate-400">Warranty Status</label>
+                <Badge className={`${getWarrantyStatusColor(getWarrantyStatus())} border text-xs`} variant="outline">
+                  {getWarrantyStatus()}
+                </Badge>
+              </div>
+              <div className="lg:col-span-2">
+                <label className="text-xs font-medium text-slate-500 dark:text-slate-400">Last Maintenance</label>
+                <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-1">
+                  <Wrench className="w-3 h-3" />
+                  {battery.last_maintenance ? new Date(battery.last_maintenance).toLocaleDateString() : 'No maintenance recorded'}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
-            {/* Warranty Tab */}
-            <TabsContent value="warranty" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Calendar className="w-5 h-5" />
-                    Warranty Information
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-sm font-medium text-gray-500">Warranty Period</label>
-                      <p className="text-lg font-semibold">{battery.warranty_period ? `${battery.warranty_period} months` : 'N/A'}</p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-gray-500">Purchase Date</label>
-                      <p className="text-lg font-semibold">
-                        {battery.purchase_date ? new Date(battery.purchase_date).toLocaleDateString() : 'N/A'}
-                      </p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-gray-500">Warranty End Date</label>
-                      <p className="text-lg font-semibold">
-                        {battery.warranty_expiry ? new Date(battery.warranty_expiry).toLocaleDateString() : 'N/A'}
-                      </p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-gray-500">Warranty Status</label>
-                      <div className="flex items-center gap-2">
-                        <Badge className={getWarrantyStatusColor(getWarrantyStatus())}>
-                          {getWarrantyStatus()}
-                        </Badge>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Wrench className="w-5 h-5" />
-                    Maintenance History
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div>
-                    <label className="text-sm font-medium text-gray-500">Last Maintenance</label>
-                    <p className="text-lg font-semibold">
-                      {battery.last_maintenance ? new Date(battery.last_maintenance).toLocaleDateString() : 'No maintenance recorded'}
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            {/* Assignment Tab */}
-            <TabsContent value="assignment" className="space-y-6">
-              {customer && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <User className="w-5 h-5" />
-                      Assigned Customer
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 bg-blue-100 rounded-full">
-                          <User className="w-4 h-4 text-blue-600" />
-                        </div>
-                        <div>
-                          <p className="font-semibold">{customer.name}</p>
-                          <p className="text-sm text-gray-600">{customer.phone}</p>
-                          <p className="text-sm text-gray-600">{customer.email}</p>
-                        </div>
-                      </div>
-                      <Badge className="bg-blue-100 text-blue-800">{customer.payment_type}</Badge>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              {partner && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Users className="w-5 h-5" />
-                      Assigned Partner
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 bg-green-100 rounded-full">
-                          <Users className="w-4 h-4 text-green-600" />
-                        </div>
-                        <div>
-                          <p className="font-semibold">{partner.name}</p>
-                          <p className="text-sm text-gray-600">{partner.phone}</p>
-                          <p className="text-sm text-gray-600">{partner.address}</p>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              {!customer && !partner && (
-                <Card>
-                  <CardContent className="p-8 text-center">
-                    <Battery className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                    <h3 className="text-lg font-semibold mb-2">Not Assigned</h3>
-                    <p className="text-gray-600">This battery is not currently assigned to any customer or partner.</p>
-                  </CardContent>
-                </Card>
-              )}
-            </TabsContent>
-
-            {/* Health Tab */}
-            <TabsContent value="health" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Battery className="w-5 h-5" />
-                    Battery Health (Future Feature)
-                  </CardTitle>
-                  <CardDescription>
-                    Real-time battery health monitoring will be available when BMS data is connected.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center py-8">
-                    <Battery className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold mb-2">Coming Soon</h3>
-                    <p className="text-gray-600">Battery health monitoring, charge cycles, and performance metrics will be displayed here.</p>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
-        </div>
+        
       </div>
     </div>
   );

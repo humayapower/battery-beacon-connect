@@ -122,10 +122,10 @@ const CustomerTable = ({ isAdmin }: CustomerTableProps) => {
     <div className="space-y-6 p-4 lg:p-6">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <div>
-          <h2 className="text-3xl lg:text-4xl font-bold mb-2 text-gray-900 dark:text-gray-100">
+          <h2 className="text-lg lg:text-2xl font-semibold mb-1 text-slate-900 dark:text-slate-100">
             {isAdmin ? 'Customer Directory' : 'Customers'}
           </h2>
-          <p className="text-base lg:text-lg text-gray-600 dark:text-gray-400">
+          <p className="text-xs lg:text-sm text-slate-600 dark:text-slate-400">
             {isAdmin ? 'View all customers across partners' : 'Manage your customer relationships'}
           </p>
         </div>
@@ -139,41 +139,41 @@ const CustomerTable = ({ isAdmin }: CustomerTableProps) => {
         placeholder="Search customers by name, phone, email, or battery serial..."
       />
 
-      {/* Redesigned Stats Cards - Simple and Classic */}
-      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
-        <Card className="border-2 hover:shadow-lg transition-all duration-200 dark:border-gray-700">
-          <CardContent className="p-4 text-center">
-            <div className="text-2xl lg:text-3xl font-bold text-blue-600 dark:text-blue-400 mb-1">{filteredCustomers.length}</div>
-            <div className="text-sm lg:text-base text-gray-600 dark:text-gray-400 font-medium">Total Customers</div>
+      {/* Stats Cards - Clean and Elegant */}
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-4">
+        <Card className="border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:shadow-md transition-shadow">
+          <CardContent className="p-3 lg:p-4 text-center">
+            <div className="text-lg lg:text-xl font-semibold text-blue-600 dark:text-blue-400 mb-0.5">{filteredCustomers.length}</div>
+            <div className="text-xs text-slate-600 dark:text-slate-400 font-medium">Total Customers</div>
           </CardContent>
         </Card>
-        <Card className="border-2 hover:shadow-lg transition-all duration-200 dark:border-gray-700">
-          <CardContent className="p-4 text-center">
-            <div className="text-2xl lg:text-3xl font-bold text-green-600 dark:text-green-400 mb-1">
-              {filteredCustomers.filter(c => c.status === 'active').length}
+        <Card className="border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:shadow-md transition-shadow">
+          <CardContent className="p-3 lg:p-4 text-center">
+            <div className="text-lg lg:text-xl font-semibold text-green-600 dark:text-green-400 mb-0.5">
+              {filteredCustomers.filter(c => c.payment_type === 'emi').length}
             </div>
-            <div className="text-sm lg:text-base text-gray-600 dark:text-gray-400 font-medium">Active</div>
+            <div className="text-xs text-slate-600 dark:text-slate-400 font-medium">EMI Customers</div>
           </CardContent>
         </Card>
-        <Card className="border-2 hover:shadow-lg transition-all duration-200 dark:border-gray-700">
-          <CardContent className="p-4 text-center">
-            <div className="text-2xl lg:text-3xl font-bold text-yellow-600 dark:text-yellow-400 mb-1">
-              {filteredCustomers.filter(c => c.status === 'suspended').length}
+        <Card className="border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:shadow-md transition-shadow">
+          <CardContent className="p-3 lg:p-4 text-center">
+            <div className="text-lg lg:text-xl font-semibold text-purple-600 dark:text-purple-400 mb-0.5">
+              {filteredCustomers.filter(c => c.payment_type === 'monthly_rent').length}
             </div>
-            <div className="text-sm lg:text-base text-gray-600 dark:text-gray-400 font-medium">Suspended</div>
+            <div className="text-xs text-slate-600 dark:text-slate-400 font-medium">Rental Customers</div>
           </CardContent>
         </Card>
       </div>
 
-      <Card className="border-2 shadow-lg dark:border-gray-700">
-        <CardHeader className="dark:bg-gray-800/50">
-          <CardTitle className="text-xl text-gray-900 dark:text-gray-100">Customer Management</CardTitle>
+      <Card className="border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm">
+        <CardHeader className="border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
+          <CardTitle className="text-base text-slate-900 dark:text-slate-100 font-medium">Customer Management</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           {filteredCustomers.length > 0 ? (
             <>
-              {/* Mobile Card View */}
-              <div className="block lg:hidden space-y-4 p-6">
+              {/* Mobile List View */}
+              <div className="block lg:hidden">
                 <ResponsiveCustomerCards customers={filteredCustomers} onViewDetails={handleViewDetails} />
               </div>
 

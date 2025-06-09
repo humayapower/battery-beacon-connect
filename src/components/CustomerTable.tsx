@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -88,13 +89,13 @@ const CustomerTable = ({ isAdmin }: CustomerTableProps) => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active':
-        return 'bg-green-100 text-green-800 border-green-200';
+        return 'bg-green-100 text-green-800 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800';
       case 'inactive':
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+        return 'bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700';
       case 'suspended':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+        return 'bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800';
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+        return 'bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700';
     }
   };
 
@@ -121,10 +122,10 @@ const CustomerTable = ({ isAdmin }: CustomerTableProps) => {
     <div className="space-y-6 p-4 lg:p-6">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <div>
-          <h2 className="text-3xl lg:text-4xl font-bold mb-2">
+          <h2 className="text-3xl lg:text-4xl font-bold mb-2 text-gray-900 dark:text-gray-100">
             {isAdmin ? 'Customer Directory' : 'Customers'}
           </h2>
-          <p className="text-base lg:text-lg text-muted-foreground">
+          <p className="text-base lg:text-lg text-gray-600 dark:text-gray-400">
             {isAdmin ? 'View all customers across partners' : 'Manage your customer relationships'}
           </p>
         </div>
@@ -138,34 +139,35 @@ const CustomerTable = ({ isAdmin }: CustomerTableProps) => {
         placeholder="Search customers by name, phone, email, or battery serial..."
       />
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        <Card className="border-2 hover:shadow-lg transition-all duration-200">
-          <CardContent className="p-6 text-center">
-            <div className="text-2xl lg:text-3xl font-bold text-primary mb-1">{filteredCustomers.length}</div>
-            <div className="text-sm lg:text-base text-muted-foreground">Total Customers</div>
+      {/* Redesigned Stats Cards - Simple and Classic */}
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
+        <Card className="border-2 hover:shadow-lg transition-all duration-200 dark:border-gray-700">
+          <CardContent className="p-4 text-center">
+            <div className="text-2xl lg:text-3xl font-bold text-blue-600 dark:text-blue-400 mb-1">{filteredCustomers.length}</div>
+            <div className="text-sm lg:text-base text-gray-600 dark:text-gray-400 font-medium">Total Customers</div>
           </CardContent>
         </Card>
-        <Card className="border-2 hover:shadow-lg transition-all duration-200">
-          <CardContent className="p-6 text-center">
-            <div className="text-2xl lg:text-3xl font-bold text-green-600 mb-1">
+        <Card className="border-2 hover:shadow-lg transition-all duration-200 dark:border-gray-700">
+          <CardContent className="p-4 text-center">
+            <div className="text-2xl lg:text-3xl font-bold text-green-600 dark:text-green-400 mb-1">
               {filteredCustomers.filter(c => c.status === 'active').length}
             </div>
-            <div className="text-sm lg:text-base text-muted-foreground">Active</div>
+            <div className="text-sm lg:text-base text-gray-600 dark:text-gray-400 font-medium">Active</div>
           </CardContent>
         </Card>
-        <Card className="border-2 hover:shadow-lg transition-all duration-200">
-          <CardContent className="p-6 text-center">
-            <div className="text-2xl lg:text-3xl font-bold text-yellow-600 mb-1">
+        <Card className="border-2 hover:shadow-lg transition-all duration-200 dark:border-gray-700">
+          <CardContent className="p-4 text-center">
+            <div className="text-2xl lg:text-3xl font-bold text-yellow-600 dark:text-yellow-400 mb-1">
               {filteredCustomers.filter(c => c.status === 'suspended').length}
             </div>
-            <div className="text-sm lg:text-base text-muted-foreground">Suspended</div>
+            <div className="text-sm lg:text-base text-gray-600 dark:text-gray-400 font-medium">Suspended</div>
           </CardContent>
         </Card>
       </div>
 
-      <Card className="border-2 shadow-lg">
-        <CardHeader>
-          <CardTitle className="text-xl">Customer Management</CardTitle>
+      <Card className="border-2 shadow-lg dark:border-gray-700">
+        <CardHeader className="dark:bg-gray-800/50">
+          <CardTitle className="text-xl text-gray-900 dark:text-gray-100">Customer Management</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           {filteredCustomers.length > 0 ? (
@@ -181,21 +183,21 @@ const CustomerTable = ({ isAdmin }: CustomerTableProps) => {
                   <div className="min-w-full">
                     <Table>
                       <TableHeader>
-                        <TableRow>
-                          <TableHead className="font-semibold">Customer Name</TableHead>
-                          <TableHead className="font-semibold">Phone</TableHead>
-                          <TableHead className="font-semibold">Battery Serial</TableHead>
-                          <TableHead className="font-semibold">Status</TableHead>
-                          {userRole === 'admin' && <TableHead className="font-semibold">Associated Partner</TableHead>}
+                        <TableRow className="bg-gray-50/50 dark:bg-gray-800/50">
+                          <TableHead className="font-semibold text-gray-900 dark:text-gray-100">Customer Name</TableHead>
+                          <TableHead className="font-semibold text-gray-900 dark:text-gray-100">Phone</TableHead>
+                          <TableHead className="font-semibold text-gray-900 dark:text-gray-100">Battery Serial</TableHead>
+                          <TableHead className="font-semibold text-gray-900 dark:text-gray-100">Status</TableHead>
+                          {userRole === 'admin' && <TableHead className="font-semibold text-gray-900 dark:text-gray-100">Associated Partner</TableHead>}
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {filteredCustomers.map((customer) => (
-                          <TableRow key={customer.id} className="hover:bg-muted/50 transition-colors">
+                          <TableRow key={customer.id} className="hover:bg-blue-50 dark:hover:bg-blue-900/10 transition-colors">
                             <TableCell>
                               <button
                                 onClick={() => handleViewDetails(customer.id)}
-                                className="text-primary hover:text-primary/80 font-semibold hover:underline flex items-center gap-1 transition-colors"
+                                className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-semibold hover:underline flex items-center gap-1 transition-colors"
                               >
                                 {customer.name}
                               </button>
@@ -204,7 +206,7 @@ const CustomerTable = ({ isAdmin }: CustomerTableProps) => {
                               {customer.phone ? (
                                 <button
                                   onClick={() => handlePhoneCall(customer.phone)}
-                                  className="flex items-center space-x-1 text-primary hover:text-primary/80 transition-colors"
+                                  className="flex items-center space-x-1 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
                                 >
                                   <span className="font-medium">{customer.phone}</span>
                                 </button>
@@ -213,7 +215,7 @@ const CustomerTable = ({ isAdmin }: CustomerTableProps) => {
                               )}
                             </TableCell>
                             <TableCell>
-                              <Badge variant="outline" className="font-medium">
+                              <Badge variant="outline" className="font-medium dark:border-gray-600 dark:text-gray-300">
                                 {customer.batteries?.serial_number || 'Unassigned'}
                               </Badge>
                             </TableCell>
@@ -224,7 +226,7 @@ const CustomerTable = ({ isAdmin }: CustomerTableProps) => {
                             </TableCell>
                             {userRole === 'admin' && (
                               <TableCell>
-                                <span className={!customer.partner_id ? 'text-muted-foreground italic' : 'font-medium'}>
+                                <span className={!customer.partner_id ? 'text-gray-500 dark:text-gray-400 italic' : 'font-medium text-gray-900 dark:text-gray-100'}>
                                   {getPartnerName(customer)}
                                 </span>
                               </TableCell>
@@ -239,7 +241,7 @@ const CustomerTable = ({ isAdmin }: CustomerTableProps) => {
             </>
           ) : (
             <div className="text-center py-12 px-6">
-              <p className="text-muted-foreground mb-6 text-lg">
+              <p className="text-gray-600 dark:text-gray-400 mb-6 text-lg">
                 {searchTerm || Object.keys(filters).length > 0 
                   ? "No customers found matching your search criteria." 
                   : "No customers found. Add your first customer to get started."

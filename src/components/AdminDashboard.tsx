@@ -122,8 +122,8 @@ const AdminDashboard = () => {
           <div className="space-y-4 sm:space-y-6">
             <div className="flex flex-col gap-3 sm:gap-4">
               <div>
-                <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">Dashboard</h1>
-                <p className="text-sm sm:text-base text-gray-600">Overview of your battery leasing business</p>
+                <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">Dashboard</h1>
+                <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">Overview of your battery leasing business</p>
               </div>
               <div className="flex flex-col sm:flex-row gap-2 sm:gap-2">
                 <AddCustomerModal />
@@ -136,61 +136,61 @@ const AdminDashboard = () => {
 
             {/* Stats Cards - 2x2 Grid with reduced width */}
             <div className="grid grid-cols-2 gap-3 sm:gap-4 max-w-xl">
-              <Card>
+              <Card className="border dark:border-gray-700">
                 <CardContent className="p-3 sm:p-4">
                   <div className="flex items-center justify-between">
                     <div className="min-w-0">
-                      <p className="text-xs sm:text-sm font-medium text-gray-600 truncate">Total Customers</p>
-                      <p className="text-lg sm:text-2xl font-bold">{stats.totalCustomers}</p>
-                      <p className="text-xs sm:text-sm text-green-600">+12% from last month</p>
+                      <p className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 truncate">Total Customers</p>
+                      <p className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-gray-100">{stats.totalCustomers}</p>
+                      <p className="text-xs sm:text-sm text-green-600 dark:text-green-400">+12% from last month</p>
                     </div>
-                    <div className="p-1.5 sm:p-2 bg-blue-100 rounded-full flex-shrink-0 ml-2">
-                      <User className="w-3 h-3 sm:w-5 sm:h-5 text-blue-600" />
+                    <div className="p-1.5 sm:p-2 bg-blue-100 dark:bg-blue-900/20 rounded-full flex-shrink-0 ml-2">
+                      <User className="w-3 h-3 sm:w-5 sm:h-5 text-blue-600 dark:text-blue-400" />
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="border dark:border-gray-700">
                 <CardContent className="p-3 sm:p-4">
                   <div className="flex items-center justify-between">
                     <div className="min-w-0">
-                      <p className="text-xs sm:text-sm font-medium text-gray-600 truncate">Total Partners</p>
-                      <p className="text-lg sm:text-2xl font-bold">{stats.totalPartners}</p>
-                      <p className="text-xs sm:text-sm text-green-600">+5% from last month</p>
+                      <p className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 truncate">Total Partners</p>
+                      <p className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-gray-100">{stats.totalPartners}</p>
+                      <p className="text-xs sm:text-sm text-green-600 dark:text-green-400">+5% from last month</p>
                     </div>
-                    <div className="p-1.5 sm:p-2 bg-green-100 rounded-full flex-shrink-0 ml-2">
-                      <Users className="w-3 h-3 sm:w-5 sm:h-5 text-green-600" />
+                    <div className="p-1.5 sm:p-2 bg-green-100 dark:bg-green-900/20 rounded-full flex-shrink-0 ml-2">
+                      <Users className="w-3 h-3 sm:w-5 sm:h-5 text-green-600 dark:text-green-400" />
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="border dark:border-gray-700">
                 <CardContent className="p-3 sm:p-4">
                   <div className="flex items-center justify-between">
                     <div className="min-w-0">
-                      <p className="text-xs sm:text-sm font-medium text-gray-600 truncate">Total Batteries</p>
-                      <p className="text-lg sm:text-2xl font-bold">{stats.totalBatteries}</p>
-                      <p className="text-xs sm:text-sm text-green-600">Active inventory</p>
+                      <p className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 truncate">Total Batteries</p>
+                      <p className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-gray-100">{stats.totalBatteries}</p>
+                      <p className="text-xs sm:text-sm text-green-600 dark:text-green-400">Active inventory</p>
                     </div>
-                    <div className="p-1.5 sm:p-2 bg-purple-100 rounded-full flex-shrink-0 ml-2">
-                      <Battery className="w-3 h-3 sm:w-5 sm:h-5 text-purple-600" />
+                    <div className="p-1.5 sm:p-2 bg-purple-100 dark:bg-purple-900/20 rounded-full flex-shrink-0 ml-2">
+                      <Battery className="w-3 h-3 sm:w-5 sm:h-5 text-purple-600 dark:text-purple-400" />
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="border dark:border-gray-700">
                 <CardContent className="p-3 sm:p-4">
                   <div className="flex items-center justify-between">
                     <div className="min-w-0">
-                      <p className="text-xs sm:text-sm font-medium text-gray-600 truncate">Overdue Payments</p>
-                      <p className="text-lg sm:text-2xl font-bold text-red-600">{stats.overdueCount}</p>
-                      <p className="text-xs sm:text-sm text-red-600">Needs attention</p>
+                      <p className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 truncate">Overdue Payments</p>
+                      <p className="text-lg sm:text-2xl font-bold text-red-600 dark:text-red-400">{stats.overdueCount}</p>
+                      <p className="text-xs sm:text-sm text-red-600 dark:text-red-400">Needs attention</p>
                     </div>
-                    <div className="p-1.5 sm:p-2 bg-red-100 rounded-full flex-shrink-0 ml-2">
-                      <AlertTriangle className="w-3 h-3 sm:w-5 sm:h-5 text-red-600" />
+                    <div className="p-1.5 sm:p-2 bg-red-100 dark:bg-red-900/20 rounded-full flex-shrink-0 ml-2">
+                      <AlertTriangle className="w-3 h-3 sm:w-5 sm:h-5 text-red-600 dark:text-red-400" />
                     </div>
                   </div>
                 </CardContent>
@@ -199,13 +199,13 @@ const AdminDashboard = () => {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
               {/* Overdue Payments - List Format */}
-              <Card>
+              <Card className="border dark:border-gray-700">
                 <CardHeader className="pb-2 sm:pb-3">
-                  <CardTitle className="flex items-center text-base sm:text-lg">
-                    <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-red-600" />
+                  <CardTitle className="flex items-center text-base sm:text-lg text-gray-900 dark:text-gray-100">
+                    <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-red-600 dark:text-red-400" />
                     Overdue Payments
                   </CardTitle>
-                  <CardDescription className="text-xs sm:text-sm">
+                  <CardDescription className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                     Payments that require immediate attention
                   </CardDescription>
                 </CardHeader>
@@ -213,39 +213,39 @@ const AdminDashboard = () => {
                   <div className="space-y-2 sm:space-y-3">
                     {stats.overdueTransactions.length > 0 ? (
                       stats.overdueTransactions.slice(0, 5).map((transaction) => (
-                        <div key={transaction.id} className="flex items-center justify-between p-2 sm:p-3 bg-red-50 rounded-lg border border-red-100">
+                        <div key={transaction.id} className="flex items-center justify-between p-2 sm:p-3 bg-red-50 dark:bg-red-900/10 rounded-lg border border-red-100 dark:border-red-800/30">
                           <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
-                            <div className="p-1 sm:p-1.5 bg-red-100 rounded-full flex-shrink-0">
-                              <AlertTriangle className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-red-600" />
+                            <div className="p-1 sm:p-1.5 bg-red-100 dark:bg-red-900/30 rounded-full flex-shrink-0">
+                              <AlertTriangle className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-red-600 dark:text-red-400" />
                             </div>
                             <div className="min-w-0">
-                              <p className="font-medium text-xs sm:text-sm truncate">{transaction.customers?.name || 'Unknown'}</p>
-                              <p className="text-xs text-gray-600">
+                              <p className="font-medium text-xs sm:text-sm truncate text-gray-900 dark:text-gray-100">{transaction.customers?.name || 'Unknown'}</p>
+                              <p className="text-xs text-gray-600 dark:text-gray-400">
                                 Due: {transaction.due_date ? formatDate(transaction.due_date) : 'N/A'}
                               </p>
                             </div>
                           </div>
                           <div className="text-right flex-shrink-0 ml-2">
-                            <p className="font-semibold text-xs sm:text-sm text-red-600">{formatCurrency(transaction.amount)}</p>
+                            <p className="font-semibold text-xs sm:text-sm text-red-600 dark:text-red-400">{formatCurrency(transaction.amount)}</p>
                             <Badge variant="destructive" className="text-xs">Overdue</Badge>
                           </div>
                         </div>
                       ))
                     ) : (
-                      <p className="text-center text-gray-500 py-4 sm:py-6 text-xs sm:text-sm">No overdue payments</p>
+                      <p className="text-center text-gray-500 dark:text-gray-400 py-4 sm:py-6 text-xs sm:text-sm">No overdue payments</p>
                     )}
                   </div>
                 </CardContent>
               </Card>
 
               {/* Recent Payments - List Format */}
-              <Card>
+              <Card className="border dark:border-gray-700">
                 <CardHeader className="pb-2 sm:pb-3">
-                  <CardTitle className="flex items-center text-base sm:text-lg">
-                    <CreditCard className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-green-600" />
+                  <CardTitle className="flex items-center text-base sm:text-lg text-gray-900 dark:text-gray-100">
+                    <CreditCard className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-green-600 dark:text-green-400" />
                     Recent Payments
                   </CardTitle>
-                  <CardDescription className="text-xs sm:text-sm">
+                  <CardDescription className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                     Latest successful payments
                   </CardDescription>
                 </CardHeader>
@@ -253,26 +253,26 @@ const AdminDashboard = () => {
                   <div className="space-y-2 sm:space-y-3">
                     {stats.recentPayments.length > 0 ? (
                       stats.recentPayments.map((payment) => (
-                        <div key={payment.id} className="flex items-center justify-between p-2 sm:p-3 bg-green-50 rounded-lg border border-green-100">
+                        <div key={payment.id} className="flex items-center justify-between p-2 sm:p-3 bg-green-50 dark:bg-green-900/10 rounded-lg border border-green-100 dark:border-green-800/30">
                           <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
-                            <div className="p-1 sm:p-1.5 bg-green-100 rounded-full flex-shrink-0">
-                              <CreditCard className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-green-600" />
+                            <div className="p-1 sm:p-1.5 bg-green-100 dark:bg-green-900/30 rounded-full flex-shrink-0">
+                              <CreditCard className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-green-600 dark:text-green-400" />
                             </div>
                             <div className="min-w-0">
-                              <p className="font-medium text-xs sm:text-sm truncate">{payment.customers?.name || 'Unknown'}</p>
-                              <p className="text-xs text-gray-600 capitalize">
+                              <p className="font-medium text-xs sm:text-sm truncate text-gray-900 dark:text-gray-100">{payment.customers?.name || 'Unknown'}</p>
+                              <p className="text-xs text-gray-600 dark:text-gray-400 capitalize">
                                 {payment.transaction_type} • {formatDate(payment.transaction_date)}
                               </p>
                             </div>
                           </div>
                           <div className="text-right flex-shrink-0 ml-2">
-                            <p className="font-semibold text-xs sm:text-sm text-green-600">{formatCurrency(payment.amount)}</p>
+                            <p className="font-semibold text-xs sm:text-sm text-green-600 dark:text-green-400">{formatCurrency(payment.amount)}</p>
                             <Badge variant="secondary" className="text-xs">Paid</Badge>
                           </div>
                         </div>
                       ))
                     ) : (
-                      <p className="text-center text-gray-500 py-4 sm:py-6 text-xs sm:text-sm">No recent payments</p>
+                      <p className="text-center text-gray-500 dark:text-gray-400 py-4 sm:py-6 text-xs sm:text-sm">No recent payments</p>
                     )}
                   </div>
                 </CardContent>
@@ -280,14 +280,14 @@ const AdminDashboard = () => {
             </div>
 
             {/* Recent Customers - List Format */}
-            <Card>
+            <Card className="border dark:border-gray-700">
               <CardHeader className="flex flex-row items-center justify-between pb-2 sm:pb-3">
                 <div>
-                  <CardTitle className="flex items-center text-base sm:text-lg">
+                  <CardTitle className="flex items-center text-base sm:text-lg text-gray-900 dark:text-gray-100">
                     <User className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
                     Recent Customers
                   </CardTitle>
-                  <CardDescription className="text-xs sm:text-sm">Recently added customers</CardDescription>
+                  <CardDescription className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Recently added customers</CardDescription>
                 </div>
                 <Button variant="ghost" size="sm" onClick={() => setActiveSection('customers')} className="text-xs sm:text-sm">
                   View All
@@ -296,21 +296,21 @@ const AdminDashboard = () => {
               <CardContent>
                 <div className="space-y-2 sm:space-y-3">
                   {stats.recentCustomers.map((customer) => (
-                    <div key={customer.id} className="flex items-center justify-between p-2 sm:p-3 bg-gray-50 rounded-lg">
+                    <div key={customer.id} className="flex items-center justify-between p-2 sm:p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg border dark:border-gray-700">
                       <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
-                        <div className="p-1 sm:p-1.5 bg-blue-100 rounded-full flex-shrink-0">
-                          <User className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-blue-600" />
+                        <div className="p-1 sm:p-1.5 bg-blue-100 dark:bg-blue-900/30 rounded-full flex-shrink-0">
+                          <User className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-blue-600 dark:text-blue-400" />
                         </div>
                         <div className="min-w-0">
-                          <p className="font-medium text-xs sm:text-sm truncate">{customer.name}</p>
-                          <p className="text-xs text-gray-600">{customer.phone}</p>
+                          <p className="font-medium text-xs sm:text-sm truncate text-gray-900 dark:text-gray-100">{customer.name}</p>
+                          <p className="text-xs text-gray-600 dark:text-gray-400">{customer.phone}</p>
                         </div>
                       </div>
                       <div className="text-right flex-shrink-0 ml-2">
                         <Badge variant={customer.status === 'active' ? 'default' : 'secondary'} className="text-xs">
                           {customer.status}
                         </Badge>
-                        <p className="text-xs text-gray-500 mt-1">
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                           {customer.join_date ? formatDate(customer.join_date) : 'N/A'}
                         </p>
                       </div>
@@ -321,14 +321,14 @@ const AdminDashboard = () => {
             </Card>
 
             {/* Battery Overview - List Format */}
-            <Card>
+            <Card className="border dark:border-gray-700">
               <CardHeader className="flex flex-row items-center justify-between pb-2 sm:pb-3">
                 <div>
-                  <CardTitle className="flex items-center text-base sm:text-lg">
+                  <CardTitle className="flex items-center text-base sm:text-lg text-gray-900 dark:text-gray-100">
                     <Battery className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
                     Battery Overview
                   </CardTitle>
-                  <CardDescription className="text-xs sm:text-sm">All batteries in your inventory</CardDescription>
+                  <CardDescription className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">All batteries in your inventory</CardDescription>
                 </div>
                 <Button variant="ghost" size="sm" onClick={() => setActiveSection('batteries')} className="text-xs sm:text-sm">
                   View All
@@ -337,14 +337,14 @@ const AdminDashboard = () => {
               <CardContent>
                 <div className="space-y-2 sm:space-y-3">
                   {batteries?.slice(0, 5)?.map((battery) => (
-                    <div key={battery.id} className="flex items-center justify-between p-2 sm:p-3 bg-gray-50 rounded-lg">
+                    <div key={battery.id} className="flex items-center justify-between p-2 sm:p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg border dark:border-gray-700">
                       <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
-                        <div className="p-1 sm:p-1.5 bg-purple-100 rounded-full flex-shrink-0">
-                          <Battery className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-purple-600" />
+                        <div className="p-1 sm:p-1.5 bg-purple-100 dark:bg-purple-900/30 rounded-full flex-shrink-0">
+                          <Battery className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-purple-600 dark:text-purple-400" />
                         </div>
                         <div className="min-w-0">
-                          <p className="font-medium text-xs sm:text-sm truncate">{battery.serial_number}</p>
-                          <p className="text-xs text-gray-600">{battery.model_name || battery.model}</p>
+                          <p className="font-medium text-xs sm:text-sm truncate text-gray-900 dark:text-gray-100">{battery.serial_number}</p>
+                          <p className="text-xs text-gray-600 dark:text-gray-400">{battery.model_name || battery.model}</p>
                         </div>
                       </div>
                       <div className="text-right flex-shrink-0 ml-2">
@@ -357,7 +357,7 @@ const AdminDashboard = () => {
                             {battery.status}
                           </Badge>
                         </div>
-                        <p className="text-xs text-gray-500">
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
                           {battery.created_at ? formatDate(battery.created_at) : 'N/A'}
                         </p>
                       </div>

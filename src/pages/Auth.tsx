@@ -55,30 +55,30 @@ const Auth = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-gray-100 flex flex-col items-center justify-center p-4">
       {/* Logo Section */}
-      <div className="mb-8 text-center">
+      <div className="mb-6 text-center">
         <img 
           src="/lovable-uploads/85af4ab6-61ef-4620-bef4-36c9fd03e195.png" 
           alt="Blumos Logo" 
-          className="h-16 sm:h-20 lg:h-24 mx-auto mb-6 drop-shadow-sm"
+          className="h-12 sm:h-16 md:h-20 mx-auto mb-4 drop-shadow-sm"
         />
-        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-2">
+        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-2">
           Battery Management Platform
         </h1>
-        <p className="text-base sm:text-lg text-gray-600 max-w-md mx-auto">
+        <p className="text-sm sm:text-base text-gray-600 max-w-sm mx-auto px-2">
           Sign in to access your dashboard
         </p>
       </div>
 
       {/* Login Card */}
-      <Card className="w-full max-w-md shadow-xl border-0 bg-white/80 backdrop-blur-sm">
-        <CardHeader className="text-center pb-6">
-          <CardTitle className="text-2xl font-semibold text-gray-900">Welcome Back</CardTitle>
-          <CardDescription className="text-gray-600">
+      <Card className="w-full max-w-sm shadow-xl border-0 bg-white/80 backdrop-blur-sm">
+        <CardHeader className="text-center pb-4">
+          <CardTitle className="text-xl font-semibold text-gray-900">Welcome Back</CardTitle>
+          <CardDescription className="text-sm text-gray-600">
             Enter your credentials to continue
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-6">
-          <form onSubmit={handleSubmit} className="space-y-5">
+        <CardContent className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="username" className="text-sm font-medium text-gray-700">
                 Username
@@ -91,7 +91,7 @@ const Auth = () => {
                 onChange={(e) => setUsername(e.target.value)}
                 required
                 disabled={loading}
-                className="h-12 text-base border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+                className="h-10 text-sm border-gray-200 focus:border-blue-500 focus:ring-blue-500"
               />
             </div>
             
@@ -107,18 +107,18 @@ const Auth = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 disabled={loading}
-                className="h-12 text-base border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+                className="h-10 text-sm border-gray-200 focus:border-blue-500 focus:ring-blue-500"
               />
             </div>
 
             <Button 
               type="submit" 
-              className="w-full h-12 text-base bg-blue-600 hover:bg-blue-700 focus:ring-blue-500 font-medium" 
+              className="w-full h-10 text-sm bg-blue-600 hover:bg-blue-700 focus:ring-blue-500 font-medium" 
               disabled={loading}
             >
               {loading ? (
                 <div className="flex items-center justify-center space-x-2">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
                   <span>Signing In...</span>
                 </div>
               ) : (
@@ -128,14 +128,14 @@ const Auth = () => {
 
             {error && (
               <Alert variant="destructive" className="border-red-200">
-                <AlertDescription className="text-sm">{error}</AlertDescription>
+                <AlertDescription className="text-xs">{error}</AlertDescription>
               </Alert>
             )}
 
             {/* Demo Credentials */}
-            <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
-              <p className="text-sm font-medium text-blue-900 mb-2">Demo Credentials:</p>
-              <div className="space-y-1 text-xs text-blue-700">
+            <div className="bg-blue-50 border border-blue-200 p-3 rounded-lg">
+              <p className="text-xs font-medium text-blue-900 mb-1">Demo Credentials:</p>
+              <div className="space-y-0.5 text-xs text-blue-700">
                 <p><strong>Admin:</strong> username: admin, password: admin</p>
                 <p><strong>Partner:</strong> Contact admin for credentials</p>
               </div>
@@ -145,7 +145,7 @@ const Auth = () => {
       </Card>
 
       {/* Footer */}
-      <div className="mt-8 text-center text-sm text-gray-500">
+      <div className="mt-6 text-center text-xs text-gray-500">
         <p>&copy; 2024 Blumos. All rights reserved.</p>
       </div>
     </div>

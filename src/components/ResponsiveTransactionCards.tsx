@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -26,53 +27,57 @@ const ResponsiveTransactionCards = ({ transactions }: ResponsiveTransactionCards
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString();
+    return new Date(dateString).toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric',
+      year: '2-digit'
+    });
   };
 
   const formatCurrency = (amount: number) => {
-    return `$${amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
+    return `₹${amount.toLocaleString('en-IN')}`;
   };
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
       {transactions.map((transaction) => (
         <Card key={transaction.id} className="hover:shadow-md transition-shadow">
           <CardContent className="p-4">
             <div className="flex items-start justify-between mb-3">
               <div className="flex items-center space-x-2">
-                <CreditCard className="w-5 h-5 text-blue-600" />
-                <span className="font-semibold text-sm">{transaction.id.substring(0, 8)}...</span>
+                <CreditCard className="w-4 h-4 text-blue-600" />
+                <span className="font-semibold text-xs">{transaction.id.substring(0, 8)}...</span>
               </div>
               <Badge className={getStatusColor(transaction.payment_status)}>
                 {transaction.payment_status}
               </Badge>
             </div>
             
-            <div className="space-y-2 text-sm">
+            <div className="space-y-2 text-xs">
               <div className="flex justify-between">
                 <span className="text-gray-600">Date:</span>
                 <span className="font-medium">{formatDate(transaction.transaction_date)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Amount:</span>
-                <span className="font-semibold text-lg">{formatCurrency(transaction.amount)}</span>
+                <span className="font-semibold text-sm">{formatCurrency(transaction.amount)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Type:</span>
                 <span className="font-medium capitalize">{transaction.transaction_type}</span>
               </div>
-              <div className="flex justify-between">
+              <div className="flex justify-between items-center">
                 <span className="text-gray-600">Customer:</span>
-                <span className="font-medium">{transaction.customers?.name || 'N/A'}</span>
+                <span className="font-medium truncate ml-1">{transaction.customers?.name || 'N/A'}</span>
               </div>
-              <div className="flex justify-between">
+              <div className="flex justify-between items-center">
                 <span className="text-gray-600">Battery:</span>
-                <span className="font-medium text-xs">{transaction.batteries?.serial_number || 'N/A'}</span>
+                <span className="font-medium text-xs truncate ml-1">{transaction.batteries?.serial_number || 'N/A'}</span>
               </div>
             </div>
             
             <div className="mt-4">
-              <Button variant="outline" size="sm" className="w-full">
+              <Button variant="outline" size="sm" className="w-full text-xs">
                 <Eye className="w-3 h-3 mr-1" />
                 View Details
               </Button>

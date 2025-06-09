@@ -44,19 +44,19 @@ const ResponsiveBatteryCards = ({ batteries, onViewDetails }: ResponsiveBatteryC
   };
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
       {batteries.map((battery) => (
-        <Card key={battery.id} className="hover:shadow-lg transition-all duration-200 border-2">
-          <CardContent className="p-6">
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex items-center space-x-2 flex-1">
-                <BatteryIcon className="w-5 h-5 text-blue-600 flex-shrink-0" />
+        <Card key={battery.id} className="hover:shadow-md transition-all duration-200 border">
+          <CardContent className="p-4">
+            <div className="flex items-start justify-between mb-3">
+              <div className="flex items-center space-x-2 flex-1 min-w-0">
+                <BatteryIcon className="w-4 h-4 text-blue-600 flex-shrink-0" />
                 <button
                   onClick={() => handleViewDetails(battery.id)}
-                  className="font-semibold text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1 transition-colors"
+                  className="font-semibold text-sm text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1 transition-colors truncate"
                 >
                   {battery.serial_number}
-                  <ExternalLink className="w-3 h-3" />
+                  <ExternalLink className="w-3 h-3 flex-shrink-0" />
                 </button>
               </div>
               <Badge className={getStatusColor(battery.status)}>
@@ -64,16 +64,16 @@ const ResponsiveBatteryCards = ({ batteries, onViewDetails }: ResponsiveBatteryC
               </Badge>
             </div>
             
-            <div className="space-y-3 text-sm">
+            <div className="space-y-2 text-xs">
               <div className="flex justify-between items-center">
                 <span className="text-gray-600 font-medium">Model Name:</span>
-                <Badge variant="outline" className="font-medium">
+                <Badge variant="outline" className="text-xs font-medium">
                   {battery.model_name || 'N/A'}
                 </Badge>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-gray-600 font-medium">Model Number:</span>
-                <span className="font-semibold">{battery.model}</span>
+                <span className="text-gray-600 font-medium">Model:</span>
+                <span className="font-semibold truncate ml-1">{battery.model}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-gray-600 font-medium">Capacity:</span>
@@ -82,24 +82,24 @@ const ResponsiveBatteryCards = ({ batteries, onViewDetails }: ResponsiveBatteryC
               {userRole === 'admin' && (
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600 font-medium">Partner:</span>
-                  <span className={`font-semibold text-xs ${!battery.partner_id ? 'text-gray-500 italic' : ''}`}>
+                  <span className={`font-semibold text-xs truncate ml-1 ${!battery.partner_id ? 'text-gray-500 italic' : ''}`}>
                     {getPartnerName(battery)}
                   </span>
                 </div>
               )}
             </div>
             
-            <div className="flex space-x-2 mt-6">
+            <div className="flex space-x-2 mt-4">
               <Button 
                 variant="outline" 
                 size="sm" 
-                className="flex-1 hover:bg-blue-50"
+                className="flex-1 hover:bg-blue-50 text-xs"
                 onClick={() => handleViewDetails(battery.id)}
               >
                 <Eye className="w-3 h-3 mr-1" />
                 View
               </Button>
-              <Button variant="outline" size="sm" className="flex-1 hover:bg-gray-50">
+              <Button variant="outline" size="sm" className="flex-1 hover:bg-gray-50 text-xs">
                 <Edit className="w-3 h-3 mr-1" />
                 Edit
               </Button>

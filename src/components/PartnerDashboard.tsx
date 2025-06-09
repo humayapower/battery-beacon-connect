@@ -52,7 +52,7 @@ const PartnerDashboard = () => {
     <Sidebar className="border-r">
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel className="text-lg font-semibold text-gray-800 mb-4 px-2">
+          <SidebarGroupLabel className="text-base sm:text-lg font-semibold text-gray-800 mb-3 sm:mb-4 px-2">
             Partner Portal
           </SidebarGroupLabel>
           <SidebarGroupContent>
@@ -65,9 +65,9 @@ const PartnerDashboard = () => {
                     onClick={() => setActiveSection(item.key)}
                     className="w-full justify-start"
                   >
-                    <button className="flex items-center space-x-3 w-full p-3 text-left">
-                      <item.icon className="w-5 h-5 flex-shrink-0" />
-                      <span className="truncate">{item.title}</span>
+                    <button className="flex items-center space-x-2 sm:space-x-3 w-full p-2 sm:p-3 text-left">
+                      <item.icon className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+                      <span className="truncate text-sm sm:text-base">{item.title}</span>
                     </button>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -75,13 +75,13 @@ const PartnerDashboard = () => {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-        <div className="mt-auto p-4">
+        <div className="mt-auto p-3 sm:p-4">
           <Button 
             variant="outline" 
-            className="w-full justify-start" 
+            className="w-full justify-start text-sm" 
             onClick={signOut}
           >
-            <LogOut className="w-4 h-4 mr-2" />
+            <LogOut className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
             <span className="truncate">Sign Out</span>
           </Button>
         </div>
@@ -93,24 +93,24 @@ const PartnerDashboard = () => {
     switch (activeSection) {
       case 'overview':
         return (
-          <div className="space-y-4 lg:space-y-6">
-            <div className="px-4 sm:px-0">
-              <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-2">Partner Dashboard</h2>
-              <p className="text-sm lg:text-base text-gray-600">Manage your battery inventory and customer relationships.</p>
+          <div className="space-y-4 sm:space-y-6">
+            <div className="px-3 sm:px-0">
+              <h2 className="text-lg sm:text-xl lg:text-2xl xl:text-3xl font-bold text-gray-900 mb-1 sm:mb-2">Partner Dashboard</h2>
+              <p className="text-xs sm:text-sm lg:text-base text-gray-600">Manage your battery inventory and customer relationships.</p>
             </div>
             
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6 px-4 sm:px-0">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6 px-3 sm:px-0">
               {stats.map((stat, index) => (
                 <Card key={index} className="hover:shadow-md transition-shadow">
-                  <CardContent className="p-4 lg:p-6">
+                  <CardContent className="p-3 sm:p-4 lg:p-6">
                     <div className="flex items-center justify-between">
                       <div className="min-w-0 flex-1">
-                        <p className="text-xs lg:text-sm font-medium text-gray-600 truncate">{stat.title}</p>
-                        <p className="text-lg lg:text-2xl font-bold text-gray-900">{stat.value}</p>
-                        <p className="text-xs lg:text-sm text-green-600">{stat.change}</p>
+                        <p className="text-xs sm:text-sm lg:text-sm font-medium text-gray-600 truncate">{stat.title}</p>
+                        <p className="text-base sm:text-lg lg:text-2xl font-bold text-gray-900">{stat.value}</p>
+                        <p className="text-xs sm:text-sm lg:text-sm text-green-600">{stat.change}</p>
                       </div>
-                      <div className={`p-2 lg:p-3 rounded-full ${stat.color} flex-shrink-0 ml-3`}>
-                        <stat.icon className="w-4 h-4 lg:w-6 lg:h-6 text-white" />
+                      <div className={`p-1.5 sm:p-2 lg:p-3 rounded-full ${stat.color} flex-shrink-0 ml-2 sm:ml-3`}>
+                        <stat.icon className="w-3 h-3 sm:w-4 sm:h-4 lg:w-6 lg:h-6 text-white" />
                       </div>
                     </div>
                   </CardContent>
@@ -118,55 +118,55 @@ const PartnerDashboard = () => {
               ))}
             </div>
 
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 lg:gap-6 px-4 sm:px-0">
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6 px-3 sm:px-0">
               <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg lg:text-xl">Battery Status Overview</CardTitle>
-                  <CardDescription className="text-sm lg:text-base">Current status of your assigned batteries</CardDescription>
+                <CardHeader className="pb-3 sm:pb-4">
+                  <CardTitle className="text-base sm:text-lg xl:text-xl">Battery Status Overview</CardTitle>
+                  <CardDescription className="text-xs sm:text-sm lg:text-base">Current status of your assigned batteries</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-3">
+                  <div className="space-y-2 sm:space-y-3">
                     <div className="flex justify-between items-center">
                       <div className="flex items-center space-x-2 min-w-0 flex-1">
-                        <Badge className="bg-green-100 text-green-800 flex-shrink-0">Available</Badge>
-                        <span className="text-sm truncate">Ready for assignment</span>
+                        <Badge className="bg-green-100 text-green-800 flex-shrink-0 text-xs">Available</Badge>
+                        <span className="text-xs sm:text-sm truncate">Ready for assignment</span>
                       </div>
-                      <span className="font-semibold ml-2">{availableBatteries}</span>
+                      <span className="font-semibold ml-2 text-sm sm:text-base">{availableBatteries}</span>
                     </div>
                     <div className="flex justify-between items-center">
                       <div className="flex items-center space-x-2 min-w-0 flex-1">
-                        <Badge className="bg-blue-100 text-blue-800 flex-shrink-0">Assigned</Badge>
-                        <span className="text-sm truncate">With customers</span>
+                        <Badge className="bg-blue-100 text-blue-800 flex-shrink-0 text-xs">Assigned</Badge>
+                        <span className="text-xs sm:text-sm truncate">With customers</span>
                       </div>
-                      <span className="font-semibold ml-2">{assignedBatteries}</span>
+                      <span className="font-semibold ml-2 text-sm sm:text-base">{assignedBatteries}</span>
                     </div>
                     <div className="flex justify-between items-center">
                       <div className="flex items-center space-x-2 min-w-0 flex-1">
-                        <Badge className="bg-orange-100 text-orange-800 flex-shrink-0">Maintenance</Badge>
-                        <span className="text-sm truncate">Under service</span>
+                        <Badge className="bg-orange-100 text-orange-800 flex-shrink-0 text-xs">Maintenance</Badge>
+                        <span className="text-xs sm:text-sm truncate">Under service</span>
                       </div>
-                      <span className="font-semibold ml-2">{maintenanceBatteries}</span>
+                      <span className="font-semibold ml-2 text-sm sm:text-base">{maintenanceBatteries}</span>
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
               <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg lg:text-xl">Quick Actions</CardTitle>
-                  <CardDescription className="text-sm lg:text-base">Common partner tasks</CardDescription>
+                <CardHeader className="pb-3 sm:pb-4">
+                  <CardTitle className="text-base sm:text-lg xl:text-xl">Quick Actions</CardTitle>
+                  <CardDescription className="text-xs sm:text-sm lg:text-base">Common partner tasks</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-3">
-                  <Button className="w-full justify-start" variant="outline">
-                    <Plus className="w-4 h-4 mr-2" />
+                <CardContent className="space-y-2 sm:space-y-3">
+                  <Button className="w-full justify-start text-xs sm:text-sm" variant="outline">
+                    <Plus className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
                     Assign Battery to Customer
                   </Button>
-                  <Button className="w-full justify-start" variant="outline">
-                    <User className="w-4 h-4 mr-2" />
+                  <Button className="w-full justify-start text-xs sm:text-sm" variant="outline">
+                    <User className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
                     Add New Customer
                   </Button>
-                  <Button className="w-full justify-start" variant="outline">
-                    <CreditCard className="w-4 h-4 mr-2" />
+                  <Button className="w-full justify-start text-xs sm:text-sm" variant="outline">
+                    <CreditCard className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
                     Record Payment
                   </Button>
                 </CardContent>
@@ -181,7 +181,7 @@ const PartnerDashboard = () => {
       case 'transactions':
         return <TransactionTable isAdmin={false} />;
       default:
-        return <div className="text-center py-12">Section under development</div>;
+        return <div className="text-center py-8 sm:py-12 text-sm sm:text-base">Section under development</div>;
     }
   };
 
@@ -190,16 +190,16 @@ const PartnerDashboard = () => {
       <div className="min-h-screen flex w-full bg-gray-50">
         <AppSidebar />
         <SidebarInset className="flex-1 min-w-0">
-          <div className="border-b bg-white px-4 lg:px-6 py-3 lg:py-4">
+          <div className="border-b bg-white px-3 sm:px-4 lg:px-6 py-2 sm:py-3 lg:py-4">
             <div className="flex items-center justify-between">
               <SidebarTrigger className="lg:hidden" />
-              <div className="flex items-center space-x-2 lg:space-x-4 ml-auto">
-                <span className="text-xs lg:text-sm text-gray-600 truncate">Welcome, {user?.name || user?.username}</span>
+              <div className="flex items-center space-x-1 sm:space-x-2 lg:space-x-4 ml-auto">
+                <span className="text-xs sm:text-sm lg:text-sm text-gray-600 truncate">Welcome, {user?.name || user?.username}</span>
                 <Badge className="bg-green-100 text-green-800 text-xs">Partner</Badge>
               </div>
             </div>
           </div>
-          <div className="p-4 lg:p-6 overflow-auto">
+          <div className="p-3 sm:p-4 lg:p-6 overflow-auto">
             {renderContent()}
           </div>
         </SidebarInset>

@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { getBatteryStatusColor } from '@/utils/statusColors';
 import { getPartnerName } from '@/utils/formatters';
+import { Battery } from 'lucide-react';
 import AddBatteryModal from '../../modals/AddBatteryModal';
 import AssignBatteryModal from '../../modals/AssignBatteryModal';
 import ResponsiveBatteryCards from './ResponsiveBatteryCards';

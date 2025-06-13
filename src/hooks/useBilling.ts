@@ -113,16 +113,7 @@ export const useBilling = () => {
             .order('transaction_date', { ascending: false })
         );
 
-        // Fetch Payment Ledger
-        fetchPromises.push(
-          supabase
-            .from('payment_ledger')
-            .select('*')
-            .eq('customer_id', customerId)
-            .order('payment_date', { ascending: false })
-        );
-
-        const [emisResult, rentsResult, creditsResult, transactionsResult, ledgerResult] = await Promise.all(fetchPromises);
+        const [emisResult, rentsResult, creditsResult, transactionsResult] = await Promise.all(fetchPromises);
 
         // Handle errors for critical data
         if (emisResult.error && emisResult.error.code !== 'PGRST116') {
@@ -142,10 +133,6 @@ export const useBilling = () => {
         if (transactionsResult.error && transactionsResult.error.code !== 'PGRST116') {
           console.error('Error fetching transactions:', transactionsResult.error);
           throw transactionsResult.error;
-        }
-
-        if (ledgerResult.error && ledgerResult.error.code !== 'PGRST116') {
-          console.error('Error fetching ledger:', ledgerResult.error);
         }
 
         // Type cast the data to ensure proper typing
@@ -215,7 +202,7 @@ export const useBilling = () => {
           rents,
           credits: creditsResult.data || { id: '', customer_id: customerId, credit_balance: 0, updated_at: '' },
           transactions: transactionsResult.data || [],
-          ledger: ledgerResult.data || [],
+          ledger: [], // Using empty array since payment_ledger table doesn't exist
           totalPaid,
           totalDue,
           nextDueDate,

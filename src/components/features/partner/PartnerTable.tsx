@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Phone } from 'lucide-react';
+import { Phone, Users } from 'lucide-react';
 import CreatePartnerModal from '../../modals/CreatePartnerModal';
 import PartnerProfile from './PartnerProfile';
 import { SearchAndFilters } from '../../shared/SearchAndFilters';

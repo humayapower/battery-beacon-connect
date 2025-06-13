@@ -29,10 +29,21 @@ export class BillingService {
       .eq('customer_id', customerId)
       .neq('payment_status', 'paid');
 
+    // Type cast the payment status to ensure compatibility
+    const typedEmis: EMI[] = (emis || []).map(emi => ({
+      ...emi,
+      payment_status: emi.payment_status as PaymentStatus
+    }));
+
+    const typedRents: MonthlyRent[] = (rents || []).map(rent => ({
+      ...rent,
+      payment_status: rent.payment_status as PaymentStatus
+    }));
+
     return PaymentCalculations.distributePayment(
       paymentAmount,
-      emis || [],
-      rents || [],
+      typedEmis,
+      typedRents,
       paymentType
     );
   }

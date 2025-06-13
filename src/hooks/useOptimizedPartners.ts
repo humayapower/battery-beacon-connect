@@ -26,7 +26,13 @@ export const useOptimizedPartners = () => {
         throw error;
       }
 
-      setPartners(data || []);
+      // Add default status to partners since it's missing from the RPC result
+      const partnersWithStatus: Partner[] = (data || []).map(partner => ({
+        ...partner,
+        status: 'active' // Default status since it's not in the database
+      }));
+
+      setPartners(partnersWithStatus);
     } catch (error: any) {
       console.error('Error fetching partners:', error);
       toast({

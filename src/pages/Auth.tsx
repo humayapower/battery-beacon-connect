@@ -54,27 +54,27 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center p-4">
+    <div className="min-h-screen dashboard-bg flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {/* Logo and Brand */}
         <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-slate-900 dark:bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <div className="w-20 h-20 bg-gradient-to-br from-blue-600 to-purple-600 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-2xl glass-card">
             <img 
               src="/lovable-uploads/85af4ab6-61ef-4620-bef4-36c9fd03e195.png" 
               alt="Logo" 
-              className="h-10 w-10 object-contain"
+              className="h-12 w-12 object-contain filter brightness-0 invert"
             />
           </div>
-          <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100 mb-2">
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 dark:from-gray-100 dark:to-gray-300 bg-clip-text text-transparent mb-3">
             Welcome Back
           </h1>
-          <p className="text-slate-600 dark:text-slate-400 text-sm">
-            Sign in to your account to continue
+          <p className="text-gray-600 dark:text-gray-400 text-base font-medium">
+            Sign in to your dashboard to continue
           </p>
         </div>
 
         {/* Login Card */}
-        <Card className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-lg">
+        <Card className="glass-card border-0 shadow-2xl backdrop-blur-xl">
           <CardContent className="p-6">
             <form onSubmit={handleSubmit} className="space-y-5">
               {/* Username Field */}
@@ -144,7 +144,7 @@ const Auth = () => {
               {/* Submit Button */}
               <Button 
                 type="submit" 
-                className="w-full h-11 bg-slate-900 hover:bg-slate-800 dark:bg-slate-100 dark:hover:bg-slate-200 dark:text-slate-900 font-medium transition-colors" 
+                className="w-full h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold transition-all duration-300 shadow-lg hover:shadow-xl border-0" 
                 disabled={loading}
               >
                 {loading ? (
@@ -170,9 +170,9 @@ const Auth = () => {
         </Card>
 
         {/* Footer */}
-        <div className="text-center mt-6">
-          <p className="text-xs text-slate-500 dark:text-slate-400">
-            &copy; 2024 Battery Management System
+        <div className="text-center mt-8">
+          <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">
+            &copy; 2024 Battery Beacon Connect
           </p>
         </div>
       </div>

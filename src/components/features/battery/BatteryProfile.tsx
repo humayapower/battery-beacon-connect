@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Battery, Calendar, Wrench, User, Users, Edit, MapPin } from 'lucide-react';
 import { useBatteries } from '@/hooks/useBatteries';
 import { useCustomers } from '@/hooks/useCustomers';
-import { usePartners } from '@/hooks/usePartners';
+import { useOptimizedPartners } from '@/hooks/useOptimizedPartners';
 
 interface BatteryProfileProps {
   batteryId: string;
@@ -27,7 +27,7 @@ const BatteryProfile: React.FC<BatteryProfileProps> = ({
   const navigate = useNavigate();
   const { batteries } = useBatteries();
   const { customers } = useCustomers();
-  const { partners } = usePartners();
+  const { partners } = useOptimizedPartners();
 
   const battery = batteries.find(b => b.id === batteryId);
   const customer = battery?.customer_id ? customers.find(c => c.id === battery.customer_id) : null;
@@ -56,12 +56,18 @@ const BatteryProfile: React.FC<BatteryProfileProps> = ({
   if (!battery) {
     return (
       <div className="flex items-center justify-center p-8">
-        <Card className="w-full max-w-md">
-          <CardContent className="p-6 text-center">
-            <h2 className="text-xl font-semibold mb-2">Battery Not Found</h2>
-            <p className="text-gray-600 mb-4">The battery you're looking for doesn't exist.</p>
+        <Card className="w-full max-w-md glass-card border-0 shadow-2xl">
+          <CardContent className="p-8 text-center">
+            <div className="w-16 h-16 bg-gradient-to-br from-red-500 to-red-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <Battery className="w-8 h-8 text-white" />
+            </div>
+            <h2 className="text-xl font-bold mb-3 text-gray-900 dark:text-gray-100">Battery Not Found</h2>
+            <p className="text-gray-600 dark:text-gray-400 mb-6">The battery you're looking for doesn't exist or has been removed.</p>
             {showBackButton && (
-              <Button onClick={handleBack}>Go Back</Button>
+              <Button onClick={handleBack} className="bg-gradient-to-r from-blue-500 to-blue-600 text-white border-0">
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Go Back
+              </Button>
             )}
           </CardContent>
         </Card>
@@ -94,41 +100,52 @@ const BatteryProfile: React.FC<BatteryProfileProps> = ({
   };
 
   return (
-    <div className="space-y-4 p-4 lg:p-6">
-      {/* Header */}
+    <div className="space-y-6 sm:space-y-8">
+      {/* Enhanced Header */}
       {showBackButton && (
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 p-4 sm:p-6 rounded-2xl glass-card border-0 shadow-lg">
           {/* Left Section - Back Arrow */}
           <button 
             onClick={handleBack}
-            className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-md transition-colors"
+            className="p-3 hover:bg-white/50 dark:hover:bg-black/20 rounded-xl transition-all duration-200 flex items-center gap-2 group"
           >
-            <ArrowLeft className="w-5 h-5 text-slate-600 dark:text-slate-400" />
+            <ArrowLeft className="w-5 h-5 text-gray-600 dark:text-gray-400 group-hover:text-gray-800 dark:group-hover:text-gray-200" />
+            <span className="hidden sm:inline text-sm font-medium text-gray-600 dark:text-gray-400 group-hover:text-gray-800 dark:group-hover:text-gray-200">Back</span>
           </button>
 
+          {/* Center Section - Battery Info */}
+          <div className="text-center">
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
+              🔋 {battery.serial_number}
+            </h1>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{battery.model_name || battery.model}</p>
+          </div>
+
           {/* Right Section - Status & Actions */}
-          <div className="flex items-center gap-2">
-            <Badge className={`${getStatusColor(battery.status)} border text-xs px-2 py-1`} variant="outline">
+          <div className="flex items-center gap-3">
+            <Badge className={`${getStatusColor(battery.status)} border-0 text-xs px-3 py-1 font-semibold shadow-sm`}>
               {battery.status.charAt(0).toUpperCase() + battery.status.slice(1)}
             </Badge>
-            <Button variant="outline" size="sm" className="flex items-center gap-2">
+            <Button variant="outline" size="sm" className="glass-card border-0 shadow-sm hover:shadow-md transition-all duration-200">
               <Edit className="w-4 h-4" />
-              <span className="hidden sm:inline">Edit</span>
+              <span className="hidden sm:inline ml-2">Edit</span>
             </Button>
           </div>
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Technical Specifications */}
-        <Card className="border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
-          <CardHeader className="border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
-            <CardTitle className="text-base text-slate-900 dark:text-slate-100 font-medium flex items-center gap-2">
-              <Battery className="w-4 h-4" />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
+        {/* Enhanced Technical Specifications */}
+        <Card className="glass-card border-0 shadow-xl">
+          <CardHeader className="bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-b border-blue-200 dark:border-blue-700">
+            <CardTitle className="text-lg font-bold text-gray-900 dark:text-gray-100 flex items-center gap-3">
+              <div className="p-2 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl">
+                <Battery className="w-5 h-5 text-white" />
+              </div>
               Technical Specifications
             </CardTitle>
           </CardHeader>
-          <CardContent className="p-3">
+          <CardContent className="p-4 sm:p-6">
             <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
               <div>
                 <label className="text-xs font-medium text-slate-500 dark:text-slate-400">Serial Number</label>
@@ -175,16 +192,18 @@ const BatteryProfile: React.FC<BatteryProfileProps> = ({
           </CardContent>
         </Card>
 
-        {/* Assignment Information */}
+        {/* Enhanced Assignment Information */}
         {(customer || partner) && (
-          <Card className="border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 lg:col-span-2">
-            {/* <CardHeader className="border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
-              <CardTitle className="text-base text-slate-900 dark:text-slate-100 font-medium flex items-center gap-2">
-                <Users className="w-4 h-4" />
+          <Card className="glass-card border-0 shadow-xl">
+            <CardHeader className="bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border-b border-green-200 dark:border-green-700">
+              <CardTitle className="text-lg font-bold text-gray-900 dark:text-gray-100 flex items-center gap-3">
+                <div className="p-2 bg-gradient-to-br from-green-500 to-green-600 rounded-xl">
+                  <Users className="w-5 h-5 text-white" />
+                </div>
                 Assignment Information
               </CardTitle>
-            </CardHeader> */}
-            <CardContent className="p-3">
+            </CardHeader>
+            <CardContent className="p-4 sm:p-6">
               <div className="flex items-center justify-around gap-8">
                 {customer && (
                   <div className="text-center">
@@ -225,24 +244,28 @@ const BatteryProfile: React.FC<BatteryProfileProps> = ({
         )}
 
         {!customer && !partner && (
-          <Card className="border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 lg:col-span-2">
-            <CardContent className="p-8 text-center">
-              <Battery className="w-12 h-12 text-slate-400 mx-auto mb-3" />
-              <h3 className="text-base font-semibold mb-2 text-slate-900 dark:text-slate-100">Not Assigned</h3>
-              <p className="text-sm text-slate-600 dark:text-slate-400">This battery is not currently assigned to any customer or partner.</p>
+          <Card className="glass-card border-0 shadow-xl">
+            <CardContent className="p-8 sm:p-12 text-center">
+              <div className="w-16 h-16 bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 rounded-3xl flex items-center justify-center mx-auto mb-4">
+                <Battery className="w-8 h-8 text-gray-500 dark:text-gray-400" />
+              </div>
+              <h3 className="text-xl font-bold mb-3 text-gray-900 dark:text-gray-100">Not Assigned</h3>
+              <p className="text-base text-gray-600 dark:text-gray-400 max-w-md mx-auto">This battery is not currently assigned to any customer or partner and is available for assignment.</p>
             </CardContent>
           </Card>
         )}
 
-        {/* Warranty & Maintenance */}
-        <Card className="border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
-          <CardHeader className="border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
-            <CardTitle className="text-base text-slate-900 dark:text-slate-100 font-medium flex items-center gap-2">
-              <Calendar className="w-4 h-4" />
+        {/* Enhanced Warranty & Maintenance */}
+        <Card className="glass-card border-0 shadow-xl lg:col-span-2">
+          <CardHeader className="bg-gradient-to-r from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 border-b border-purple-200 dark:border-purple-700">
+            <CardTitle className="text-lg font-bold text-gray-900 dark:text-gray-100 flex items-center gap-3">
+              <div className="p-2 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl">
+                <Calendar className="w-5 h-5 text-white" />
+              </div>
               Warranty & Maintenance
             </CardTitle>
           </CardHeader>
-          <CardContent className="p-3">
+          <CardContent className="p-4 sm:p-6">
             <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
               <div>
                 <label className="text-xs font-medium text-slate-500 dark:text-slate-400">Warranty Period</label>

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useEffect, useMemo, memo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { ArrowLeft, User, Calendar, CreditCard, Battery, Users, Edit, Plus, TrendingUp, Receipt, DollarSign, Phone, MapPin, ChevronLeft, ChevronRight, FileText, AlertTriangle } from 'lucide-react';
 import { useCustomers } from '@/hooks/useCustomers';
 import { useBatteries } from '@/hooks/useBatteries';
-import { usePartners } from '@/hooks/usePartners';
+import { useOptimizedPartners } from '@/hooks/useOptimizedPartners';
 import { useBilling } from '@/hooks/useBilling';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { BillingDetails } from '@/types/billing';
@@ -29,7 +29,7 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({
   const isMobile = useIsMobile();
   const { customers } = useCustomers();
   const { batteries } = useBatteries();
-  const { partners } = usePartners();
+  const { partners } = useOptimizedPartners();
   const { getBillingDetails } = useBilling();
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [billingData, setBillingData] = useState<BillingDetails | null>(null);
@@ -98,15 +98,15 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({
     }
   }, [customerId, getBillingDetails, customer]);
 
-  const handleBack = () => {
+  const handleBack = useCallback(() => {
     if (onBack) {
       onBack();
     } else {
       navigate(-1);
     }
-  };
+  }, [onBack, navigate]);
 
-  const handlePaymentSuccess = async () => {
+  const handlePaymentSuccess = useCallback(async () => {
     console.log('Payment success callback triggered for customer:', customerId);
     try {
       // Clear the cache and fetch fresh data
@@ -126,7 +126,7 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [customerId, getBillingDetails]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -455,12 +455,18 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({
   if (!customer) {
     return (
       <div className="flex items-center justify-center p-8">
-        <Card className="w-full max-w-md">
-          <CardContent className="p-6 text-center">
-            <h2 className="text-xl font-semibold mb-2">Customer Not Found</h2>
-            <p className="text-muted-foreground mb-4">The customer you're looking for doesn't exist.</p>
+        <Card className="w-full max-w-md glass-card border-0 shadow-2xl">
+          <CardContent className="p-8 text-center">
+            <div className="w-16 h-16 bg-gradient-to-br from-red-500 to-red-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <User className="w-8 h-8 text-white" />
+            </div>
+            <h2 className="text-xl font-bold mb-3 text-gray-900 dark:text-gray-100">Customer Not Found</h2>
+            <p className="text-gray-600 dark:text-gray-400 mb-6">The customer you're looking for doesn't exist or has been removed.</p>
             {showBackButton && (
-              <Button onClick={handleBack}>Go Back</Button>
+              <Button onClick={handleBack} className="bg-gradient-to-r from-blue-500 to-blue-600 text-white border-0">
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Go Back
+              </Button>
             )}
           </CardContent>
         </Card>
@@ -504,24 +510,6 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({
               >
                 <Edit className="w-4 h-4" />
               </Button>
-              {import.meta.env.DEV && (
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  className="border-yellow-200 dark:border-yellow-700 text-yellow-600 dark:text-yellow-400 rounded-lg px-3"
-                  onClick={async () => {
-                    try {
-                      console.log('🔍 Running database diagnostics...');
-                      const { DatabaseDebugger } = await import('@/utils/databaseDebugger');
-                      await DatabaseDebugger.runDiagnostics(customerId);
-                    } catch (error) {
-                      console.error('Debug failed:', error);
-                    }
-                  }}
-                >
-                  Debug
-                </Button>
-              )}
             </div>
           </div>
         </div>
@@ -872,43 +860,45 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({
   // Desktop version remains unchanged
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* Enhanced Header */}
       {showBackButton && (
-        <div className="flex items-center gap-4">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={handleBack}
-            className="flex items-center gap-2"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back
-          </Button>
-          <div className="flex-1">
-            <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">{customer.name}</h1>
-          </div>
-          <div className="flex items-center gap-2">
-            <Badge className={getStatusColor(customer.status)}>
-              {customer.status.charAt(0).toUpperCase() + customer.status.slice(1)}
-            </Badge>
-            <Badge className={getPaymentTypeColor(customer.payment_type)}>
-              {getPaymentTypeLabel(customer.payment_type)}
-            </Badge>
-            {customer.payment_type !== 'one_time_purchase' && (
-              <Button 
-                variant="default" 
-                size="sm"
-                onClick={() => setIsPaymentModalOpen(true)}
-                className="flex items-center gap-2"
-              >
-                <Plus className="w-4 h-4" />
-                Record Payment
+        <div className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 p-4 sm:p-6 rounded-2xl glass-card border-0 shadow-lg">
+          <div className="flex items-center gap-4">
+            <button 
+              onClick={handleBack}
+              className="p-3 hover:bg-white/50 dark:hover:bg-black/20 rounded-xl transition-all duration-200 flex items-center gap-2 group"
+            >
+              <ArrowLeft className="w-5 h-5 text-gray-600 dark:text-gray-400 group-hover:text-gray-800 dark:group-hover:text-gray-200" />
+              <span className="text-sm font-medium text-gray-600 dark:text-gray-400 group-hover:text-gray-800 dark:group-hover:text-gray-200">Back</span>
+            </button>
+            <div className="flex-1">
+              <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-gray-100">
+                👤 {customer.name}
+              </h1>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Customer Profile</p>
+            </div>
+            <div className="flex items-center gap-3">
+              <Badge className={`${getStatusColor(customer.status)} border-0 font-semibold shadow-sm`}>
+                {customer.status.charAt(0).toUpperCase() + customer.status.slice(1)}
+              </Badge>
+              <Badge className={`${getPaymentTypeColor(customer.payment_type)} border-0 font-semibold shadow-sm`}>
+                {getPaymentTypeLabel(customer.payment_type)}
+              </Badge>
+              {customer.payment_type !== 'one_time_purchase' && (
+                <Button 
+                  size="sm"
+                  onClick={() => setIsPaymentModalOpen(true)}
+                  className="bg-gradient-to-r from-green-500 to-green-600 text-white border-0 shadow-sm hover:shadow-md transition-all duration-200"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Record Payment
+                </Button>
+              )}
+              <Button variant="outline" size="sm" className="glass-card border-0 shadow-sm hover:shadow-md transition-all duration-200">
+                <Edit className="w-4 h-4 mr-2" />
+                Edit
               </Button>
-            )}
-            <Button variant="outline" size="sm">
-              <Edit className="w-4 h-4 mr-2" />
-              Edit
-            </Button>
+            </div>
           </div>
         </div>
       )}
@@ -917,27 +907,36 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Left Side - Photo and Information */}
         <div className="lg:col-span-1 space-y-4">
-          {/* Customer Photo */}
-          <Card>
-            <CardContent className="p-4">
-              <div className="w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center mb-3 mx-auto">
+          {/* Enhanced Customer Photo */}
+          <Card className="glass-card border-0 shadow-xl">
+            <CardContent className="p-6">
+              <div className="w-24 h-24 bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900/20 dark:to-blue-800/20 rounded-2xl flex items-center justify-center mb-4 mx-auto">
                 {customer.customer_photo_url ? (
                   <img 
                     src={customer.customer_photo_url} 
                     alt={customer.name}
-                    className="w-full h-full object-cover rounded-lg"
+                    className="w-full h-full object-cover rounded-2xl"
                   />
                 ) : (
-                  <User className="w-8 h-8 text-gray-400" />
+                  <User className="w-12 h-12 text-blue-600 dark:text-blue-400" />
                 )}
+              </div>
+              <div className="text-center">
+                <h3 className="font-bold text-lg text-gray-900 dark:text-gray-100">{customer.name}</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">{customer.phone}</p>
               </div>
             </CardContent>
           </Card>
 
-          {/* Personal Information */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm">Personal Information</CardTitle>
+          {/* Enhanced Personal Information */}
+          <Card className="glass-card border-0 shadow-xl">
+            <CardHeader className="pb-3 bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-b border-blue-200 dark:border-blue-700">
+              <CardTitle className="text-base font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                <div className="p-1.5 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg">
+                  <User className="w-4 h-4 text-white" />
+                </div>
+                Personal Information
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <div>
@@ -961,12 +960,14 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({
             </CardContent>
           </Card>
 
-          {/* Battery and Partner Information */}
+          {/* Enhanced Battery and Partner Information */}
           {(battery || partner) && (
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-sm">
-                  <Battery className="w-4 h-4" />
+            <Card className="glass-card border-0 shadow-xl">
+              <CardHeader className="pb-3 bg-gradient-to-r from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 border-b border-purple-200 dark:border-purple-700">
+                <CardTitle className="flex items-center gap-3 text-base font-bold text-gray-900 dark:text-gray-100">
+                  <div className="p-2 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl">
+                    <Battery className="w-4 h-4 text-white" />
+                  </div>
                   Battery & Partner
                 </CardTitle>
               </CardHeader>
@@ -1172,4 +1173,4 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({
   );
 };
 
-export default CustomerProfile;
+export default memo(CustomerProfile);

@@ -107,16 +107,21 @@ const CreatePartnerModal = ({ onPartnerCreated }: CreatePartnerModalProps) => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
+        <Button className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300">
           <Plus className="w-4 h-4 mr-2" />
           Create Partner
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>Create New Partner</DialogTitle>
-          <DialogDescription>
-            Add a new partner to the platform.
+      <DialogContent className="max-w-2xl glass-card border-0 shadow-2xl">
+        <DialogHeader className="bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 p-6 -m-6 mb-6 rounded-t-2xl">
+          <DialogTitle className="text-2xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-3">
+            <div className="p-2 bg-gradient-to-br from-green-500 to-green-600 rounded-xl">
+              <UserPlus className="w-6 h-6 text-white" />
+            </div>
+            Create New Partner
+          </DialogTitle>
+          <DialogDescription className="text-base text-gray-600 dark:text-gray-400 mt-2">
+            Add a new partner to the platform with their credentials.
           </DialogDescription>
         </DialogHeader>
         
@@ -196,16 +201,16 @@ const CreatePartnerModal = ({ onPartnerCreated }: CreatePartnerModalProps) => {
             </Alert>
           )}
 
-          <div className="flex gap-2 pt-4">
+          <div className="flex gap-3 pt-6 border-t border-gray-200 dark:border-gray-700">
             <Button 
               type="submit" 
               disabled={loading}
-              className="flex-1"
+              className="flex-1 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300"
             >
               {loading ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  Creating...
+                  Creating Partner...
                 </>
               ) : (
                 <>
@@ -219,6 +224,7 @@ const CreatePartnerModal = ({ onPartnerCreated }: CreatePartnerModalProps) => {
               variant="outline" 
               onClick={() => setOpen(false)}
               disabled={loading}
+              className="glass-card border-0 shadow-sm hover:shadow-md transition-all duration-200"
             >
               Cancel
             </Button>

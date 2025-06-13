@@ -285,19 +285,29 @@ const AddCustomerModal = () => {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg transition-all duration-200">
+        <Button className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300">
           <Plus className="w-4 h-4 mr-2" />
           Add Customer
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-2xl font-bold">Add New Customer</DialogTitle>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto glass-card border-0 shadow-2xl">
+        <DialogHeader className="bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 p-6 -m-6 mb-6 rounded-t-2xl">
+          <DialogTitle className="text-2xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-3">
+            <div className="p-2 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl">
+              <Plus className="w-6 h-6 text-white" />
+            </div>
+            Add New Customer
+          </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Personal Information */}
-          <div className="space-y-4 p-6 bg-muted/50 rounded-lg border">
-            <h3 className="text-lg font-semibold">Personal Information</h3>
+          {/* Enhanced Personal Information */}
+          <div className="space-y-4 p-6 glass-card border-0 shadow-lg rounded-2xl">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+              <div className="p-1.5 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg">
+                <User className="w-4 h-4 text-white" />
+              </div>
+              Personal Information
+            </h3>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -383,9 +393,14 @@ const AddCustomerModal = () => {
             </div>
           </div>
 
-          {/* Aadhaar Documents */}
-          <div className="space-y-4 p-6 bg-muted/50 rounded-lg border">
-            <h3 className="text-lg font-semibold">Aadhaar Documents</h3>
+          {/* Enhanced Aadhaar Documents */}
+          <div className="space-y-4 p-6 glass-card border-0 shadow-lg rounded-2xl">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+              <div className="p-1.5 bg-gradient-to-br from-green-500 to-green-600 rounded-lg">
+                <Upload className="w-4 h-4 text-white" />
+              </div>
+              Aadhaar Documents
+            </h3>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -438,9 +453,14 @@ const AddCustomerModal = () => {
             </div>
           </div>
 
-          {/* Assignment Section */}
-          <div className="space-y-4 p-6 bg-muted/50 rounded-lg border">
-            <h3 className="text-lg font-semibold">Assignment</h3>
+          {/* Enhanced Assignment Section */}
+          <div className="space-y-4 p-6 glass-card border-0 shadow-lg rounded-2xl">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+              <div className="p-1.5 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg">
+                <Users className="w-4 h-4 text-white" />
+              </div>
+              Assignment
+            </h3>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {userRole === 'admin' && (
@@ -484,9 +504,14 @@ const AddCustomerModal = () => {
             </div>
           </div>
 
-          {/* Payment Information */}
-          <div className="space-y-4 p-6 bg-muted/50 rounded-lg border">
-            <h3 className="text-lg font-semibold">Payment Information</h3>
+          {/* Enhanced Payment Information */}
+          <div className="space-y-4 p-6 glass-card border-0 shadow-lg rounded-2xl">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+              <div className="p-1.5 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg">
+                <CreditCard className="w-4 h-4 text-white" />
+              </div>
+              Payment Information
+            </h3>
             
             <div>
               <Label htmlFor="paymentType" className="font-medium">Payment Type *</Label>
@@ -604,18 +629,21 @@ const AddCustomerModal = () => {
             )}
           </div>
 
-          <div className="flex gap-2 pt-4 border-t">
-            <Button type="submit" disabled={loading || uploading} className="flex-1">
+          <div className="flex gap-3 pt-6 border-t border-gray-200 dark:border-gray-700">
+            <Button type="submit" disabled={loading || uploading} className="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300">
               {loading || uploading ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  {uploading ? 'Uploading...' : 'Adding...'}
+                  {uploading ? 'Uploading Documents...' : 'Adding Customer...'}
                 </>
               ) : (
-                'Add Customer'
+                <>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Customer
+                </>
               )}
             </Button>
-            <Button type="button" variant="outline" onClick={() => {setIsOpen(false); resetForm();}}>
+            <Button type="button" variant="outline" onClick={() => {setIsOpen(false); resetForm();}} className="glass-card border-0 shadow-sm hover:shadow-md transition-all duration-200">
               Cancel
             </Button>
           </div>

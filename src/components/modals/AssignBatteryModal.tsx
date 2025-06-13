@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { UserPlus, Battery as BatteryIcon } from 'lucide-react';
 import { useBatteries } from '@/hooks/useBatteries';
-import { usePartners } from '@/hooks/usePartners';
+import { useOptimizedPartners } from '@/hooks/useOptimizedPartners';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
@@ -20,7 +20,7 @@ const AssignBatteryModal = () => {
   const [loading, setLoading] = useState(false);
   
   const { batteries, updateBattery, refetch } = useBatteries();
-  const { partners } = usePartners();
+  const { partners } = useOptimizedPartners();
   const { userRole } = useAuth();
   const { toast } = useToast();
 

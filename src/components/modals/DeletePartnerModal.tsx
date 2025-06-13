@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Trash2, AlertTriangle } from 'lucide-react';
-import { usePartners } from '@/hooks/usePartners';
+import { useOptimizedPartners } from '@/hooks/useOptimizedPartners';
 import { useToast } from '@/hooks/use-toast';
 import { Partner } from '@/types';
 
@@ -16,7 +16,7 @@ interface DeletePartnerModalProps {
 const DeletePartnerModal = ({ partner, onPartnerDeleted }: DeletePartnerModalProps) => {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const { deletePartner } = usePartners();
+  const { deletePartner } = useOptimizedPartners();
   const { toast } = useToast();
 
   const handleDelete = async () => {

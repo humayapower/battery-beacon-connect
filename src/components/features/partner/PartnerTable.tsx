@@ -50,8 +50,12 @@ const PartnerTable = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
+      <div className="flex items-center justify-center py-16">
+        <div className="text-center glass-card p-8 rounded-2xl">
+          <div className="pulse-loader w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-base font-medium text-gray-700 dark:text-gray-300">Loading partners...</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">Please wait while we fetch the data</p>
+        </div>
       </div>
     );
   }
@@ -70,11 +74,13 @@ const PartnerTable = () => {
   }
 
   return (
-    <div className="space-y-6 p-4 lg:p-6">
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+    <div className="space-y-6 sm:space-y-8">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 sm:gap-6">
         <div>
-          <h2 className="text-3xl lg:text-4xl font-bold mb-2">Partners</h2>
-          <p className="text-base lg:text-lg text-muted-foreground">
+          <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 dark:from-gray-100 dark:to-gray-300 bg-clip-text text-transparent mb-2">
+            🤝 Business Partners
+          </h1>
+          <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 font-medium">
             Manage your business partners and their operations
           </p>
         </div>
@@ -88,30 +94,42 @@ const PartnerTable = () => {
         placeholder="Search partners by name, phone, or username..."
       />
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        <Card className="border-2 hover:shadow-lg transition-all duration-200">
-          <CardContent className="p-6 text-center">
-            <div className="text-2xl lg:text-3xl font-bold text-primary mb-1">{stats.total}</div>
-            <div className="text-sm lg:text-base text-muted-foreground">Total Partners</div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+        <Card className="stat-card glass-card hover:shadow-2xl transition-all duration-300 border-0">
+          <CardContent className="p-4 sm:p-6 text-center">
+            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-3">
+              <Users className="w-6 h-6 text-white" />
+            </div>
+            <div className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100 mb-1">{stats.total}</div>
+            <div className="text-xs sm:text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide">Total Partners</div>
           </CardContent>
         </Card>
-        <Card className="border-2 hover:shadow-lg transition-all duration-200">
-          <CardContent className="p-6 text-center">
-            <div className="text-2xl lg:text-3xl font-bold text-green-600 mb-1">{stats.active}</div>
-            <div className="text-sm lg:text-base text-muted-foreground">Active</div>
+        <Card className="stat-card glass-card hover:shadow-2xl transition-all duration-300 border-0">
+          <CardContent className="p-4 sm:p-6 text-center">
+            <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl flex items-center justify-center mx-auto mb-3">
+              <Users className="w-6 h-6 text-white" />
+            </div>
+            <div className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100 mb-1">{stats.active}</div>
+            <div className="text-xs sm:text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide">Active</div>
           </CardContent>
         </Card>
-        <Card className="border-2 hover:shadow-lg transition-all duration-200">
-          <CardContent className="p-6 text-center">
-            <div className="text-2xl lg:text-3xl font-bold text-yellow-600 mb-1">{stats.suspended}</div>
-            <div className="text-sm lg:text-base text-muted-foreground">Suspended</div>
+        <Card className="stat-card glass-card hover:shadow-2xl transition-all duration-300 border-0">
+          <CardContent className="p-4 sm:p-6 text-center">
+            <div className="w-12 h-12 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-2xl flex items-center justify-center mx-auto mb-3">
+              <Users className="w-6 h-6 text-white" />
+            </div>
+            <div className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100 mb-1">{stats.suspended}</div>
+            <div className="text-xs sm:text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide">Suspended</div>
           </CardContent>
         </Card>
       </div>
 
-      <Card className="border-2 shadow-lg">
-        <CardHeader>
-          <CardTitle className="text-xl">Partner Management</CardTitle>
+      <Card className="glass-card border-0 shadow-xl">
+        <CardHeader className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 border-b border-gray-200 dark:border-gray-600">
+          <CardTitle className="text-lg font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+            <Users className="w-5 h-5" />
+            Partner Management
+          </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           {filteredPartners.length > 0 ? (
@@ -172,11 +190,17 @@ const PartnerTable = () => {
               </div>
             </ScrollArea>
           ) : (
-            <div className="text-center py-12 px-6">
-              <p className="text-muted-foreground mb-6 text-lg">
+            <div className="text-center py-16 px-6">
+              <div className="w-20 h-20 bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                <Users className="w-10 h-10 text-gray-500 dark:text-gray-400" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-3">
+                {searchTerm || Object.keys(filters).length > 0 ? "No Partners Found" : "No Partners Yet"}
+              </h3>
+              <p className="text-gray-600 dark:text-gray-400 mb-6 text-base max-w-md mx-auto">
                 {searchTerm || Object.keys(filters).length > 0 
-                  ? "No partners found matching your search criteria." 
-                  : "No partners found. Add your first partner to get started."
+                  ? "No partners found matching your search criteria. Try adjusting your filters." 
+                  : "Add your first partner to get started with partner management."
                 }
               </p>
               {(!searchTerm && Object.keys(filters).length === 0) && <CreatePartnerModal />}

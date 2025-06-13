@@ -50,36 +50,36 @@ const ResponsiveCustomerCards = ({ customers, onViewDetails }: ResponsiveCustome
   };
 
   return (
-    <div className="space-y-1">
+    <div className="space-y-2">
       {customers.map((customer, index) => (
         <div 
           key={customer.id} 
-          className={`bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/70 transition-colors ${
-            index === 0 ? 'rounded-t-lg' : ''
-          } ${index === customers.length - 1 ? 'rounded-b-lg' : 'border-b-0'}`}
+          className={`glass-card hover:shadow-lg transition-all duration-300 border-0 ${
+            index === 0 ? 'rounded-t-2xl' : ''
+          } ${index === customers.length - 1 ? 'rounded-b-2xl' : ''} hover:scale-[1.02]`}
         >
-          <div className="p-4">
-            {/* Compact Three-Column Layout */}
-            <div className="flex items-center justify-between gap-2">
+          <div className="p-4 sm:p-5">
+            {/* Enhanced Three-Column Layout */}
+            <div className="flex items-center justify-between gap-3">
               {/* Column 1: Name, Phone */}
               <div className="flex-1 min-w-0">
                 <button
                   onClick={() => onViewDetails(customer.id)}
-                  className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:underline transition-colors text-left block truncate"
+                  className="text-sm sm:text-base font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:underline transition-colors text-left block truncate"
                   title={customer.name}
                 >
-                  {customer.name}
+                  👤 {customer.name}
                 </button>
                 {customer.phone ? (
                   <button
                     onClick={() => handlePhoneCall(customer.phone)}
-                    className="flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors mt-0.5"
+                    className="flex items-center gap-2 text-xs sm:text-sm text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors mt-1 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-lg"
                   >
                     <Phone className="w-3 h-3" />
                     {customer.phone}
                   </button>
                 ) : (
-                  <span className="text-xs text-slate-400 flex items-center gap-1 mt-0.5">
+                  <span className="text-xs sm:text-sm text-gray-400 dark:text-gray-500 flex items-center gap-2 mt-1 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-lg">
                     <Phone className="w-3 h-3" />
                     N/A
                   </span>
@@ -88,23 +88,22 @@ const ResponsiveCustomerCards = ({ customers, onViewDetails }: ResponsiveCustome
               
               {/* Column 2: Battery, Partner */}
               <div className="flex-1 min-w-0 text-center">
-                <div className="text-xs text-slate-600 dark:text-slate-400 font-mono truncate">
+                <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 font-mono truncate bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-lg mb-1">
                   {customer.batteries?.serial_number || 'Unassigned'}
                 </div>
                 {userRole === 'admin' && (
-                  <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 truncate">
-                    <span className={!customer.partner_id ? 'italic text-slate-400' : ''}>
+                  <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 truncate">
+                    <span className={!customer.partner_id ? 'italic text-gray-400 dark:text-gray-500' : 'font-medium'}>
                       {getPartnerName(customer)}
                     </span>
                   </div>
                 )}
               </div>
               
-              {/* Column 3: Payment Badge */}
+              {/* Column 3: Enhanced Payment Badge */}
               <div className="flex-shrink-0">
                 <Badge 
-                  className={`${getPaymentTypeColor(customer.payment_type)} text-xs px-2 py-1 font-medium`}
-                  variant="outline"
+                  className={`${getPaymentTypeColor(customer.payment_type)} text-xs sm:text-sm px-3 py-1.5 font-semibold border-0 shadow-sm`}
                 >
                   {getPaymentTypeLabel(customer.payment_type)}
                 </Badge>

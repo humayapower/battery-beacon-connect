@@ -74,11 +74,11 @@ const AdminDashboard = () => {
   };
 
   const AppSidebar = () => (
-    <Sidebar className="border-r">
+    <Sidebar className="sidebar-gradient">
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 px-2">
-            Battery Leasing
+          <SidebarGroupLabel className="text-base sm:text-lg font-bold mb-3 sm:mb-4 px-2 text-primary">
+            ⚡ Battery Leasing
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -133,72 +133,84 @@ const AdminDashboard = () => {
               </div>
             </div>
 
-            {/* Stats Cards - 2x2 Grid with reduced width */}
-            <div className="grid grid-cols-2 gap-3 sm:gap-4 max-w-xl">
-              <Card className="border dark:border-gray-700">
-                <CardContent className="p-3 sm:p-4">
+            {/* Stats Cards - Enhanced Professional Design */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+              <Card className="stat-card glass-card hover:shadow-2xl transition-all duration-300 border-0">
+                <CardContent className="p-4 sm:p-6">
                   <div className="flex items-center justify-between">
                     <div className="min-w-0">
-                      <p className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 truncate">Total Customers</p>
-                      <p className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-gray-100">{stats.totalCustomers}</p>
-                      <p className="text-xs sm:text-sm text-green-600 dark:text-green-400">+12% from last month</p>
+                      <p className="text-xs sm:text-sm font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wide truncate">Total Customers</p>
+                      <p className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100 mt-1">{stats.totalCustomers}</p>
+                      <div className="flex items-center mt-2">
+                        <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                        <p className="text-xs sm:text-sm text-green-600 dark:text-green-400 font-medium">+12% from last month</p>
+                      </div>
                     </div>
-                    <div className="p-1.5 sm:p-2 bg-blue-100 dark:bg-blue-900/20 rounded-full flex-shrink-0 ml-2">
-                      <User className="w-3 h-3 sm:w-5 sm:h-5 text-blue-600 dark:text-blue-400" />
+                    <div className="p-3 sm:p-4 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex-shrink-0 ml-3 shadow-lg">
+                      <User className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card className="border dark:border-gray-700">
-                <CardContent className="p-3 sm:p-4">
+              <Card className="stat-card glass-card hover:shadow-2xl transition-all duration-300 border-0">
+                <CardContent className="p-4 sm:p-6">
                   <div className="flex items-center justify-between">
                     <div className="min-w-0">
-                      <p className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 truncate">Total Partners</p>
-                      <p className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-gray-100">{stats.totalPartners}</p>
-                      <p className="text-xs sm:text-sm text-green-600 dark:text-green-400">+5% from last month</p>
+                      <p className="text-xs sm:text-sm font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wide truncate">Total Partners</p>
+                      <p className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100 mt-1">{stats.totalPartners}</p>
+                      <div className="flex items-center mt-2">
+                        <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                        <p className="text-xs sm:text-sm text-green-600 dark:text-green-400 font-medium">+5% from last month</p>
+                      </div>
                     </div>
-                    <div className="p-1.5 sm:p-2 bg-green-100 dark:bg-green-900/20 rounded-full flex-shrink-0 ml-2">
-                      <Users className="w-3 h-3 sm:w-5 sm:h-5 text-green-600 dark:text-green-400" />
+                    <div className="p-3 sm:p-4 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl flex-shrink-0 ml-3 shadow-lg">
+                      <Users className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card className="border dark:border-gray-700">
-                <CardContent className="p-3 sm:p-4">
+              <Card className="stat-card glass-card hover:shadow-2xl transition-all duration-300 border-0">
+                <CardContent className="p-4 sm:p-6">
                   <div className="flex items-center justify-between">
                     <div className="min-w-0">
-                      <p className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 truncate">Total Batteries</p>
-                      <p className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-gray-100">{stats.totalBatteries}</p>
-                      <p className="text-xs sm:text-sm text-green-600 dark:text-green-400">Active inventory</p>
+                      <p className="text-xs sm:text-sm font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wide truncate">Total Batteries</p>
+                      <p className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100 mt-1">{stats.totalBatteries}</p>
+                      <div className="flex items-center mt-2">
+                        <div className="w-2 h-2 bg-purple-500 rounded-full mr-2"></div>
+                        <p className="text-xs sm:text-sm text-purple-600 dark:text-purple-400 font-medium">Active inventory</p>
+                      </div>
                     </div>
-                    <div className="p-1.5 sm:p-2 bg-purple-100 dark:bg-purple-900/20 rounded-full flex-shrink-0 ml-2">
-                      <Battery className="w-3 h-3 sm:w-5 sm:h-5 text-purple-600 dark:text-purple-400" />
+                    <div className="p-3 sm:p-4 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex-shrink-0 ml-3 shadow-lg">
+                      <Battery className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card className="border dark:border-gray-700">
-                <CardContent className="p-3 sm:p-4">
+              <Card className="stat-card glass-card hover:shadow-2xl transition-all duration-300 border-0">
+                <CardContent className="p-4 sm:p-6">
                   <div className="flex items-center justify-between">
                     <div className="min-w-0">
-                      <p className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 truncate">Overdue Payments</p>
-                      <p className="text-lg sm:text-2xl font-bold text-red-600 dark:text-red-400">{stats.overdueCount}</p>
-                      <p className="text-xs sm:text-sm text-red-600 dark:text-red-400">Needs attention</p>
+                      <p className="text-xs sm:text-sm font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wide truncate">Overdue Payments</p>
+                      <p className="text-2xl sm:text-3xl font-bold text-red-600 dark:text-red-400 mt-1">{stats.overdueCount}</p>
+                      <div className="flex items-center mt-2">
+                        <div className="w-2 h-2 bg-red-500 rounded-full mr-2 animate-pulse"></div>
+                        <p className="text-xs sm:text-sm text-red-600 dark:text-red-400 font-medium">Needs attention</p>
+                      </div>
                     </div>
-                    <div className="p-1.5 sm:p-2 bg-red-100 dark:bg-red-900/20 rounded-full flex-shrink-0 ml-2">
-                      <AlertTriangle className="w-3 h-3 sm:w-5 sm:h-5 text-red-600 dark:text-red-400" />
+                    <div className="p-3 sm:p-4 bg-gradient-to-br from-red-500 to-red-600 rounded-2xl flex-shrink-0 ml-3 shadow-lg">
+                      <AlertTriangle className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                     </div>
                   </div>
                 </CardContent>
               </Card>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-              {/* Overdue Payments - List Format */}
-              <Card className="border dark:border-gray-700">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
+              {/* Overdue Payments - Enhanced List Format */}
+              <Card className="glass-card border-0 shadow-xl">
                 <CardHeader className="pb-2 sm:pb-3">
                   <CardTitle className="flex items-center text-base sm:text-lg text-gray-900 dark:text-gray-100">
                     <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-red-600 dark:text-red-400" />
@@ -237,8 +249,8 @@ const AdminDashboard = () => {
                 </CardContent>
               </Card>
 
-              {/* Recent Payments - List Format */}
-              <Card className="border dark:border-gray-700">
+              {/* Recent Payments - Enhanced List Format */}
+              <Card className="glass-card border-0 shadow-xl">
                 <CardHeader className="pb-2 sm:pb-3">
                   <CardTitle className="flex items-center text-base sm:text-lg text-gray-900 dark:text-gray-100">
                     <CreditCard className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-green-600 dark:text-green-400" />
@@ -278,8 +290,8 @@ const AdminDashboard = () => {
               </Card>
             </div>
 
-            {/* Recent Customers - List Format */}
-            <Card className="border dark:border-gray-700">
+            {/* Recent Customers - Enhanced List Format */}
+            <Card className="glass-card border-0 shadow-xl">
               <CardHeader className="flex flex-row items-center justify-between pb-2 sm:pb-3">
                 <div>
                   <CardTitle className="flex items-center text-base sm:text-lg text-gray-900 dark:text-gray-100">
@@ -319,8 +331,8 @@ const AdminDashboard = () => {
               </CardContent>
             </Card>
 
-            {/* Battery Overview - List Format */}
-            <Card className="border dark:border-gray-700">
+            {/* Battery Overview - Enhanced List Format */}
+            <Card className="glass-card border-0 shadow-xl">
               <CardHeader className="flex flex-row items-center justify-between pb-2 sm:pb-3">
                 <div>
                   <CardTitle className="flex items-center text-base sm:text-lg text-gray-900 dark:text-gray-100">
@@ -398,22 +410,26 @@ const AdminDashboard = () => {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full">
+      <div className="min-h-screen flex w-full dashboard-bg">
         <AppSidebar />
         <SidebarInset className="flex-1 min-w-0">
-          <div className="border-b px-3 sm:px-4 lg:px-6 py-2 sm:py-3 lg:py-4">
+          <div className="dashboard-header px-3 sm:px-4 lg:px-6 py-3 sm:py-4 lg:py-5">
             <div className="flex items-center justify-between">
               <SidebarTrigger className="lg:hidden" />
-              <div className="flex items-center space-x-2 sm:space-x-4 ml-auto">
+              <div className="flex items-center space-x-3 sm:space-x-4 ml-auto">
                 <ThemeToggle />
-                <div className="flex items-center space-x-1 sm:space-x-2">
-                  <span className="text-xs sm:text-sm truncate">Welcome, {user?.name || user?.username}</span>
-                  <Badge className="text-xs">Admin User</Badge>
+                <div className="flex items-center space-x-2 sm:space-x-3">
+                  <div className="status-indicator status-online">
+                    <span className="text-sm sm:text-base font-medium truncate">Welcome, {user?.name || user?.username}</span>
+                  </div>
+                  <Badge className="text-xs bg-gradient-to-r from-blue-500 to-purple-600 text-white border-0">
+                    Admin User
+                  </Badge>
                 </div>
               </div>
             </div>
           </div>
-          <div className="p-3 sm:p-4 lg:p-6 overflow-auto">
+          <div className="p-4 sm:p-6 lg:p-8 overflow-auto custom-scrollbar">
             {renderContent()}
           </div>
         </SidebarInset>

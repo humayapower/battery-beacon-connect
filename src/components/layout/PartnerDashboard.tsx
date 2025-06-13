@@ -49,11 +49,11 @@ const PartnerDashboard = () => {
   ];
 
   const AppSidebar = () => (
-    <Sidebar className="border-r">
+    <Sidebar className="sidebar-gradient">
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel className="text-base sm:text-lg font-semibold text-gray-800 mb-3 sm:mb-4 px-2">
-            Partner Portal
+          <SidebarGroupLabel className="text-base sm:text-lg font-bold mb-3 sm:mb-4 px-2 text-primary">
+            🤝 Partner Portal
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -99,18 +99,21 @@ const PartnerDashboard = () => {
               <p className="text-xs sm:text-sm lg:text-base text-gray-600">Manage your battery inventory and customer relationships.</p>
             </div>
             
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6 px-3 sm:px-0">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 px-3 sm:px-0">
               {stats.map((stat, index) => (
-                <Card key={index} className="hover:shadow-md transition-shadow">
-                  <CardContent className="p-3 sm:p-4 lg:p-6">
+                <Card key={index} className="stat-card glass-card hover:shadow-2xl transition-all duration-300 border-0">
+                  <CardContent className="p-4 sm:p-5 lg:p-6">
                     <div className="flex items-center justify-between">
                       <div className="min-w-0 flex-1">
-                        <p className="text-xs sm:text-sm lg:text-sm font-medium text-gray-600 truncate">{stat.title}</p>
-                        <p className="text-base sm:text-lg lg:text-2xl font-bold text-gray-900">{stat.value}</p>
-                        <p className="text-xs sm:text-sm lg:text-sm text-green-600">{stat.change}</p>
+                        <p className="text-xs sm:text-sm font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wide truncate">{stat.title}</p>
+                        <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-gray-100 mt-1">{stat.value}</p>
+                        <div className="flex items-center mt-2">
+                          <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                          <p className="text-xs sm:text-sm text-green-600 dark:text-green-400 font-medium">{stat.change}</p>
+                        </div>
                       </div>
-                      <div className={`p-1.5 sm:p-2 lg:p-3 rounded-full ${stat.color} flex-shrink-0 ml-2 sm:ml-3`}>
-                        <stat.icon className="w-3 h-3 sm:w-4 sm:h-4 lg:w-6 lg:h-6 text-white" />
+                      <div className={`p-3 sm:p-4 rounded-2xl ${stat.color.replace('bg-', 'bg-gradient-to-br from-').replace('-500', '-500 to-').replace('blue-500 to-', 'blue-500 to-blue-600').replace('green-500 to-', 'green-500 to-green-600').replace('purple-500 to-', 'purple-500 to-purple-600')} flex-shrink-0 ml-3 shadow-lg`}>
+                        <stat.icon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                       </div>
                     </div>
                   </CardContent>
@@ -118,8 +121,8 @@ const PartnerDashboard = () => {
               ))}
             </div>
 
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6 px-3 sm:px-0">
-              <Card>
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 sm:gap-8 px-3 sm:px-0">
+              <Card className="glass-card border-0 shadow-xl">
                 <CardHeader className="pb-3 sm:pb-4">
                   <CardTitle className="text-base sm:text-lg xl:text-xl">Battery Status Overview</CardTitle>
                   <CardDescription className="text-xs sm:text-sm lg:text-base">Current status of your assigned batteries</CardDescription>
@@ -151,7 +154,7 @@ const PartnerDashboard = () => {
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="glass-card border-0 shadow-xl">
                 <CardHeader className="pb-3 sm:pb-4">
                   <CardTitle className="text-base sm:text-lg xl:text-xl">Quick Actions</CardTitle>
                   <CardDescription className="text-xs sm:text-sm lg:text-base">Common partner tasks</CardDescription>
@@ -187,19 +190,23 @@ const PartnerDashboard = () => {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-gray-50">
+      <div className="min-h-screen flex w-full dashboard-bg">
         <AppSidebar />
         <SidebarInset className="flex-1 min-w-0">
-          <div className="border-b bg-white px-3 sm:px-4 lg:px-6 py-2 sm:py-3 lg:py-4">
+          <div className="dashboard-header px-3 sm:px-4 lg:px-6 py-3 sm:py-4 lg:py-5">
             <div className="flex items-center justify-between">
               <SidebarTrigger className="lg:hidden" />
-              <div className="flex items-center space-x-1 sm:space-x-2 lg:space-x-4 ml-auto">
-                <span className="text-xs sm:text-sm lg:text-sm text-gray-600 truncate">Welcome, {user?.name || user?.username}</span>
-                <Badge className="bg-green-100 text-green-800 text-xs">Partner</Badge>
+              <div className="flex items-center space-x-2 sm:space-x-3 lg:space-x-4 ml-auto">
+                <div className="status-indicator status-online">
+                  <span className="text-sm sm:text-base font-medium text-gray-600 dark:text-gray-300 truncate">Welcome, {user?.name || user?.username}</span>
+                </div>
+                <Badge className="text-xs bg-gradient-to-r from-green-500 to-emerald-600 text-white border-0">
+                  Partner
+                </Badge>
               </div>
             </div>
           </div>
-          <div className="p-3 sm:p-4 lg:p-6 overflow-auto">
+          <div className="p-4 sm:p-6 lg:p-8 overflow-auto custom-scrollbar">
             {renderContent()}
           </div>
         </SidebarInset>

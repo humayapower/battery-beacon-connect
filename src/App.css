@@ -1,42 +1,189 @@
+/* Battery Beacon Connect - Professional Dashboard Styles */
+
 #root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+  min-height: 100vh;
+  background: radial-gradient(ellipse at top, hsl(210, 100%, 97%) 0%, hsl(0, 0%, 100%) 100%);
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+/* Professional gradient background */
+.dashboard-bg {
+  background: linear-gradient(
+    135deg,
+    hsl(210, 100%, 97%) 0%,
+    hsl(216, 100%, 98%) 25%,
+    hsl(0, 0%, 100%) 50%,
+    hsl(212, 33%, 99%) 75%,
+    hsl(210, 100%, 97%) 100%
+  );
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
+.dark .dashboard-bg {
+  background: linear-gradient(
+    135deg,
+    hsl(222, 47%, 11%) 0%,
+    hsl(217, 33%, 17%) 25%,
+    hsl(222, 84%, 5%) 50%,
+    hsl(217, 32%, 18%) 75%,
+    hsl(222, 47%, 11%) 100%
+  );
+}
+
+/* Glass morphism effects */
+.glass-card {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.dark .glass-card {
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+/* Enhanced card animations */
+.stat-card {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  transition: left 0.5s;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+}
+
+.stat-card:hover::before {
+  left: 100%;
+}
+
+/* Professional sidebar styling */
+.sidebar-gradient {
+  background: linear-gradient(
+    180deg,
+    hsl(0, 0%, 98%) 0%,
+    hsl(210, 17%, 98%) 100%
+  );
+  border-right: 1px solid hsl(214, 32%, 91%);
+}
+
+.dark .sidebar-gradient {
+  background: linear-gradient(
+    180deg,
+    hsl(240, 6%, 10%) 0%,
+    hsl(240, 4%, 16%) 100%
+  );
+  border-right: 1px solid hsl(240, 4%, 16%);
+}
+
+/* Dashboard header styling */
+.dashboard-header {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.dark .dashboard-header {
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Loading animations */
+.pulse-loader {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
   }
-  to {
-    transform: rotate(360deg);
+  50% {
+    opacity: 0.5;
   }
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
+/* Status indicators */
+.status-indicator {
+  position: relative;
+  display: inline-block;
+}
+
+.status-indicator::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+.status-online::after {
+  background-color: #10b981;
+}
+
+.status-warning::after {
+  background-color: #f59e0b;
+}
+
+.status-error::after {
+  background-color: #ef4444;
+}
+
+@keyframes ping {
+  75%, 100% {
+    transform: scale(2);
+    opacity: 0;
   }
 }
 
-.card {
-  padding: 2em;
+/* Enhanced scrollbar styling */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
 }
 
-.read-the-docs {
-  color: #888;
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: hsl(210, 40%, 96%);
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: hsl(215, 16%, 47%);
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: hsl(215, 20%, 40%);
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-track {
+  background: hsl(217, 33%, 18%);
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+  background: hsl(215, 20%, 65%);
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: hsl(215, 25%, 70%);
 }

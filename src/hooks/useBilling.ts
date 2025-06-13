@@ -48,9 +48,11 @@ export const useBilling = () => {
             rents: [],
             credits: { id: '', customer_id: customerId, credit_balance: 0, updated_at: '' },
             transactions: [],
+            ledger: [],
             totalPaid: 0,
             totalDue: 0,
             nextDueDate: null,
+            overdueAmount: 0,
             emiProgress: undefined
           };
           
@@ -111,7 +113,16 @@ export const useBilling = () => {
             .order('transaction_date', { ascending: false })
         );
 
-        const [emisResult, rentsResult, creditsResult, transactionsResult] = await Promise.all(fetchPromises);
+        // Fetch Payment Ledger
+        fetchPromises.push(
+          supabase
+            .from('payment_ledger')
+            .select('*')
+            .eq('customer_id', customerId)
+            .order('payment_date', { ascending: false })
+        );
+
+        const [emisResult, rentsResult, creditsResult, transactionsResult, ledgerResult] = await Promise.all(fetchPromises);
 
         // Handle errors for critical data
         if (emisResult.error && emisResult.error.code !== 'PGRST116') {
@@ -131,6 +142,10 @@ export const useBilling = () => {
         if (transactionsResult.error && transactionsResult.error.code !== 'PGRST116') {
           console.error('Error fetching transactions:', transactionsResult.error);
           throw transactionsResult.error;
+        }
+
+        if (ledgerResult.error && ledgerResult.error.code !== 'PGRST116') {
+          console.error('Error fetching ledger:', ledgerResult.error);
         }
 
         // Type cast the data to ensure proper typing
@@ -178,14 +193,33 @@ export const useBilling = () => {
           };
         }
 
+        // Calculate overdue amount
+        const today = new Date();
+        const overdueEmis = emis.filter(emi => {
+          const dueDate = new Date(emi.due_date);
+          const daysDiff = Math.floor((today.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24));
+          return daysDiff > 5 && emi.remaining_amount > 0;
+        });
+
+        const overdueRents = rents.filter(rent => {
+          const dueDate = new Date(rent.due_date);
+          const daysDiff = Math.floor((today.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24));
+          return daysDiff > 10 && rent.remaining_amount > 0;
+        });
+
+        const overdueAmount = overdueEmis.reduce((sum, emi) => sum + emi.remaining_amount, 0) +
+                             overdueRents.reduce((sum, rent) => sum + rent.remaining_amount, 0);
+
         const result = {
           emis,
           rents,
           credits: creditsResult.data || { id: '', customer_id: customerId, credit_balance: 0, updated_at: '' },
           transactions: transactionsResult.data || [],
+          ledger: ledgerResult.data || [],
           totalPaid,
           totalDue,
           nextDueDate,
+          overdueAmount,
           emiProgress
         };
 
@@ -212,9 +246,11 @@ export const useBilling = () => {
           rents: [],
           credits: { id: '', customer_id: customerId, credit_balance: 0, updated_at: '' },
           transactions: [],
+          ledger: [],
           totalPaid: 0,
           totalDue: 0,
           nextDueDate: null,
+          overdueAmount: 0,
           emiProgress: undefined
         };
       } finally {
@@ -240,10 +276,15 @@ export const useBilling = () => {
         customerId,
         payment.amount,
         targetType,
-        payment.remarks
+        payment.payment_mode,
+        payment.remarks,
+        payment.payment_date
       );
 
       if (result.success) {
+        // Clear cache for this customer to force refresh
+        cacheRef.current.delete(customerId);
+        
         toast({
           title: "Payment processed successfully",
           description: `Payment of ₹${payment.amount} has been recorded and distributed.`,
@@ -267,6 +308,15 @@ export const useBilling = () => {
       return { success: false, error };
     }
   };
+
+  // Add cache clearing function
+  const clearBillingCache = useCallback((customerId?: string) => {
+    if (customerId) {
+      cacheRef.current.delete(customerId);
+    } else {
+      cacheRef.current.clear();
+    }
+  }, []);
 
   const generateMonthlyRents = async () => {
     try {
@@ -328,6 +378,7 @@ export const useBilling = () => {
     processPayment,
     generateMonthlyRents,
     generateProRatedRent,
-    updateOverdueStatus
+    updateOverdueStatus,
+    clearBillingCache
   };
 };

@@ -1,22 +1,13 @@
 import { supabase } from '@/integrations/supabase/client';
-
-export interface PaymentCalculation {
-  emiPayments: Array<{
-    emiId: string;
-    amount: number;
-    newPaidAmount: number;
-    newRemainingAmount: number;
-    newStatus: 'paid' | 'partial' | 'due' | 'overdue';
-  }>;
-  rentPayments: Array<{
-    rentId: string;
-    amount: number;
-    newPaidAmount: number;
-    newRemainingAmount: number;
-    newStatus: 'paid' | 'partial' | 'due' | 'overdue';
-  }>;
-  excessAmount: number;
-}
+import { PaymentCalculations } from '@/utils/paymentCalculations';
+import { 
+  EMI, 
+  MonthlyRent, 
+  PaymentLedger, 
+  PaymentMode, 
+  PaymentStatus, 
+  PaymentCalculationResult 
+} from '@/types/billing';
 
 export class BillingService {
   
@@ -24,159 +15,198 @@ export class BillingService {
     customerId: string,
     paymentAmount: number,
     paymentType: 'emi' | 'rent' | 'auto'
-  ): Promise<PaymentCalculation> {
-    const result: PaymentCalculation = {
-      emiPayments: [],
-      rentPayments: [],
-      excessAmount: 0
-    };
+  ): Promise<PaymentCalculationResult> {
+    // Get unpaid EMIs and rents
+    const { data: emis } = await supabase
+      .from('emis')
+      .select('*')
+      .eq('customer_id', customerId)
+      .neq('payment_status', 'paid');
 
-    let remainingAmount = paymentAmount;
+    const { data: rents } = await supabase
+      .from('monthly_rents')
+      .select('*')
+      .eq('customer_id', customerId)
+      .neq('payment_status', 'paid');
 
-    if (paymentType === 'emi' || paymentType === 'auto') {
-      // Get unpaid EMIs in order (overdue/partial first, then by due date)
-      const { data: emis } = await supabase
-        .from('emis')
-        .select('*')
-        .eq('customer_id', customerId)
-        .neq('payment_status', 'paid')
-        .order('payment_status') // overdue/partial first
-        .order('due_date');
-
-      if (emis) {
-        for (const emi of emis) {
-          if (remainingAmount <= 0) break;
-
-          const amountToPay = Math.min(remainingAmount, emi.remaining_amount);
-          const newPaidAmount = emi.paid_amount + amountToPay;
-          const newRemainingAmount = emi.remaining_amount - amountToPay;
-          
-          let newStatus: 'paid' | 'partial' | 'due' | 'overdue' = emi.payment_status as 'paid' | 'partial' | 'due' | 'overdue';
-          if (newRemainingAmount === 0) {
-            newStatus = 'paid';
-          } else if (newPaidAmount > 0) {
-            newStatus = 'partial';
-          }
-
-          result.emiPayments.push({
-            emiId: emi.id,
-            amount: amountToPay,
-            newPaidAmount,
-            newRemainingAmount,
-            newStatus
-          });
-
-          remainingAmount -= amountToPay;
-        }
-      }
-    }
-
-    if (paymentType === 'rent' || (paymentType === 'auto' && remainingAmount > 0)) {
-      // Get unpaid rents in order (overdue/partial first, then by due date)
-      const { data: rents } = await supabase
-        .from('monthly_rents')
-        .select('*')
-        .eq('customer_id', customerId)
-        .neq('payment_status', 'paid')
-        .order('payment_status') // overdue/partial first
-        .order('due_date');
-
-      if (rents) {
-        for (const rent of rents) {
-          if (remainingAmount <= 0) break;
-
-          const amountToPay = Math.min(remainingAmount, rent.remaining_amount);
-          const newPaidAmount = rent.paid_amount + amountToPay;
-          const newRemainingAmount = rent.remaining_amount - amountToPay;
-          
-          let newStatus: 'paid' | 'partial' | 'due' | 'overdue' = rent.payment_status as 'paid' | 'partial' | 'due' | 'overdue';
-          if (newRemainingAmount === 0) {
-            newStatus = 'paid';
-          } else if (newPaidAmount > 0) {
-            newStatus = 'partial';
-          }
-
-          result.rentPayments.push({
-            rentId: rent.id,
-            amount: amountToPay,
-            newPaidAmount,
-            newRemainingAmount,
-            newStatus
-          });
-
-          remainingAmount -= amountToPay;
-        }
-      }
-    }
-
-    result.excessAmount = remainingAmount;
-    return result;
+    return PaymentCalculations.distributePayment(
+      paymentAmount,
+      emis || [],
+      rents || [],
+      paymentType
+    );
   }
 
   static async processPayment(
     customerId: string,
     paymentAmount: number,
     paymentType: 'emi' | 'rent' | 'auto',
-    remarks?: string
+    paymentMode: PaymentMode = 'cash',
+    remarks?: string,
+    customPaymentDate?: string // Optional custom payment date
   ) {
+    console.log('🚀 Starting payment processing:', {
+      customerId,
+      paymentAmount,
+      paymentType,
+      paymentMode,
+      remarks,
+      customPaymentDate
+    });
+
     try {
       // Calculate payment distribution
+      console.log('💰 Calculating payment distribution...');
       const calculation = await this.calculatePaymentDistribution(
         customerId,
         paymentAmount,
         paymentType
       );
 
+      console.log('📊 Payment distribution calculated:', calculation);
+
+      if (calculation.emiPayments.length === 0 && calculation.rentPayments.length === 0 && calculation.excessAmount === 0) {
+        console.warn('⚠️ No payment distribution calculated - might indicate no pending dues');
+        return { 
+          success: false, 
+          error: new Error('No pending dues found for this customer') 
+        };
+      }
+
+      // Use custom payment date if provided, otherwise use current date
+      const paymentDate = customPaymentDate ? new Date(customPaymentDate + 'T00:00:00Z').toISOString() : new Date().toISOString();
+      const transactionIds: string[] = [];
+
+      console.log(`📅 Processing payment on: ${paymentDate}`);
+
       // Process EMI payments
       for (const emiPayment of calculation.emiPayments) {
-        await supabase
+        console.log('Processing EMI payment:', emiPayment);
+        
+        // Get EMI details first for overdue calculation
+        const { data: emiData } = await supabase
+          .from('emis')
+          .select('due_date')
+          .eq('id', emiPayment.emiId)
+          .single();
+
+        const overdueD = emiData ? PaymentCalculations.calculateEMIOverdueDays(emiData.due_date) : 0;
+
+        // Update EMI record
+        const { data: updateResult, error: updateError } = await supabase
           .from('emis')
           .update({
             paid_amount: emiPayment.newPaidAmount,
             remaining_amount: emiPayment.newRemainingAmount,
             payment_status: emiPayment.newStatus,
-            updated_at: new Date().toISOString()
+            updated_at: paymentDate
           })
-          .eq('id', emiPayment.emiId);
+          .eq('id', emiPayment.emiId)
+          .select();
+
+        console.log('EMI update result:', updateResult);
+        if (updateError) {
+          console.error('EMI update error:', updateError);
+          throw updateError;
+        }
 
         // Record transaction
-        await supabase
+        const { data: transaction } = await supabase
           .from('transactions')
           .insert({
             customer_id: customerId,
             amount: emiPayment.amount,
             transaction_type: 'emi',
             payment_status: 'paid',
-            transaction_date: new Date().toISOString(),
+            transaction_date: paymentDate,
             emi_id: emiPayment.emiId,
-            remarks: remarks || `EMI payment - ${emiPayment.newStatus}`
+            remarks: remarks || `EMI ${emiPayment.emiNumber} payment - ${emiPayment.newStatus}`
+          })
+          .select('id')
+          .single();
+
+        if (transaction) {
+          transactionIds.push(transaction.id);
+
+          // Create ledger entry
+          await this.createLedgerEntry({
+            customer_id: customerId,
+            transaction_id: transaction.id,
+            payment_date: paymentDate,
+            amount_paid: emiPayment.amount,
+            payment_mode: paymentMode,
+            payment_status: emiPayment.newStatus,
+            remaining_balance: emiPayment.newRemainingAmount,
+            emi_number: emiPayment.emiNumber,
+            emi_id: emiPayment.emiId,
+            remarks: remarks || `EMI ${emiPayment.emiNumber} payment`
           });
+        }
       }
 
       // Process rent payments
       for (const rentPayment of calculation.rentPayments) {
-        await supabase
+        console.log('Processing rent payment:', rentPayment);
+        
+        // Get rent details first for overdue calculation
+        const { data: rentData } = await supabase
+          .from('monthly_rents')
+          .select('due_date')
+          .eq('id', rentPayment.rentId)
+          .single();
+
+        const rentOverdueDays = rentData ? PaymentCalculations.calculateRentOverdueDays(rentData.due_date) : 0;
+
+        // Update rent record
+        const { data: rentUpdateResult, error: rentUpdateError } = await supabase
           .from('monthly_rents')
           .update({
             paid_amount: rentPayment.newPaidAmount,
             remaining_amount: rentPayment.newRemainingAmount,
             payment_status: rentPayment.newStatus,
-            updated_at: new Date().toISOString()
+            updated_at: paymentDate
           })
-          .eq('id', rentPayment.rentId);
+          .eq('id', rentPayment.rentId)
+          .select();
+
+        console.log('Rent update result:', rentUpdateResult);
+        if (rentUpdateError) {
+          console.error('Rent update error:', rentUpdateError);
+          throw rentUpdateError;
+        }
 
         // Record transaction
-        await supabase
+        const { data: transaction } = await supabase
           .from('transactions')
           .insert({
             customer_id: customerId,
             amount: rentPayment.amount,
             transaction_type: 'rent',
             payment_status: 'paid',
-            transaction_date: new Date().toISOString(),
+            transaction_date: paymentDate,
             monthly_rent_id: rentPayment.rentId,
-            remarks: remarks || `Rent payment - ${rentPayment.newStatus}`
+            remarks: remarks || `Rent payment for ${rentPayment.rentMonth} - ${rentPayment.newStatus}`
+          })
+          .select('id')
+          .single();
+
+        if (transaction) {
+          transactionIds.push(transaction.id);
+
+          // Create ledger entry
+          await this.createLedgerEntry({
+            customer_id: customerId,
+            transaction_id: transaction.id,
+            payment_date: paymentDate,
+            amount_paid: rentPayment.amount,
+            payment_mode: paymentMode,
+            payment_status: rentPayment.newStatus,
+            remaining_balance: rentPayment.newRemainingAmount,
+            applicable_month: rentPayment.rentMonth,
+            rent_id: rentPayment.rentId,
+            remarks: remarks || `Rent payment for ${rentPayment.rentMonth}`
           });
+        }
       }
 
       // Handle excess amount as credit
@@ -194,26 +224,127 @@ export class BillingService {
           .upsert({
             customer_id: customerId,
             credit_balance: newCreditBalance,
-            updated_at: new Date().toISOString()
+            updated_at: paymentDate
           });
 
         // Record credit transaction
-        await supabase
+        const { data: creditTransaction } = await supabase
           .from('transactions')
           .insert({
             customer_id: customerId,
             amount: calculation.excessAmount,
             transaction_type: 'deposit',
             payment_status: 'paid',
-            transaction_date: new Date().toISOString(),
+            transaction_date: paymentDate,
             credit_added: calculation.excessAmount,
             remarks: `Credit added from excess payment. ${remarks || ''}`
+          })
+          .select('id')
+          .single();
+
+        if (creditTransaction) {
+          // Create ledger entry for credit
+          await this.createLedgerEntry({
+            customer_id: customerId,
+            transaction_id: creditTransaction.id,
+            payment_date: paymentDate,
+            amount_paid: calculation.excessAmount,
+            payment_mode: paymentMode,
+            payment_status: 'paid',
+            remaining_balance: 0,
+            remarks: `Credit balance added: ₹${calculation.excessAmount}`
           });
+        }
       }
 
-      return { success: true, calculation };
+      console.log('✅ Payment processing completed successfully');
+      return { success: true, calculation, transactionIds };
+    } catch (error: unknown) {
+      console.error('❌ Error processing payment:', error);
+      
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      return { 
+        success: false, 
+        error: {
+          message: errorMessage,
+          details: error
+        }
+      };
+    }
+  }
+
+  // Ledger Management
+  static async createLedgerEntry(ledgerData: Omit<PaymentLedger, 'id' | 'created_at'>) {
+    return await supabase
+      .from('payment_ledger')
+      .insert({
+        ...ledgerData,
+        created_at: new Date().toISOString()
+      });
+  }
+
+  static async getCustomerLedger(customerId: string): Promise<PaymentLedger[]> {
+    const { data } = await supabase
+      .from('payment_ledger')
+      .select('*')
+      .eq('customer_id', customerId)
+      .order('payment_date', { ascending: false });
+    
+    return data || [];
+  }
+
+  // EMI Management
+  static async generateEMISchedule(
+    customerId: string,
+    totalAmount: number,
+    downPayment: number,
+    emiCount: number,
+    assignmentDate: string
+  ) {
+    try {
+      const schedule = PaymentCalculations.generateEMISchedule(
+        customerId,
+        totalAmount,
+        downPayment,
+        emiCount,
+        assignmentDate
+      );
+
+      const { data } = await supabase
+        .from('emis')
+        .insert(schedule)
+        .select();
+
+      return { success: true, data };
     } catch (error: any) {
-      console.error('Error processing payment:', error);
+      console.error('Error generating EMI schedule:', error);
+      return { success: false, error };
+    }
+  }
+
+  // Rent Management
+  static async generateRentSchedule(
+    customerId: string,
+    monthlyRent: number,
+    joinDate: string,
+    months: number = 12
+  ) {
+    try {
+      const schedule = PaymentCalculations.generateRentSchedule(
+        customerId,
+        monthlyRent,
+        joinDate,
+        months
+      );
+
+      const { data } = await supabase
+        .from('monthly_rents')
+        .insert(schedule)
+        .select();
+
+      return { success: true, data };
+    } catch (error: any) {
+      console.error('Error generating rent schedule:', error);
       return { success: false, error };
     }
   }
@@ -230,33 +361,149 @@ export class BillingService {
         return { success: false, error: 'Customer not found or not on rent plan' };
       }
 
+      const proRatedData = PaymentCalculations.calculateProRatedRent(
+        customer.monthly_rent,
+        customer.join_date
+      );
+
       const joinDate = new Date(customer.join_date);
-      const nextFirstOfMonth = new Date(joinDate.getFullYear(), joinDate.getMonth() + 1, 1);
-      const daysInPeriod = Math.ceil((nextFirstOfMonth.getTime() - joinDate.getTime()) / (1000 * 60 * 60 * 24));
-
-      // Calculate daily rate based on monthly rent
-      let dailyRate = 0;
-      if (customer.monthly_rent === 3000) dailyRate = 100;
-      else if (customer.monthly_rent === 3600) dailyRate = 120;
-      else if (customer.monthly_rent === 4500) dailyRate = 150;
-      else dailyRate = customer.monthly_rent / 30; // fallback
-
-      const proRatedAmount = dailyRate * daysInPeriod;
+      const dueDate = new Date(joinDate);
+      dueDate.setDate(joinDate.getDate() + 5); // Due 5 days after joining
 
       // Insert pro-rated rent
-      await supabase
+      const { data } = await supabase
         .from('monthly_rents')
         .insert({
           customer_id: customerId,
           rent_month: joinDate.toISOString().split('T')[0],
-          amount: proRatedAmount,
-          due_date: new Date(joinDate.getTime() + (5 * 24 * 60 * 60 * 1000)).toISOString().split('T')[0], // 5 days after join
-          remaining_amount: proRatedAmount
-        });
+          amount: proRatedData.amount,
+          due_date: dueDate.toISOString().split('T')[0],
+          payment_status: 'due',
+          paid_amount: 0,
+          remaining_amount: proRatedData.amount,
+          is_prorated: true,
+          prorated_days: proRatedData.days,
+          daily_rate: proRatedData.dailyRate
+        })
+        .select()
+        .single();
+
+      return { success: true, data };
+    } catch (error: any) {
+      console.error('Error generating pro-rated rent:', error);
+      return { success: false, error };
+    }
+  }
+
+  // Status Updates
+  static async updatePaymentStatuses(customerId: string) {
+    try {
+      // Update EMI statuses
+      const { data: emis } = await supabase
+        .from('emis')
+        .select('*')
+        .eq('customer_id', customerId);
+
+      if (emis) {
+        for (const emi of emis) {
+          const newStatus = PaymentCalculations.calculateEMIStatus(emi);
+          
+          if (newStatus !== emi.payment_status) {
+            await supabase
+              .from('emis')
+              .update({
+                payment_status: newStatus,
+                updated_at: new Date().toISOString()
+              })
+              .eq('id', emi.id);
+          }
+        }
+      }
+
+      // Update rent statuses
+      const { data: rents } = await supabase
+        .from('monthly_rents')
+        .select('*')
+        .eq('customer_id', customerId);
+
+      if (rents) {
+        for (const rent of rents) {
+          const newStatus = PaymentCalculations.calculateRentStatus(rent);
+          
+          if (newStatus !== rent.payment_status) {
+            await supabase
+              .from('monthly_rents')
+              .update({
+                payment_status: newStatus,
+                updated_at: new Date().toISOString()
+              })
+              .eq('id', rent.id);
+          }
+        }
+      }
 
       return { success: true };
     } catch (error: any) {
-      console.error('Error generating pro-rated rent:', error);
+      console.error('Error updating payment statuses:', error);
+      return { success: false, error };
+    }
+  }
+
+  // Summary calculations
+  static async getBillingSummary(customerId: string) {
+    try {
+      const { data: emis } = await supabase
+        .from('emis')
+        .select('*')
+        .eq('customer_id', customerId);
+
+      const { data: rents } = await supabase
+        .from('monthly_rents')
+        .select('*')
+        .eq('customer_id', customerId);
+
+      const { data: credits } = await supabase
+        .from('customer_credits')
+        .select('*')
+        .eq('customer_id', customerId)
+        .single();
+
+      const { data: transactions } = await supabase
+        .from('transactions')
+        .select('*')
+        .eq('customer_id', customerId)
+        .order('transaction_date', { ascending: false });
+
+      const ledger = await this.getCustomerLedger(customerId);
+
+      const totalPaid = PaymentCalculations.calculateTotalPaid(emis || [], rents || []);
+      const totalDue = PaymentCalculations.calculateTotalOutstanding(emis || [], rents || []);
+      const overdueAmount = PaymentCalculations.calculateOverdueAmount(emis || [], rents || []);
+      const nextDueDate = PaymentCalculations.calculateNextDueDate(emis || [], rents || []);
+
+      const emiProgress = emis ? {
+        paid: emis.filter(e => e.payment_status === 'paid').length,
+        total: emis.length,
+        percentage: Math.round((emis.filter(e => e.payment_status === 'paid').length / emis.length) * 100)
+      } : undefined;
+
+      return {
+        success: true,
+        data: {
+          emis: emis || [],
+          rents: rents || [],
+          credits: credits || { credit_balance: 0 },
+          transactions: transactions || [],
+          ledger,
+          totalPaid,
+          totalDue,
+          overdueAmount,
+          nextDueDate,
+          emiProgress
+        }
+      };
+    } catch (error: any) {
+      console.error('Error getting billing summary:', error);
       return { success: false, error };
     }
   }

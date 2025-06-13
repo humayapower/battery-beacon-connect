@@ -1,8 +1,10 @@
 
-import React from 'react';
+// import React from 'react';
 import { Badge } from "@/components/ui/badge";
 import { Battery } from '@/types';
 import { useAuth } from '@/contexts/AuthContext';
+import { getBatteryStatusColor } from '@/utils/statusColors';
+import { getPartnerName } from '@/utils/formatters';
 
 interface ResponsiveBatteryCardsProps {
   batteries: Battery[];
@@ -12,27 +14,6 @@ interface ResponsiveBatteryCardsProps {
 const ResponsiveBatteryCards = ({ batteries, onViewDetails }: ResponsiveBatteryCardsProps) => {
   const { userRole } = useAuth();
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'available':
-        return 'bg-green-100 text-green-800 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800';
-      case 'assigned':
-        return 'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800';
-      case 'maintenance':
-        return 'bg-orange-100 text-orange-800 border-orange-200 dark:bg-orange-900/20 dark:text-orange-400 dark:border-orange-800';
-      case 'faulty':
-        return 'bg-red-100 text-red-800 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800';
-      case 'returned':
-        return 'bg-purple-100 text-purple-800 border-purple-200 dark:bg-purple-900/20 dark:text-purple-400 dark:border-purple-800';
-      default:
-        return 'bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700';
-    }
-  };
-
-  const getPartnerName = (battery: Battery) => {
-    if (!battery.partner_id) return 'Unassigned';
-    return battery.partner?.name || 'Unknown Partner';
-  };
 
   const handleViewDetails = (batteryId: string) => {
     if (onViewDetails) {
@@ -85,7 +66,7 @@ const ResponsiveBatteryCards = ({ batteries, onViewDetails }: ResponsiveBatteryC
               {/* Column 3: Status Badge */}
               <div className="flex-shrink-0">
                 <Badge 
-                  className={`${getStatusColor(battery.status)} text-xs px-2 py-1 font-medium`}
+                  className={`${getBatteryStatusColor(battery.status)} text-xs px-2 py-1 font-medium`}
                   variant="outline"
                 >
                   {battery.status.charAt(0).toUpperCase() + battery.status.slice(1)}

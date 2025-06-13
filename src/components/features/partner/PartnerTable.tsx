@@ -1,16 +1,16 @@
 
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Phone } from 'lucide-react';
-import CreatePartnerModal from './CreatePartnerModal';
+import CreatePartnerModal from '../../modals/CreatePartnerModal';
 import PartnerProfile from './PartnerProfile';
-import { SearchAndFilters } from './SearchAndFilters';
+import { SearchAndFilters } from '../../shared/SearchAndFilters';
 import { useOptimizedPartners } from '@/hooks/useOptimizedPartners';
 
-const OptimizedPartnerTable = () => {
+const PartnerTable = () => {
   const { partners, loading } = useOptimizedPartners();
   const [selectedPartnerId, setSelectedPartnerId] = useState<string | null>(null);
   const [showProfile, setShowProfile] = useState(false);
@@ -188,4 +188,4 @@ const OptimizedPartnerTable = () => {
   );
 };
 
-export default OptimizedPartnerTable;
+export default PartnerTable;

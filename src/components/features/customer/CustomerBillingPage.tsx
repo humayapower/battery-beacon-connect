@@ -1,15 +1,15 @@
 
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+// import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CreditCard, Calendar, TrendingUp, AlertCircle, Plus } from 'lucide-react';
+import { TrendingUp} from 'lucide-react';
 import { useBilling } from '@/hooks/useBilling';
 import { BillingDetails } from '@/types/billing';
-import PaymentModal from './PaymentModal';
+import PaymentModal from '../../modals/PaymentModal';
 
 interface CustomerBillingPageProps {
   customerId: string;

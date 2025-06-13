@@ -1,18 +1,17 @@
-
-import React, { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+// import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { getPaymentTypeColor, getPaymentTypeLabel } from '@/utils/statusColors';
 import { usePhoneCall } from '@/hooks/usePhoneCall';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Edit, Eye, Phone, ExternalLink } from 'lucide-react';
-import AddCustomerModal from './AddCustomerModal';
-import CustomerDetailsModal from './CustomerDetailsModal';
+// import { Edit, Eye, Phone, ExternalLink } from 'lucide-react';
+import AddCustomerModal from '../../modals/AddCustomerModal';
+import CustomerDetailsModal from '../../modals/CustomerDetailsModal';
 import CustomerProfile from './CustomerProfile';
 import ResponsiveCustomerCards from './ResponsiveCustomerCards';
-import { SearchAndFilters } from './SearchAndFilters';
+import { SearchAndFilters } from '../../shared/SearchAndFilters';
 import { useCustomers } from '@/hooks/useCustomers';
 import { useAuth } from '@/contexts/AuthContext';
 

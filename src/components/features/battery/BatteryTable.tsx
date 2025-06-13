@@ -1,18 +1,16 @@
 
-import React, { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Edit, Eye, ExternalLink } from 'lucide-react';
 import { getBatteryStatusColor } from '@/utils/statusColors';
 import { getPartnerName } from '@/utils/formatters';
-import AddBatteryModal from './AddBatteryModal';
-import AssignBatteryModal from './AssignBatteryModal';
+import AddBatteryModal from '../../modals/AddBatteryModal';
+import AssignBatteryModal from '../../modals/AssignBatteryModal';
 import ResponsiveBatteryCards from './ResponsiveBatteryCards';
 import BatteryProfile from './BatteryProfile';
-import CustomerProfile from './CustomerProfile';
-import PartnerProfile from './PartnerProfile';
+import CustomerProfile from '../customer/CustomerProfile';
+import PartnerProfile from '../partner/PartnerProfile';
 import { useBatteries } from '@/hooks/useBatteries';
 import { useAuth } from '@/contexts/AuthContext';
 

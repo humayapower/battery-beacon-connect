@@ -5,13 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowLeft, User, Calendar, CreditCard, Battery, Users, Edit, Plus, TrendingUp, Receipt, DollarSign, Phone, MapPin, ChevronLeft, ChevronRight, FileText } from 'lucide-react';
+import { ArrowLeft, User, Calendar, CreditCard, Battery, Users, Edit, Plus, TrendingUp, Receipt, DollarSign, Phone, MapPin, ChevronLeft, ChevronRight, FileText, AlertTriangle } from 'lucide-react';
 import { useCustomers } from '@/hooks/useCustomers';
 import { useBatteries } from '@/hooks/useBatteries';
 import { usePartners } from '@/hooks/usePartners';
 import { useBilling } from '@/hooks/useBilling';
 import { useIsMobile } from '@/hooks/use-mobile';
-import PaymentModal from './PaymentModal';
+import { BillingDetails } from '@/types/billing';
+import PaymentModal from '../../modals/PaymentModal';
 
 interface CustomerProfileProps {
   customerId: string;
@@ -31,7 +32,7 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({
   const { partners } = usePartners();
   const { getBillingDetails } = useBilling();
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
-  const [billingData, setBillingData] = useState<any>(null);
+  const [billingData, setBillingData] = useState<BillingDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -84,9 +85,9 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({
       try {
         const data = await getBillingDetails(customerId);
         setBillingData(data);
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error('Failed to fetch billing data:', err);
-        setError(err.message || 'Failed to load billing data');
+        setError(err instanceof Error ? err.message : 'Failed to load billing data');
       } finally {
         setLoading(false);
       }
@@ -105,9 +106,26 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({
     }
   };
 
-  const handlePaymentSuccess = () => {
-    hasFetchedRef.current = false;
-    window.location.reload();
+  const handlePaymentSuccess = async () => {
+    console.log('Payment success callback triggered for customer:', customerId);
+    try {
+      // Clear the cache and fetch fresh data
+      hasFetchedRef.current = false;
+      setLoading(true);
+      setError(null);
+      
+      console.log('Fetching fresh billing data...');
+      // Fetch fresh billing data
+      const data = await getBillingDetails(customerId);
+      setBillingData(data);
+      
+      console.log('Billing data refreshed after payment:', data);
+    } catch (err: unknown) {
+      console.error('Failed to refresh billing data:', err);
+      setError(err instanceof Error ? err.message : 'Failed to reload billing data');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const getStatusColor = (status: string) => {
@@ -275,7 +293,7 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({
           {isMobile ? (
             // Mobile: Card layout for schedule items
             <div className="space-y-2">
-              {scheduleData.data.slice(0, 5).map((item: any, index: number) => (
+              {scheduleData.data.slice(0, 5).map((item, index: number) => (
                 <div key={item.id} className="p-3 border rounded-lg bg-card">
                   <div className="flex justify-between items-start mb-2">
                     <div className="text-sm font-medium">
@@ -324,7 +342,7 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {scheduleData.data.map((item: any) => (
+                {scheduleData.data.map((item) => (
                   <TableRow key={item.id}>
                     <TableCell className="text-sm">
                       {customer.payment_type === 'emi' 
@@ -355,7 +373,7 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({
   const renderPaymentDetails = () => {
     if (customer.payment_type === 'emi') {
       return (
-        <div className={isMobile ? "grid grid-cols-2 gap-x-6 gap-y-4" : "space-y-3"}>
+        <div className="grid grid-cols-2 gap-x-6 gap-y-4">
           <div>
             <label className="text-xs font-medium text-muted-foreground">Total Amount</label>
             <p className="text-base font-semibold text-foreground">{formatCurrency(customer.total_amount || 0)}</p>
@@ -388,7 +406,7 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({
       );
     } else if (customer.payment_type === 'monthly_rent') {
       return (
-        <div className={isMobile ? "grid grid-cols-2 gap-x-6 gap-y-4" : "space-y-3"}>
+        <div className="grid grid-cols-2 gap-x-6 gap-y-4">
           <div>
             <label className="text-xs font-medium text-muted-foreground">Monthly Rent</label>
             <p className="text-base font-semibold text-foreground">{formatCurrency(customer.monthly_rent || 0)}</p>
@@ -486,6 +504,24 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({
               >
                 <Edit className="w-4 h-4" />
               </Button>
+              {import.meta.env.DEV && (
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  className="border-yellow-200 dark:border-yellow-700 text-yellow-600 dark:text-yellow-400 rounded-lg px-3"
+                  onClick={async () => {
+                    try {
+                      console.log('🔍 Running database diagnostics...');
+                      const { DatabaseDebugger } = await import('@/utils/databaseDebugger');
+                      await DatabaseDebugger.runDiagnostics(customerId);
+                    } catch (error) {
+                      console.error('Debug failed:', error);
+                    }
+                  }}
+                >
+                  Debug
+                </Button>
+              )}
             </div>
           </div>
         </div>
@@ -651,50 +687,6 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({
             </CardContent>
           </Card>
 
-          {/* Modern Summary Cards - Only show for EMI and Rental customers */}
-          {customer.payment_type !== 'one_time_purchase' && !loading && billingData && (
-            <div className="grid grid-cols-2 gap-4">
-              <Card className="bg-white/70 dark:bg-slate-800/70 backdrop-blur border-0 shadow-lg rounded-2xl">
-                <CardContent className="p-4 text-center">
-                  <div className="w-8 h-8 bg-slate-100 dark:bg-slate-700 rounded-lg flex items-center justify-center mx-auto mb-2">
-                    <TrendingUp className="w-4 h-4 text-green-600 dark:text-green-400" />
-                  </div>
-                  <div className="text-lg font-bold text-green-600 dark:text-green-400">{formatCurrency(billingData.totalPaid)}</div>
-                  <div className="text-xs text-muted-foreground font-medium">Total Paid</div>
-                </CardContent>
-              </Card>
-              <Card className="bg-white/70 dark:bg-slate-800/70 backdrop-blur border-0 shadow-lg rounded-2xl">
-                <CardContent className="p-4 text-center">
-                  <div className="w-8 h-8 bg-slate-100 dark:bg-slate-700 rounded-lg flex items-center justify-center mx-auto mb-2">
-                    <DollarSign className="w-4 h-4 text-red-600 dark:text-red-400" />
-                  </div>
-                  <div className="text-lg font-bold text-red-600 dark:text-red-400">{formatCurrency(billingData.totalDue)}</div>
-                  <div className="text-xs text-muted-foreground font-medium">Outstanding</div>
-                </CardContent>
-              </Card>
-              <Card className="bg-white/70 dark:bg-slate-800/70 backdrop-blur border-0 shadow-lg rounded-2xl">
-                <CardContent className="p-4 text-center">
-                  <div className="w-8 h-8 bg-slate-100 dark:bg-slate-700 rounded-lg flex items-center justify-center mx-auto mb-2">
-                    <CreditCard className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                  </div>
-                  <div className="text-lg font-bold text-blue-600 dark:text-blue-400">{formatCurrency(billingData.credits?.credit_balance || 0)}</div>
-                  <div className="text-xs text-muted-foreground font-medium">Credit Balance</div>
-                </CardContent>
-              </Card>
-              <Card className="bg-white/70 dark:bg-slate-800/70 backdrop-blur border-0 shadow-lg rounded-2xl">
-                <CardContent className="p-4 text-center">
-                  <div className="w-8 h-8 bg-slate-100 dark:bg-slate-700 rounded-lg flex items-center justify-center mx-auto mb-2">
-                    <Calendar className="w-4 h-4 text-slate-600 dark:text-slate-400" />
-                  </div>
-                  <div className="text-sm font-bold text-foreground">
-                    {billingData.nextDueDate ? formatDate(billingData.nextDueDate) : 'No Due'}
-                  </div>
-                  <div className="text-xs text-muted-foreground font-medium">Next Due</div>
-                </CardContent>
-              </Card>
-            </div>
-          )}
-
           {/* Modern Schedule Section */}
           <Card className="bg-white/70 dark:bg-slate-800/70 backdrop-blur border-0 shadow-lg rounded-2xl">
             <CardHeader className="pb-4">
@@ -764,24 +756,78 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({
             </Card>
           )}
 
-          {/* Modern Recent Transactions - Only show for EMI and Rental customers */}
-          {customer.payment_type !== 'one_time_purchase' && !loading && billingData?.transactions && billingData.transactions.length > 0 && (
+          {/* Modern Payment Ledger - Only show for EMI and Rental customers */}
+          {customer.payment_type !== 'one_time_purchase' && !loading && billingData?.ledger && billingData.ledger.length > 0 && (
             <Card className="bg-white/70 dark:bg-slate-800/70 backdrop-blur border-0 shadow-lg rounded-2xl">
               <CardHeader className="pb-4">
                 <CardTitle className="flex items-center gap-3 text-lg font-semibold">
                   <div className="p-2 bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-900/50 dark:to-purple-900/50 rounded-xl">
                     <Receipt className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
                   </div>
+                  Payment Ledger
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {billingData.ledger.slice(0, 5).map((entry) => (
+                    <div key={entry.id} className="flex justify-between items-center p-4 bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-800/50 dark:to-slate-700/50 rounded-xl">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-indigo-100 dark:bg-indigo-900/50 rounded-xl flex items-center justify-center">
+                          <Receipt className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                        </div>
+                        <div className="flex-1">
+                          <div className="font-medium text-slate-900 dark:text-slate-100">{formatDate(entry.payment_date)}</div>
+                          <div className="text-sm text-slate-600 dark:text-slate-400">
+                            {entry.emi_number ? `EMI ${entry.emi_number}` : entry.applicable_month ? `Rent - ${entry.applicable_month}` : 'Credit'}
+                          </div>
+                          <div className="text-xs text-slate-500 dark:text-slate-500 capitalize">
+                            {entry.payment_mode} • {entry.payment_status}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-bold text-slate-900 dark:text-slate-100">{formatCurrency(entry.amount_paid)}</div>
+                        {entry.remaining_balance > 0 && (
+                          <div className="text-xs text-red-600 dark:text-red-400">
+                            Balance: {formatCurrency(entry.remaining_balance)}
+                          </div>
+                        )}
+                        <Badge className={`${getStatusColor(entry.payment_status)} text-xs rounded-full mt-1`}>
+                          {entry.payment_status}
+                        </Badge>
+                      </div>
+                    </div>
+                  ))}
+                  {billingData.ledger.length > 5 && (
+                    <div className="text-center pt-2">
+                      <Button variant="outline" size="sm" className="rounded-xl border-2">
+                        View Full Ledger ({billingData.ledger.length})
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Modern Recent Transactions - Only show for EMI and Rental customers */}
+          {customer.payment_type !== 'one_time_purchase' && !loading && billingData?.transactions && billingData.transactions.length > 0 && (
+            <Card className="bg-white/70 dark:bg-slate-800/70 backdrop-blur border-0 shadow-lg rounded-2xl">
+              <CardHeader className="pb-4">
+                <CardTitle className="flex items-center gap-3 text-lg font-semibold">
+                  <div className="p-2 bg-gradient-to-br from-green-100 to-emerald-100 dark:from-green-900/50 dark:to-emerald-900/50 rounded-xl">
+                    <TrendingUp className="w-5 h-5 text-green-600 dark:text-green-400" />
+                  </div>
                   Recent Transactions
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {billingData.transactions.slice(0, 3).map((transaction: any) => (
+                  {billingData.transactions.slice(0, 3).map((transaction) => (
                     <div key={transaction.id} className="flex justify-between items-center p-4 bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-800/50 dark:to-slate-700/50 rounded-xl">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-indigo-100 dark:bg-indigo-900/50 rounded-xl flex items-center justify-center">
-                          <Receipt className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                        <div className="w-10 h-10 bg-green-100 dark:bg-green-900/50 rounded-xl flex items-center justify-center">
+                          <TrendingUp className="w-5 h-5 text-green-600 dark:text-green-400" />
                         </div>
                         <div>
                           <div className="font-medium text-slate-900 dark:text-slate-100">{formatDate(transaction.transaction_date)}</div>
@@ -965,19 +1011,53 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({
           {/* Upper Section - Payment Details and Schedule */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Left - Payment Details */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <CreditCard className="w-5 h-5" />
-                  {customer.payment_type === 'emi' ? 'EMI Details' : 
-                   customer.payment_type === 'monthly_rent' ? 'Rental Details' : 
-                   'Purchase Details'}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {renderPaymentDetails()}
-              </CardContent>
-            </Card>
+            <div className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <CreditCard className="w-5 h-5" />
+                    {customer.payment_type === 'emi' ? 'EMI Details' : 
+                     customer.payment_type === 'monthly_rent' ? 'Rental Details' : 
+                     'Purchase Details'}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {renderPaymentDetails()}
+                </CardContent>
+              </Card>
+
+              {/* Key Metrics - Only show for EMI and Rental customers */}
+              {customer.payment_type !== 'one_time_purchase' && !loading && billingData && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Card>
+                    <CardContent className="p-4 text-center">
+                      <div className="text-xl font-bold text-green-600">{formatCurrency(billingData.totalPaid)}</div>
+                      <div className="text-sm text-gray-600">Total Paid</div>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardContent className="p-4 text-center">
+                      <div className="text-xl font-bold text-red-600">{formatCurrency(billingData.totalDue)}</div>
+                      <div className="text-sm text-gray-600">Outstanding Balance</div>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardContent className="p-4 text-center">
+                      <div className="text-xl font-bold text-blue-600">{formatCurrency(billingData.credits?.credit_balance || 0)}</div>
+                      <div className="text-sm text-gray-600">Credit Balance</div>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardContent className="p-4 text-center">
+                      <div className="text-xl font-bold text-purple-600">
+                        {billingData.nextDueDate ? formatDate(billingData.nextDueDate) : 'No Due'}
+                      </div>
+                      <div className="text-sm text-gray-600">Next Due Date</div>
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
+            </div>
 
             {/* Right - Schedule */}
             <Card>
@@ -992,38 +1072,6 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({
               </CardContent>
             </Card>
           </div>
-
-          {/* Summary Cards - Only show for EMI and Rental customers */}
-          {customer.payment_type !== 'one_time_purchase' && !loading && billingData && (
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <Card>
-                <CardContent className="p-4 text-center">
-                  <div className="text-xl font-bold text-green-600">{formatCurrency(billingData.totalPaid)}</div>
-                  <div className="text-sm text-gray-600">Total Paid</div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="p-4 text-center">
-                  <div className="text-xl font-bold text-red-600">{formatCurrency(billingData.totalDue)}</div>
-                  <div className="text-sm text-gray-600">Outstanding Balance</div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="p-4 text-center">
-                  <div className="text-xl font-bold text-blue-600">{formatCurrency(billingData.credits?.credit_balance || 0)}</div>
-                  <div className="text-sm text-gray-600">Credit Balance</div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="p-4 text-center">
-                  <div className="text-xl font-bold text-purple-600">
-                    {billingData.nextDueDate ? formatDate(billingData.nextDueDate) : 'No Due'}
-                  </div>
-                  <div className="text-sm text-gray-600">Next Due Date</div>
-                </CardContent>
-              </Card>
-            </div>
-          )}
 
           {/* Transaction List - Only show for EMI and Rental customers */}
           {customer.payment_type !== 'one_time_purchase' && (
@@ -1051,7 +1099,7 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {billingData.transactions.map((transaction: any) => (
+                      {billingData.transactions.map((transaction) => (
                         <TableRow key={transaction.id}>
                           <TableCell>{formatDate(transaction.transaction_date)}</TableCell>
                           <TableCell className="capitalize">{transaction.transaction_type}</TableCell>

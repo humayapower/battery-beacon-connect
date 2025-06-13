@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+// import { Badge } from "@/components/ui/badge";
 import { User, Phone, Mail, MapPin, Calendar, Battery, CreditCard, Edit, Trash2 } from 'lucide-react';
 import { useCustomers, CustomerWithBattery } from '@/hooks/useCustomers';
-import CustomerBillingPage from './CustomerBillingPage';
+import CustomerBillingPage from '../features/customer/CustomerBillingPage';
 
 interface CustomerDetailsModalProps {
   customerId: string | null;

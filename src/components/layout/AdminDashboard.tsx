@@ -3,7 +3,7 @@ import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+// import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar";
 import { Battery, Users, User, CreditCard, Home, Settings, LogOut, Calendar, FileText, AlertTriangle } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -12,12 +12,11 @@ import { useCustomers } from '@/hooks/useCustomers';
 import { useOptimizedPartners } from '@/hooks/useOptimizedPartners';
 import { useTransactions } from '@/hooks/useTransactions';
 import { ThemeToggle } from './ThemeToggle';
-import BatteryTable from './BatteryTable';
-import OptimizedPartnerTable from './OptimizedPartnerTable';
-import CustomerTable from './CustomerTable';
-import TransactionTable from './TransactionTable';
-import BillingDashboard from './BillingDashboard';
-import AddCustomerModal from './AddCustomerModal';
+import BatteryTable from '../features/battery/BatteryTable';
+import PartnerTable from '../features/partner/PartnerTable';
+import CustomerTable from '../features/customer/CustomerTable';
+import BillingDashboard from '../features/billing/BillingDashboard';
+import AddCustomerModal from '../modals/AddCustomerModal';
 
 const AdminDashboard = () => {
   const [activeSection, setActiveSection] = useState('overview');
@@ -371,7 +370,7 @@ const AdminDashboard = () => {
       case 'batteries':
         return <BatteryTable isAdmin={true} />;
       case 'partners':
-        return <OptimizedPartnerTable />;
+        return <PartnerTable />;
       case 'customers':
         return <CustomerTable isAdmin={true} />;
       case 'payments':

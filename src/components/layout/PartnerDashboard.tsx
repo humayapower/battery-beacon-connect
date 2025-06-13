@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -9,9 +9,9 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useBatteries } from '@/hooks/useBatteries';
 import { useCustomers } from '@/hooks/useCustomers';
 import { useTransactions } from '@/hooks/useTransactions';
-import BatteryTable from './BatteryTable';
-import CustomerTable from './CustomerTable';
-import TransactionTable from './TransactionTable';
+import BatteryTable from '../features/battery/BatteryTable';
+import CustomerTable from '../features/customer/CustomerTable';
+import TransactionTable from '../features/billing/TransactionTable';
 
 const PartnerDashboard = () => {
   const [activeSection, setActiveSection] = useState('overview');

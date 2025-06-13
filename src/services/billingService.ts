@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { PaymentCalculations } from '@/utils/paymentCalculations';
 import { 
@@ -138,20 +139,6 @@ export class BillingService {
 
         if (transaction) {
           transactionIds.push(transaction.id);
-
-          // Create ledger entry
-          await this.createLedgerEntry({
-            customer_id: customerId,
-            transaction_id: transaction.id,
-            payment_date: paymentDate,
-            amount_paid: emiPayment.amount,
-            payment_mode: paymentMode,
-            payment_status: emiPayment.newStatus,
-            remaining_balance: emiPayment.newRemainingAmount,
-            emi_number: emiPayment.emiNumber,
-            emi_id: emiPayment.emiId,
-            remarks: remarks || `EMI ${emiPayment.emiNumber} payment`
-          });
         }
       }
 
@@ -203,20 +190,6 @@ export class BillingService {
 
         if (transaction) {
           transactionIds.push(transaction.id);
-
-          // Create ledger entry
-          await this.createLedgerEntry({
-            customer_id: customerId,
-            transaction_id: transaction.id,
-            payment_date: paymentDate,
-            amount_paid: rentPayment.amount,
-            payment_mode: paymentMode,
-            payment_status: rentPayment.newStatus,
-            remaining_balance: rentPayment.newRemainingAmount,
-            applicable_month: rentPayment.rentMonth,
-            rent_id: rentPayment.rentId,
-            remarks: remarks || `Rent payment for ${rentPayment.rentMonth}`
-          });
         }
       }
 
@@ -252,20 +225,6 @@ export class BillingService {
           })
           .select('id')
           .single();
-
-        if (creditTransaction) {
-          // Create ledger entry for credit
-          await this.createLedgerEntry({
-            customer_id: customerId,
-            transaction_id: creditTransaction.id,
-            payment_date: paymentDate,
-            amount_paid: calculation.excessAmount,
-            payment_mode: paymentMode,
-            payment_status: 'paid',
-            remaining_balance: 0,
-            remarks: `Credit balance added: ₹${calculation.excessAmount}`
-          });
-        }
       }
 
       console.log('✅ Payment processing completed successfully');
@@ -284,24 +243,11 @@ export class BillingService {
     }
   }
 
-  // Ledger Management
-  static async createLedgerEntry(ledgerData: Omit<PaymentLedger, 'id' | 'created_at'>) {
-    return await supabase
-      .from('payment_ledger')
-      .insert({
-        ...ledgerData,
-        created_at: new Date().toISOString()
-      });
-  }
-
+  // Ledger Management - simplified since payment_ledger table doesn't exist
   static async getCustomerLedger(customerId: string): Promise<PaymentLedger[]> {
-    const { data } = await supabase
-      .from('payment_ledger')
-      .select('*')
-      .eq('customer_id', customerId)
-      .order('payment_date', { ascending: false });
-    
-    return data || [];
+    // Since payment_ledger table doesn't exist, return empty array
+    // This can be extended later if the table is created
+    return [];
   }
 
   // EMI Management
@@ -417,7 +363,13 @@ export class BillingService {
 
       if (emis) {
         for (const emi of emis) {
-          const newStatus = PaymentCalculations.calculateEMIStatus(emi);
+          // Type cast for compatibility
+          const typedEmi: EMI = {
+            ...emi,
+            payment_status: emi.payment_status as PaymentStatus
+          };
+          
+          const newStatus = PaymentCalculations.calculateEMIStatus(typedEmi);
           
           if (newStatus !== emi.payment_status) {
             await supabase
@@ -439,7 +391,13 @@ export class BillingService {
 
       if (rents) {
         for (const rent of rents) {
-          const newStatus = PaymentCalculations.calculateRentStatus(rent);
+          // Type cast for compatibility
+          const typedRent: MonthlyRent = {
+            ...rent,
+            payment_status: rent.payment_status as PaymentStatus
+          };
+          
+          const newStatus = PaymentCalculations.calculateRentStatus(typedRent);
           
           if (newStatus !== rent.payment_status) {
             await supabase
@@ -485,24 +443,35 @@ export class BillingService {
         .eq('customer_id', customerId)
         .order('transaction_date', { ascending: false });
 
+      // Type cast EMIs and rents for compatibility
+      const typedEmis: EMI[] = (emis || []).map(emi => ({
+        ...emi,
+        payment_status: emi.payment_status as PaymentStatus
+      }));
+
+      const typedRents: MonthlyRent[] = (rents || []).map(rent => ({
+        ...rent,
+        payment_status: rent.payment_status as PaymentStatus
+      }));
+
       const ledger = await this.getCustomerLedger(customerId);
 
-      const totalPaid = PaymentCalculations.calculateTotalPaid(emis || [], rents || []);
-      const totalDue = PaymentCalculations.calculateTotalOutstanding(emis || [], rents || []);
-      const overdueAmount = PaymentCalculations.calculateOverdueAmount(emis || [], rents || []);
-      const nextDueDate = PaymentCalculations.calculateNextDueDate(emis || [], rents || []);
+      const totalPaid = PaymentCalculations.calculateTotalPaid(typedEmis, typedRents);
+      const totalDue = PaymentCalculations.calculateTotalOutstanding(typedEmis, typedRents);
+      const overdueAmount = PaymentCalculations.calculateOverdueAmount(typedEmis, typedRents);
+      const nextDueDate = PaymentCalculations.calculateNextDueDate(typedEmis, typedRents);
 
-      const emiProgress = emis ? {
-        paid: emis.filter(e => e.payment_status === 'paid').length,
-        total: emis.length,
-        percentage: Math.round((emis.filter(e => e.payment_status === 'paid').length / emis.length) * 100)
+      const emiProgress = typedEmis.length > 0 ? {
+        paid: typedEmis.filter(e => e.payment_status === 'paid').length,
+        total: typedEmis.length,
+        percentage: Math.round((typedEmis.filter(e => e.payment_status === 'paid').length / typedEmis.length) * 100)
       } : undefined;
 
       return {
         success: true,
         data: {
-          emis: emis || [],
-          rents: rents || [],
+          emis: typedEmis,
+          rents: typedRents,
           credits: credits || { credit_balance: 0 },
           transactions: transactions || [],
           ledger,

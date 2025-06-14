@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -44,6 +43,10 @@ const AdminDashboard = () => {
       (t.payment_status === 'due' && t.due_date && new Date(t.due_date) < now)
     ) || [];
     
+    // Calculate unique customers with overdue payments
+    const overdueCustomerIds = new Set(overdueTransactions.map(t => t.customer_id));
+    const overdueCustomersCount = overdueCustomerIds.size;
+    
     const recentPayments = transactions
       ?.filter(t => t.payment_status === 'paid')
       ?.sort((a, b) => new Date(b.transaction_date).getTime() - new Date(a.transaction_date).getTime())
@@ -57,7 +60,7 @@ const AdminDashboard = () => {
       totalCustomers: customers?.length || 0,
       totalPartners: partners?.length || 0,
       totalBatteries: batteries?.length || 0,
-      overdueCount: overdueTransactions.length,
+      overdueCount: overdueCustomersCount,
       overdueTransactions,
       recentPayments,
       recentCustomers,
@@ -207,7 +210,7 @@ const AdminDashboard = () => {
                 <CardContent className="p-4 sm:p-6">
                   <div className="flex items-center justify-between">
                     <div className="min-w-0">
-                      <p className="text-xs sm:text-sm font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wide truncate">Overdue Payments</p>
+                      <p className="text-xs sm:text-sm font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wide truncate">Overdue Customers</p>
                       <p className="text-2xl sm:text-3xl font-bold text-red-600 dark:text-red-400 mt-1">{stats.overdueCount}</p>
                       <div className="flex items-center mt-2">
                         <div className="w-2 h-2 bg-red-500 rounded-full mr-2 animate-pulse"></div>

@@ -233,13 +233,94 @@ export const useBilling = () => {
 
   const getBillingDetails = async (customerId: string) => {
     try {
-      const result = await BillingService.getBillingSummary(customerId);
-      
-      if (result.success) {
-        return result.data;
-      } else {
-        throw new Error(result.error?.message || 'Failed to get billing details');
+      // Fetch EMIs
+      const { data: emis, error: emisError } = await supabase
+        .from('emis')
+        .select('*')
+        .eq('customer_id', customerId)
+        .order('emi_number');
+
+      // Fetch monthly rents
+      const { data: rents, error: rentsError } = await supabase
+        .from('monthly_rents')
+        .select('*')
+        .eq('customer_id', customerId)
+        .order('rent_month');
+
+      // Fetch customer credits
+      const { data: credits, error: creditsError } = await supabase
+        .from('customer_credits')
+        .select('*')
+        .eq('customer_id', customerId)
+        .single();
+
+      // Fetch transactions
+      const { data: transactions, error: transactionsError } = await supabase
+        .from('transactions')
+        .select('*')
+        .eq('customer_id', customerId)
+        .order('transaction_date', { ascending: false });
+
+      if (emisError) throw emisError;
+      if (rentsError) throw rentsError;
+      if (creditsError && creditsError.code !== 'PGRST116') throw creditsError; // PGRST116 is "no rows found"
+      if (transactionsError) throw transactionsError;
+
+      // Calculate totals
+      const totalPaid = (transactions || [])
+        .filter(t => t.payment_status === 'paid')
+        .reduce((sum, t) => sum + t.amount, 0);
+
+      const totalDue = [
+        ...(emis || []).filter(e => e.payment_status !== 'paid'),
+        ...(rents || []).filter(r => r.payment_status !== 'paid')
+      ].reduce((sum, item) => sum + item.remaining_amount, 0);
+
+      const overdueAmount = [
+        ...(emis || []).filter(e => e.payment_status === 'overdue'),
+        ...(rents || []).filter(r => r.payment_status === 'overdue')
+      ].reduce((sum, item) => sum + item.remaining_amount, 0);
+
+      // Find next due date
+      const upcomingDueDates = [
+        ...(emis || []).filter(e => e.payment_status !== 'paid').map(e => e.due_date),
+        ...(rents || []).filter(r => r.payment_status !== 'paid').map(r => r.due_date)
+      ].sort();
+
+      const nextDueDate = upcomingDueDates.length > 0 ? upcomingDueDates[0] : null;
+
+      // Calculate EMI progress
+      let emiProgress = undefined;
+      if (emis && emis.length > 0) {
+        const paidEmis = emis.filter(e => e.payment_status === 'paid').length;
+        const totalEmis = emis.length;
+        emiProgress = {
+          paid: paidEmis,
+          total: totalEmis,
+          percentage: Math.round((paidEmis / totalEmis) * 100)
+        };
       }
+
+      // Ensure credits object has all required properties
+      const creditBalance = credits || {
+        id: 'default-credit-id',
+        customer_id: customerId,
+        credit_balance: 0,
+        updated_at: new Date().toISOString()
+      };
+
+      return {
+        emis: emis || [],
+        rents: rents || [],
+        credits: creditBalance,
+        transactions: transactions || [],
+        ledger: [], // Payment ledger not implemented yet
+        totalPaid,
+        totalDue,
+        nextDueDate,
+        overdueAmount,
+        emiProgress
+      };
     } catch (error: any) {
       console.error('Error fetching billing details:', error);
       toast({

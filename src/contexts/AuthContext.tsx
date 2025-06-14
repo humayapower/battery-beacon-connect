@@ -98,7 +98,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         phone: data[0].phone,
         username: data[0].username,
         address: data[0].address,
-        role: data[0].role
+        role: data[0].role as 'admin' | 'partner'
       };
 
       setUser(userData);

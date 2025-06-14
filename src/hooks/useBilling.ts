@@ -385,15 +385,15 @@ export const useBilling = () => {
       let data, error;
       
       if (targetMonth) {
-        // Call with parameter
-        const result = await supabase.rpc('get_monthly_payment_summary', {
+        // Call with parameter - using any type to bypass TypeScript restrictions
+        const result = await (supabase as any).rpc('get_monthly_payment_summary', {
           target_month: targetMonth.toISOString().split('T')[0]
         });
         data = result.data;
         error = result.error;
       } else {
-        // Call without parameter (uses current date)
-        const result = await supabase.rpc('get_monthly_payment_summary');
+        // Call without parameter (uses current date) - using any type to bypass TypeScript restrictions
+        const result = await (supabase as any).rpc('get_monthly_payment_summary');
         data = result.data;
         error = result.error;
       }

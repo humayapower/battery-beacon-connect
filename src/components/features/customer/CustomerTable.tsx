@@ -267,7 +267,7 @@ const CustomerTable = ({ isAdmin }: CustomerTableProps) => {
         icon={<Plus className="w-6 h-6" />}
         onClick={() => {
           // This will trigger the AddCustomerModal
-          document.querySelector('[data-add-customer-trigger]')?.click();
+          (document.querySelector('[data-add-customer-trigger]') as HTMLElement)?.click();
         }}
         ariaLabel="Add new customer"
       />

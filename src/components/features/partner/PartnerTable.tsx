@@ -208,7 +208,7 @@ const PartnerTable = () => {
         icon={<Plus className="w-6 h-6" />}
         onClick={() => {
           // This will trigger the CreatePartnerModal
-          document.querySelector('[data-add-partner-trigger]')?.click();
+          (document.querySelector('[data-add-partner-trigger]') as HTMLElement)?.click();
         }}
         ariaLabel="Add new partner"
       />

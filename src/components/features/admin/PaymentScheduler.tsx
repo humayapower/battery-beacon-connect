@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,7 +8,6 @@ import { Calendar, Clock, Users, DollarSign, AlertTriangle, CheckCircle, PlayCir
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useBilling } from '@/hooks/useBilling';
-import { LoadingButton } from '@/components/ui/skeleton-loaders';
 import { AnimatedCard } from '@/components/ui/animated-components';
 
 interface PaymentSummary {
@@ -51,7 +51,7 @@ const PaymentScheduler = () => {
     try {
       // Try a simple call to check if functions are deployed
       const { error } = await supabase.functions.invoke('monthly-rent-scheduler', {
-        method: 'OPTIONS' // Lightweight check
+        method: 'GET' // Use GET instead of OPTIONS
       });
       
       // If no error or specific function not found error, consider it deployed
@@ -257,14 +257,14 @@ const PaymentScheduler = () => {
               </span>
             </div>
 
-            <LoadingButton
+            <Button
               onClick={handleGenerateMonthlyRents}
-              loading={loading}
+              disabled={loading}
               className="w-full bg-blue-600 hover:bg-blue-700"
-              icon={<Calendar className="w-4 h-4" />}
             >
-              {isFirstOfMonth ? "Run Monthly Generation" : "Test Monthly Generation"}
-            </LoadingButton>
+              <Calendar className="w-4 h-4 mr-2" />
+              {loading ? "Generating..." : (isFirstOfMonth ? "Run Monthly Generation" : "Test Monthly Generation")}
+            </Button>
 
             {isFirstOfMonth && (
               <Alert>
@@ -302,14 +302,14 @@ const PaymentScheduler = () => {
               </Badge>
             </div>
 
-            <LoadingButton
+            <Button
               onClick={handleUpdateOverdueStatus}
-              loading={overdueLoading}
+              disabled={overdueLoading}
               className="w-full bg-orange-600 hover:bg-orange-700"
-              icon={<Clock className="w-4 h-4" />}
             >
-              Update Overdue Status
-            </LoadingButton>
+              <Clock className="w-4 h-4 mr-2" />
+              {overdueLoading ? "Updating..." : "Update Overdue Status"}
+            </Button>
 
             {isAfterFifth && (
               <Alert>

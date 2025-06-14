@@ -394,11 +394,11 @@ const AdminDashboard = () => {
           </div>
         );
       case 'batteries':
-        return <BatteryTable batteries={batteries || []} />;
+        return <BatteryTable isAdmin={true} />;
       case 'partners':
         return <PartnerTable />;
       case 'customers':
-        return <CustomerTable customers={customers || []} />;
+        return <CustomerTable isAdmin={true} />;
       case 'payments':
         return <BillingDashboard />;
       case 'reports':

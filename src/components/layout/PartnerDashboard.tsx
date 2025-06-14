@@ -192,9 +192,9 @@ const PartnerDashboard = () => {
           </div>
         );
       case 'batteries':
-        return <BatteryTable batteries={partnerBatteries} />;
+        return <BatteryTable isAdmin={false} />;
       case 'customers':
-        return <CustomerTable customers={partnerCustomers} />;
+        return <CustomerTable isAdmin={false} />;
       case 'transactions':
         return <TransactionTable isAdmin={false} />;
       default:

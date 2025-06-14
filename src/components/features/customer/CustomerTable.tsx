@@ -95,8 +95,13 @@ const CustomerTable = ({ isAdmin }: CustomerTableProps) => {
   const customerStats = useMemo(() => ({
     total: filteredCustomers.length,
     emi: filteredCustomers.filter(c => c.payment_type === 'emi').length,
-    rental: filteredCustomers.filter(c => c.payment_type === 'monthly_rent').length
+    rental: filteredCustomers.filter(c => c.payment_type === 'monthly_rent').length,
+    onetime: filteredCustomers.filter(c => c.payment_type === 'one_time_purchase').length
   }), [filteredCustomers]);
+
+  const formatNumber = (num: number) => {
+    return num.toLocaleString();
+  };
 
   if (loading) {
     return <PageSkeleton type="table" />;
@@ -114,13 +119,13 @@ const CustomerTable = ({ isAdmin }: CustomerTableProps) => {
   }
 
   return (
-    <div className="space-y-6 sm:space-y-8">
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 sm:gap-6">
+    <div className="space-y-4 lg:space-y-6">
+      <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-4 px-4 sm:px-0">
         <div>
           <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
             {isAdmin ? '👥 Customer Directory' : '👤 My Customers'}
           </h1>
-          <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
+          <p className="text-sm lg:text-base text-gray-600 dark:text-gray-400">
             {isAdmin ? 'View all customers across partners' : 'Manage your customer relationships'}
           </p>
         </div>
@@ -134,38 +139,35 @@ const CustomerTable = ({ isAdmin }: CustomerTableProps) => {
         placeholder="Search customers by name, phone, email, or battery serial..."
       />
 
-      {/* Enhanced Stats Cards */}
-      <div className="grid grid-cols-3 lg:grid-cols-3 gap-2 sm:gap-4 lg:gap-6">
-        <Card className="stat-card glass-card hover:shadow-2xl transition-all duration-300 border-0">
-          <CardContent className="p-2 sm:p-4 lg:p-6 text-center">
-            <div className="w-8 h-8 lg:w-12 lg:h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl lg:rounded-2xl flex items-center justify-center mx-auto mb-2 lg:mb-3">
-              <User className="w-4 h-4 lg:w-6 lg:h-6 text-white" />
-            </div>
-            <div className="text-lg sm:text-xl lg:text-3xl font-bold text-gray-900 dark:text-gray-100 mb-1">{customerStats.total}</div>
-            <div className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide">Total</div>
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 px-4 sm:px-0">
+        <Card>
+          <CardContent className="p-4 text-center">
+            <div className="text-lg sm:text-2xl font-bold text-blue-600">{formatNumber(customerStats.total)}</div>
+            <div className="text-xs sm:text-sm text-gray-600">Total Customers</div>
           </CardContent>
         </Card>
-        <Card className="stat-card glass-card hover:shadow-2xl transition-all duration-300 border-0">
-          <CardContent className="p-2 sm:p-4 lg:p-6 text-center">
-            <div className="w-8 h-8 lg:w-12 lg:h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl lg:rounded-2xl flex items-center justify-center mx-auto mb-2 lg:mb-3">
-              <CreditCard className="w-4 h-4 lg:w-6 lg:h-6 text-white" />
-            </div>
-            <div className="text-lg sm:text-xl lg:text-3xl font-bold text-gray-900 dark:text-gray-100 mb-1">{customerStats.emi}</div>
-            <div className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide">EMI</div>
+        <Card>
+          <CardContent className="p-4 text-center">
+            <div className="text-lg sm:text-2xl font-bold text-green-600">{formatNumber(customerStats.emi)}</div>
+            <div className="text-xs sm:text-sm text-gray-600">EMI Customers</div>
           </CardContent>
         </Card>
-        <Card className="stat-card glass-card hover:shadow-2xl transition-all duration-300 border-0">
-          <CardContent className="p-2 sm:p-4 lg:p-6 text-center">
-            <div className="w-8 h-8 lg:w-12 lg:h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl lg:rounded-2xl flex items-center justify-center mx-auto mb-2 lg:mb-3">
-              <Receipt className="w-4 h-4 lg:w-6 lg:h-6 text-white" />
-            </div>
-            <div className="text-lg sm:text-xl lg:text-3xl font-bold text-gray-900 dark:text-gray-100 mb-1">{customerStats.rental}</div>
-            <div className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide">Rental</div>
+        <Card>
+          <CardContent className="p-4 text-center">
+            <div className="text-lg sm:text-2xl font-bold text-purple-600">{formatNumber(customerStats.rental)}</div>
+            <div className="text-xs sm:text-sm text-gray-600">Rental Customers</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4 text-center">
+            <div className="text-lg sm:text-2xl font-bold text-orange-600">{formatNumber(customerStats.onetime)}</div>
+            <div className="text-xs sm:text-sm text-gray-600">One-time Purchase</div>
           </CardContent>
         </Card>
       </div>
 
-      <AnimatedCard className="glass-card border-0 shadow-xl" hoverable={false}>
+      <AnimatedCard className="glass-card border-0 shadow-xl mx-4 sm:mx-0" hoverable={false}>
         <CardHeader className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 border-b border-gray-200 dark:border-gray-600">
           <CardTitle className="text-lg font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
             <User className="w-5 h-5" />

@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { BillingService } from '@/services/billingService';
+import { EMI, MonthlyRent, PaymentStatus } from '@/types/billing';
 
 interface MonthlyPaymentSummary {
   total_rent_this_month: number;
@@ -234,14 +234,14 @@ export const useBilling = () => {
   const getBillingDetails = async (customerId: string) => {
     try {
       // Fetch EMIs
-      const { data: emis, error: emisError } = await supabase
+      const { data: emisData, error: emisError } = await supabase
         .from('emis')
         .select('*')
         .eq('customer_id', customerId)
         .order('emi_number');
 
       // Fetch monthly rents
-      const { data: rents, error: rentsError } = await supabase
+      const { data: rentsData, error: rentsError } = await supabase
         .from('monthly_rents')
         .select('*')
         .eq('customer_id', customerId)
@@ -255,7 +255,7 @@ export const useBilling = () => {
         .single();
 
       // Fetch transactions
-      const { data: transactions, error: transactionsError } = await supabase
+      const { data: transactionsData, error: transactionsError } = await supabase
         .from('transactions')
         .select('*')
         .eq('customer_id', customerId)
@@ -266,25 +266,43 @@ export const useBilling = () => {
       if (creditsError && creditsError.code !== 'PGRST116') throw creditsError; // PGRST116 is "no rows found"
       if (transactionsError) throw transactionsError;
 
+      // Type cast the data to match our TypeScript interfaces
+      const emis: EMI[] = (emisData || []).map(emi => ({
+        ...emi,
+        payment_status: emi.payment_status as PaymentStatus,
+        paid_amount: emi.paid_amount || 0
+      }));
+
+      const rents: MonthlyRent[] = (rentsData || []).map(rent => ({
+        ...rent,
+        payment_status: rent.payment_status as PaymentStatus,
+        paid_amount: rent.paid_amount || 0
+      }));
+
+      const transactions = (transactionsData || []).map(transaction => ({
+        ...transaction,
+        payment_status: transaction.payment_status as PaymentStatus
+      }));
+
       // Calculate totals
-      const totalPaid = (transactions || [])
+      const totalPaid = transactions
         .filter(t => t.payment_status === 'paid')
         .reduce((sum, t) => sum + t.amount, 0);
 
       const totalDue = [
-        ...(emis || []).filter(e => e.payment_status !== 'paid'),
-        ...(rents || []).filter(r => r.payment_status !== 'paid')
+        ...emis.filter(e => e.payment_status !== 'paid'),
+        ...rents.filter(r => r.payment_status !== 'paid')
       ].reduce((sum, item) => sum + item.remaining_amount, 0);
 
       const overdueAmount = [
-        ...(emis || []).filter(e => e.payment_status === 'overdue'),
-        ...(rents || []).filter(r => r.payment_status === 'overdue')
+        ...emis.filter(e => e.payment_status === 'overdue'),
+        ...rents.filter(r => r.payment_status === 'overdue')
       ].reduce((sum, item) => sum + item.remaining_amount, 0);
 
       // Find next due date
       const upcomingDueDates = [
-        ...(emis || []).filter(e => e.payment_status !== 'paid').map(e => e.due_date),
-        ...(rents || []).filter(r => r.payment_status !== 'paid').map(r => r.due_date)
+        ...emis.filter(e => e.payment_status !== 'paid').map(e => e.due_date),
+        ...rents.filter(r => r.payment_status !== 'paid').map(r => r.due_date)
       ].sort();
 
       const nextDueDate = upcomingDueDates.length > 0 ? upcomingDueDates[0] : null;
@@ -310,10 +328,10 @@ export const useBilling = () => {
       };
 
       return {
-        emis: emis || [],
-        rents: rents || [],
+        emis,
+        rents,
         credits: creditBalance,
-        transactions: transactions || [],
+        transactions,
         ledger: [], // Payment ledger not implemented yet
         totalPaid,
         totalDue,

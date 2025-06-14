@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -51,7 +50,7 @@ const PaymentScheduler = () => {
     try {
       // Try a simple call to check if functions are deployed
       const { error } = await supabase.functions.invoke('monthly-rent-scheduler', {
-        method: 'GET' // Use GET instead of OPTIONS
+        method: 'GET' as any // Use GET instead of OPTIONS
       });
       
       // If no error or specific function not found error, consider it deployed
@@ -88,7 +87,7 @@ const PaymentScheduler = () => {
       if (result?.success) {
         setLastRunResults({
           processedCount: result.processedCount,
-          message: `Successfully generated ${result.processedCount} monthly rent charges`
+          message: `Successfully generated monthly rent charges`
         });
 
         // Refresh summary
@@ -116,7 +115,7 @@ const PaymentScheduler = () => {
           overdueRentsCount: result.overdue_rents_count,
           overdueEmisCount: result.overdue_emis_count,
           affectedCustomersCount: result.affected_customers_count,
-          message: `Updated ${result.overdue_rents_count} rents and ${result.overdue_emis_count} EMIs to overdue status`
+          message: `Updated overdue payment statuses`
         });
 
         // Refresh summary

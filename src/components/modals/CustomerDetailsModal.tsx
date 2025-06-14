@@ -1,12 +1,13 @@
+
 import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-// import { Badge } from "@/components/ui/badge";
 import { User, Phone, Mail, MapPin, Calendar, Battery, CreditCard, Edit, Trash2, ArrowRightLeft } from 'lucide-react';
 import { useCustomers, CustomerWithBattery } from '@/hooks/useCustomers';
 import CustomerBillingPage from '../features/customer/CustomerBillingPage';
 import ChangeBatteryModal from './ChangeBatteryModal';
+import DeleteCustomerModal from './DeleteCustomerModal';
 
 interface CustomerDetailsModalProps {
   customerId: string | null;
@@ -19,6 +20,7 @@ const CustomerDetailsModal = ({ customerId, isOpen, onClose }: CustomerDetailsMo
   const [loading, setLoading] = useState(false);
   const [showBilling, setShowBilling] = useState(false);
   const [showChangeBattery, setShowChangeBattery] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const { getCustomerById } = useCustomers();
 
   const fetchCustomer = async () => {
@@ -47,9 +49,16 @@ const CustomerDetailsModal = ({ customerId, isOpen, onClose }: CustomerDetailsMo
     setShowChangeBattery(true);
   };
 
+  const handleDeleteCustomer = () => {
+    setShowDeleteModal(true);
+  };
+
   const handleBatteryChangeSuccess = () => {
-    // Refresh customer data after battery change
     fetchCustomer();
+  };
+
+  const handleDeleteSuccess = () => {
+    onClose();
   };
 
   if (showBilling && customer) {
@@ -135,7 +144,10 @@ const CustomerDetailsModal = ({ customerId, isOpen, onClose }: CustomerDetailsMo
                   Change Battery
                 </Button>
               )}
-              <Button variant="destructive">
+              <Button 
+                variant="destructive"
+                onClick={handleDeleteCustomer}
+              >
                 <Trash2 className="w-4 h-4 mr-2" />
                 Delete Customer
               </Button>
@@ -298,6 +310,16 @@ const CustomerDetailsModal = ({ customerId, isOpen, onClose }: CustomerDetailsMo
         isOpen={showChangeBattery}
         onClose={() => setShowChangeBattery(false)}
         onSuccess={handleBatteryChangeSuccess}
+      />
+
+      {/* Delete Customer Modal */}
+      <DeleteCustomerModal
+        customerId={customer?.id || null}
+        customerName={customer?.name || ''}
+        batteryId={customer?.battery_id || null}
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onSuccess={handleDeleteSuccess}
       />
     </>
   );

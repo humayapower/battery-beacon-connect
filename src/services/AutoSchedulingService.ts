@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 
 export class AutoSchedulingService {
@@ -27,6 +28,7 @@ export class AutoSchedulingService {
         emiSchedule.push({
           customer_id: customerId,
           emi_number: i,
+          total_emi_count: emiCount,
           amount: emiAmount,
           due_date: dueDate.toISOString().split('T')[0],
           payment_status: 'due',
@@ -74,7 +76,7 @@ export class AutoSchedulingService {
       const nextMonthStart = new Date(firstMonthStart.getFullYear(), firstMonthStart.getMonth() + 1, 1);
       const daysInMonth = new Date(firstMonthStart.getFullYear(), firstMonthStart.getMonth() + 1, 0).getDate();
       const daysFromJoinToMonthEnd = Math.ceil((nextMonthStart.getTime() - joinDateObj.getTime()) / (1000 * 60 * 60 * 24));
-      const proRatedAmount = (monthlyRent / daysInMonth) * daysFromJoinToMonthEnd;
+      const proRatedAmount = Math.round((monthlyRent / daysInMonth) * daysFromJoinToMonthEnd);
       
       // First pro-rated rent
       const firstRentDueDate = new Date(joinDateObj);
@@ -88,9 +90,6 @@ export class AutoSchedulingService {
         payment_status: this.isOverdue(firstRentDueDate) ? 'overdue' : 'due',
         paid_amount: 0,
         remaining_amount: proRatedAmount,
-        is_prorated: true,
-        prorated_days: daysFromJoinToMonthEnd,
-        daily_rate: monthlyRent / daysInMonth,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       });
@@ -110,7 +109,6 @@ export class AutoSchedulingService {
           payment_status: this.isOverdue(dueDate) ? 'overdue' : 'due',
           paid_amount: 0,
           remaining_amount: monthlyRent,
-          is_prorated: false,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         });
@@ -220,7 +218,6 @@ export class AutoSchedulingService {
             payment_status: 'due',
             paid_amount: 0,
             remaining_amount: customer.monthly_rent,
-            is_prorated: false,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
           });

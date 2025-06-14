@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 
 export class AutoSchedulingService {
@@ -72,19 +71,21 @@ export class AutoSchedulingService {
       const rentSchedule = [];
       
       // Calculate pro-rated first month rent
-      const firstMonthStart = new Date(joinDateObj);
-      const nextMonthStart = new Date(firstMonthStart.getFullYear(), firstMonthStart.getMonth() + 1, 1);
-      const daysInMonth = new Date(firstMonthStart.getFullYear(), firstMonthStart.getMonth() + 1, 0).getDate();
-      const daysFromJoinToMonthEnd = Math.ceil((nextMonthStart.getTime() - joinDateObj.getTime()) / (1000 * 60 * 60 * 24));
-      const proRatedAmount = Math.round((monthlyRent / daysInMonth) * daysFromJoinToMonthEnd);
+      const firstOfNextMonth = new Date(joinDateObj.getFullYear(), joinDateObj.getMonth() + 1, 1);
       
-      // First pro-rated rent
-      const firstRentDueDate = new Date(joinDateObj);
-      firstRentDueDate.setDate(firstRentDueDate.getDate() + 5); // Due 5 days after joining
+      // Calculate days from joining date to end of current month (not including joining day)
+      const daysFromJoiningToNextMonth = Math.ceil((firstOfNextMonth.getTime() - joinDateObj.getTime()) / (1000 * 60 * 60 * 24));
+      
+      // Pro-rated amount: (monthly rent / 30) * number of days
+      const proRatedAmount = Math.round((monthlyRent / 30) * daysFromJoiningToNextMonth);
+      
+      // First pro-rated rent - scheduled for 1st of next month, due on 5th of next month
+      const firstRentMonth = firstOfNextMonth.toISOString().split('T')[0].substring(0, 7) + '-01';
+      const firstRentDueDate = new Date(joinDateObj.getFullYear(), joinDateObj.getMonth() + 1, 5);
       
       rentSchedule.push({
         customer_id: customerId,
-        rent_month: joinDateObj.toISOString().split('T')[0].substring(0, 7) + '-01',
+        rent_month: firstRentMonth,
         amount: proRatedAmount,
         due_date: firstRentDueDate.toISOString().split('T')[0],
         payment_status: this.isOverdue(firstRentDueDate) ? 'overdue' : 'due',
@@ -94,8 +95,9 @@ export class AutoSchedulingService {
         updated_at: new Date().toISOString()
       });
       
-      // Schedule all months from joining month to current month
-      let currentMonth = new Date(nextMonthStart);
+      // Schedule all subsequent months from next month to current month as full monthly rent
+      let currentMonth = new Date(firstOfNextMonth);
+      currentMonth.setMonth(currentMonth.getMonth() + 1); // Start from the month after the pro-rated month
       
       while (currentMonth <= today) {
         const rentMonth = currentMonth.toISOString().split('T')[0].substring(0, 7) + '-01';
@@ -125,7 +127,7 @@ export class AutoSchedulingService {
       
       if (error) throw error;
       
-      console.log(`✅ Successfully scheduled ${rentSchedule.length} rental payments (1 prorated + ${rentSchedule.length - 1} regular)`);
+      console.log(`✅ Successfully scheduled ${rentSchedule.length} rental payments (1 prorated: ₹${proRatedAmount} + ${rentSchedule.length - 1} regular)`);
       return { success: true, data, count: rentSchedule.length, proRatedAmount };
       
     } catch (error: any) {
@@ -135,12 +137,12 @@ export class AutoSchedulingService {
   }
   
   /**
-   * Check if a date is overdue (more than 5 days past due date)
+   * Check if a date is overdue (more than 10 days past due date for rent)
    */
   private static isOverdue(dueDate: Date): boolean {
     const today = new Date();
     const daysDiff = Math.floor((today.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24));
-    return daysDiff > 5;
+    return daysDiff > 10;
   }
   
   /**
@@ -242,13 +244,16 @@ export class AutoSchedulingService {
   }
   
   /**
-   * Mark overdue payments (5+ days after due date)
+   * Mark overdue payments (5+ days after due date for EMI, 10+ days for rent)
    */
   private static async markOverduePayments(): Promise<number> {
     try {
       const today = new Date();
-      const overdueDate = new Date(today);
-      overdueDate.setDate(today.getDate() - 5); // 5 days ago
+      const emiOverdueDate = new Date(today);
+      emiOverdueDate.setDate(today.getDate() - 5); // 5 days ago for EMI
+      
+      const rentOverdueDate = new Date(today);
+      rentOverdueDate.setDate(today.getDate() - 10); // 10 days ago for rent
       
       // Update overdue rental payments
       const { data: overdueRents, error: rentError } = await supabase
@@ -257,7 +262,7 @@ export class AutoSchedulingService {
           payment_status: 'overdue',
           updated_at: new Date().toISOString()
         })
-        .lt('due_date', overdueDate.toISOString().split('T')[0])
+        .lt('due_date', rentOverdueDate.toISOString().split('T')[0])
         .in('payment_status', ['due', 'partial'])
         .gt('remaining_amount', 0)
         .select('id');
@@ -271,7 +276,7 @@ export class AutoSchedulingService {
           payment_status: 'overdue',
           updated_at: new Date().toISOString()
         })
-        .lt('due_date', overdueDate.toISOString().split('T')[0])
+        .lt('due_date', emiOverdueDate.toISOString().split('T')[0])
         .in('payment_status', ['due', 'partial'])
         .gt('remaining_amount', 0)
         .select('id');

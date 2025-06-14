@@ -10,6 +10,7 @@ import { Plus, Upload, User, Users, CreditCard } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useCustomers } from '@/hooks/useCustomers';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAutoScheduling } from '@/hooks/useAutoScheduling';
 import { supabase } from '@/integrations/supabase/client';
 import { Customer } from '@/types';
 
@@ -55,6 +56,7 @@ const AddCustomerModal = () => {
   const { toast } = useToast();
   const { addCustomer } = useCustomers();
   const { userRole, user } = useAuth();
+  const { scheduleEMIPayments, scheduleRentalPayments } = useAutoScheduling();
   const [partners, setPartners] = useState<{ id: string; name: string; }[]>([]);
   const [batteries, setBatteries] = useState<{ id: string; serial_number: string; }[]>([]);
 
@@ -230,10 +232,58 @@ const AddCustomerModal = () => {
       const result = await addCustomer(customerData);
 
       if (result?.success) {
-        toast({
-          title: "Customer added successfully",
-          description: `Customer ${formData.name} has been added with all documents.`,
-        });
+        const customerId = result.data?.id;
+        
+        if (customerId) {
+          // Auto-schedule payments based on payment type
+          if (formData.paymentType === 'emi' && paymentPlan.totalAmount && paymentPlan.downPayment && paymentPlan.emiCount) {
+            const emiResult = await scheduleEMIPayments(
+              customerId,
+              parseFloat(paymentPlan.totalAmount),
+              parseFloat(paymentPlan.downPayment) || 0,
+              parseInt(paymentPlan.emiCount),
+              formData.joinDate
+            );
+            
+            if (emiResult.success) {
+              toast({
+                title: "Customer and EMI schedule created",
+                description: `Customer ${formData.name} added with ${emiResult.count} EMI payments scheduled.`,
+              });
+            } else {
+              toast({
+                title: "Customer added, EMI scheduling failed",
+                description: `Customer created but EMI scheduling failed: ${emiResult.error?.message}`,
+                variant: "destructive",
+              });
+            }
+          } else if (formData.paymentType === 'monthly_rent' && paymentPlan.monthlyRent) {
+            const rentalResult = await scheduleRentalPayments(
+              customerId,
+              parseFloat(paymentPlan.monthlyRent),
+              formData.joinDate
+            );
+            
+            if (rentalResult.success) {
+              toast({
+                title: "Customer and rental schedule created",
+                description: `Customer ${formData.name} added with ${rentalResult.count} rental payments scheduled (₹${rentalResult.proRatedAmount?.toFixed(2)} pro-rated first rent).`,
+              });
+            } else {
+              toast({
+                title: "Customer added, rental scheduling failed", 
+                description: `Customer created but rental scheduling failed: ${rentalResult.error?.message}`,
+                variant: "destructive",
+              });
+            }
+          } else {
+            toast({
+              title: "Customer added successfully",
+              description: `Customer ${formData.name} has been added with all documents.`,
+            });
+          }
+        }
+        
         setIsOpen(false);
         resetForm();
       } else {
@@ -286,7 +336,7 @@ const AddCustomerModal = () => {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300">
+        <Button className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300" data-add-customer-trigger>
           <Plus className="w-4 h-4 mr-2" />
           Add Customer
         </Button>

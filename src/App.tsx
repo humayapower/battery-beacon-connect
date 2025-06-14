@@ -7,6 +7,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/components/layout/ThemeProvider";
+import { AutoSchedulingProvider } from "@/components/providers/AutoSchedulingProvider";
 
 // Lazy load pages for better performance
 const Index = lazy(() => import("./pages/Index"));
@@ -28,10 +29,11 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
       <AuthProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
+        <AutoSchedulingProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
             <Suspense fallback={
               <div className="flex items-center justify-center min-h-screen">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -46,7 +48,8 @@ const App = () => (
               </Routes>
             </Suspense>
           </BrowserRouter>
-        </TooltipProvider>
+          </TooltipProvider>
+        </AutoSchedulingProvider>
       </AuthProvider>
     </ThemeProvider>
   </QueryClientProvider>

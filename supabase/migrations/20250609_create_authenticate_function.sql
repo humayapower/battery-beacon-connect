@@ -17,15 +17,15 @@ AS $$
 BEGIN
   RETURN QUERY
   SELECT 
-    la.id,
-    la.full_name as name,
-    la.phone,
-    la.username,
-    la.address,
-    la.role
-  FROM public.local_auth la
-  WHERE la.username = p_username 
-    AND la.password_hash = p_password_hash;
+    u.id,
+    u.name,
+    u.phone,
+    u.username,
+    u.address,
+    u.role
+  FROM public.users u
+  WHERE u.username = p_username 
+    AND u.password_hash = p_password_hash;
 END;
 $$;
 

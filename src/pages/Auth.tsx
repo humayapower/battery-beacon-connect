@@ -42,12 +42,25 @@ const Auth = () => {
     }
 
     try {
+      console.log('Form submitted with:', { username: username.trim() });
+      
+      // Check if we're in a secure context (required for crypto.subtle)
+      if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+        console.warn('Not in secure context, some features may not work properly');
+      }
+      
       const result = await signIn(username.trim(), password);
+      console.log('SignIn result:', result);
+      
       if (result.error) {
+        console.error('Login failed:', result.error);
         setError(result.error.message);
+      } else {
+        console.log('Login successful, redirecting...');
       }
     } catch (err) {
-      setError('An unexpected error occurred');
+      console.error('Unexpected error during login:', err);
+      setError('An unexpected error occurred. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -164,6 +177,18 @@ const Auth = () => {
                   <p><span className="font-medium">Username:</span> admin</p>
                   <p><span className="font-medium">Password:</span> admin123</p>
                 </div>
+                <Button 
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="w-full mt-3 text-xs"
+                  onClick={() => {
+                    setUsername('admin');
+                    setPassword('admin123');
+                  }}
+                >
+                  Use Demo Credentials
+                </Button>
               </div>
             </form>
           </CardContent>

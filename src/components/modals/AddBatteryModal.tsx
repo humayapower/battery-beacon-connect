@@ -161,7 +161,7 @@ const AddBatteryModal = () => {
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-        <Button className="bg-blue-600 hover:bg-blue-700">
+        <Button className="bg-blue-600 hover:bg-blue-700" data-add-battery-trigger>
           <Plus className="w-4 h-4 mr-2" />
           Add Battery
         </Button>

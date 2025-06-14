@@ -1,14 +1,12 @@
 
 import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-// import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { getPaymentTypeColor, getPaymentTypeLabel } from '@/utils/statusColors';
 import { usePhoneCall } from '@/hooks/usePhoneCall';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { User, CreditCard, Receipt } from 'lucide-react';
-// import { Edit, Eye, Phone, ExternalLink } from 'lucide-react';
+import { User, CreditCard, Receipt, Plus } from 'lucide-react';
 import AddCustomerModal from '../../modals/AddCustomerModal';
 import CustomerDetailsModal from '../../modals/CustomerDetailsModal';
 import CustomerProfile from './CustomerProfile';
@@ -16,6 +14,8 @@ import ResponsiveCustomerCards from './ResponsiveCustomerCards';
 import { SearchAndFilters } from '../../shared/SearchAndFilters';
 import { useCustomers } from '@/hooks/useCustomers';
 import { useAuth } from '@/contexts/AuthContext';
+import { PageSkeleton } from '@/components/ui/skeleton-loaders';
+import { AnimatedCard, FloatingActionButton } from '@/components/ui/animated-components';
 
 interface CustomerTableProps {
   isAdmin: boolean;
@@ -99,15 +99,7 @@ const CustomerTable = ({ isAdmin }: CustomerTableProps) => {
   }), [filteredCustomers]);
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center py-16">
-        <div className="text-center glass-card p-8 rounded-2xl">
-          <div className="pulse-loader w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-base font-medium text-gray-700 dark:text-gray-300">Loading customers...</p>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">Please wait while we fetch the data</p>
-        </div>
-      </div>
-    );
+    return <PageSkeleton type="table" />;
   }
 
   // If showing profile, render the customer profile component
@@ -125,10 +117,10 @@ const CustomerTable = ({ isAdmin }: CustomerTableProps) => {
     <div className="space-y-6 sm:space-y-8">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 sm:gap-6">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 dark:from-gray-100 dark:to-gray-300 bg-clip-text text-transparent mb-2">
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
             {isAdmin ? '👥 Customer Directory' : '👤 My Customers'}
           </h1>
-          <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 font-medium">
+          <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
             {isAdmin ? 'View all customers across partners' : 'Manage your customer relationships'}
           </p>
         </div>
@@ -143,37 +135,37 @@ const CustomerTable = ({ isAdmin }: CustomerTableProps) => {
       />
 
       {/* Enhanced Stats Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+      <div className="grid grid-cols-3 lg:grid-cols-3 gap-2 sm:gap-4 lg:gap-6">
         <Card className="stat-card glass-card hover:shadow-2xl transition-all duration-300 border-0">
-          <CardContent className="p-4 sm:p-6 text-center">
-            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-3">
-              <User className="w-6 h-6 text-white" />
+          <CardContent className="p-2 sm:p-4 lg:p-6 text-center">
+            <div className="w-8 h-8 lg:w-12 lg:h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl lg:rounded-2xl flex items-center justify-center mx-auto mb-2 lg:mb-3">
+              <User className="w-4 h-4 lg:w-6 lg:h-6 text-white" />
             </div>
-            <div className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100 mb-1">{customerStats.total}</div>
-            <div className="text-xs sm:text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide">Total Customers</div>
+            <div className="text-lg sm:text-xl lg:text-3xl font-bold text-gray-900 dark:text-gray-100 mb-1">{customerStats.total}</div>
+            <div className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide">Total</div>
           </CardContent>
         </Card>
         <Card className="stat-card glass-card hover:shadow-2xl transition-all duration-300 border-0">
-          <CardContent className="p-4 sm:p-6 text-center">
-            <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl flex items-center justify-center mx-auto mb-3">
-              <CreditCard className="w-6 h-6 text-white" />
+          <CardContent className="p-2 sm:p-4 lg:p-6 text-center">
+            <div className="w-8 h-8 lg:w-12 lg:h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl lg:rounded-2xl flex items-center justify-center mx-auto mb-2 lg:mb-3">
+              <CreditCard className="w-4 h-4 lg:w-6 lg:h-6 text-white" />
             </div>
-            <div className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100 mb-1">{customerStats.emi}</div>
-            <div className="text-xs sm:text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide">EMI Customers</div>
+            <div className="text-lg sm:text-xl lg:text-3xl font-bold text-gray-900 dark:text-gray-100 mb-1">{customerStats.emi}</div>
+            <div className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide">EMI</div>
           </CardContent>
         </Card>
         <Card className="stat-card glass-card hover:shadow-2xl transition-all duration-300 border-0">
-          <CardContent className="p-4 sm:p-6 text-center">
-            <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-3">
-              <Receipt className="w-6 h-6 text-white" />
+          <CardContent className="p-2 sm:p-4 lg:p-6 text-center">
+            <div className="w-8 h-8 lg:w-12 lg:h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl lg:rounded-2xl flex items-center justify-center mx-auto mb-2 lg:mb-3">
+              <Receipt className="w-4 h-4 lg:w-6 lg:h-6 text-white" />
             </div>
-            <div className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100 mb-1">{customerStats.rental}</div>
-            <div className="text-xs sm:text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide">Rental Customers</div>
+            <div className="text-lg sm:text-xl lg:text-3xl font-bold text-gray-900 dark:text-gray-100 mb-1">{customerStats.rental}</div>
+            <div className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide">Rental</div>
           </CardContent>
         </Card>
       </div>
 
-      <Card className="glass-card border-0 shadow-xl">
+      <AnimatedCard className="glass-card border-0 shadow-xl" hoverable={false}>
         <CardHeader className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 border-b border-gray-200 dark:border-gray-600">
           <CardTitle className="text-lg font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
             <User className="w-5 h-5" />
@@ -268,7 +260,17 @@ const CustomerTable = ({ isAdmin }: CustomerTableProps) => {
             </div>
           )}
         </CardContent>
-      </Card>
+      </AnimatedCard>
+
+      {/* Floating Action Button for Adding Customers */}
+      <FloatingActionButton
+        icon={<Plus className="w-6 h-6" />}
+        onClick={() => {
+          // This will trigger the AddCustomerModal
+          document.querySelector('[data-add-customer-trigger]')?.click();
+        }}
+        ariaLabel="Add new customer"
+      />
 
       <CustomerDetailsModal
         customerId={selectedCustomerId}

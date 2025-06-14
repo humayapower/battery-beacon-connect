@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar";
+import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarTrigger, SidebarInset, useSidebar } from "@/components/ui/sidebar";
 import { Battery, User, CreditCard, Home, Plus, LogOut } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useBatteries } from '@/hooks/useBatteries';
@@ -48,46 +48,60 @@ const PartnerDashboard = () => {
     { title: "Monthly Revenue", value: `₹${monthlyRevenue.toLocaleString()}`, change: "Total earned", icon: CreditCard, color: "bg-purple-500" },
   ];
 
-  const AppSidebar = () => (
-    <Sidebar className="sidebar-gradient">
-      <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel className="text-base sm:text-lg font-bold mb-3 sm:mb-4 px-2 text-primary">
-            🤝 Partner Portal
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {menuItems.map((item) => (
-                <SidebarMenuItem key={item.key}>
-                  <SidebarMenuButton 
-                    asChild 
-                    isActive={activeSection === item.key}
-                    onClick={() => setActiveSection(item.key)}
-                    className="w-full justify-start"
-                  >
-                    <button className="flex items-center space-x-2 sm:space-x-3 w-full p-2 sm:p-3 text-left">
-                      <item.icon className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
-                      <span className="truncate text-sm sm:text-base">{item.title}</span>
-                    </button>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-        <div className="mt-auto p-3 sm:p-4">
-          <Button 
-            variant="outline" 
-            className="w-full justify-start text-sm" 
-            onClick={signOut}
-          >
-            <LogOut className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
-            <span className="truncate">Sign Out</span>
-          </Button>
-        </div>
-      </SidebarContent>
-    </Sidebar>
-  );
+  const AppSidebar = () => {
+    const { setOpenMobile, isMobile } = useSidebar();
+
+    const handleMenuItemClick = (key: string) => {
+      setActiveSection(key);
+      // Close mobile sidebar when a menu item is clicked
+      if (isMobile) {
+        setOpenMobile(false);
+      }
+    };
+
+    return (
+      <Sidebar className="sidebar-gradient">
+        <SidebarContent>
+          <SidebarGroup>
+            <SidebarGroupLabel className="text-base sm:text-lg font-bold mb-3 sm:mb-4 px-2 text-primary">
+              🤝 Partner Portal
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {menuItems.map((item) => (
+                  <SidebarMenuItem key={item.key}>
+                    <SidebarMenuButton 
+                      asChild 
+                      isActive={activeSection === item.key}
+                      className="w-full justify-start"
+                    >
+                      <button 
+                        className="flex items-center space-x-2 sm:space-x-3 w-full p-2 sm:p-3 text-left"
+                        onClick={() => handleMenuItemClick(item.key)}
+                      >
+                        <item.icon className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+                        <span className="truncate text-sm sm:text-base">{item.title}</span>
+                      </button>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+          <div className="mt-auto p-3 sm:p-4">
+            <Button 
+              variant="outline" 
+              className="w-full justify-start text-sm" 
+              onClick={signOut}
+            >
+              <LogOut className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
+              <span className="truncate">Sign Out</span>
+            </Button>
+          </div>
+        </SidebarContent>
+      </Sidebar>
+    );
+  };
 
   const renderContent = () => {
     switch (activeSection) {

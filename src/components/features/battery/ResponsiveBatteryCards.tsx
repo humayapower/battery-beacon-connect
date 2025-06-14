@@ -40,7 +40,7 @@ const ResponsiveBatteryCards = ({ batteries, onViewDetails }: ResponsiveBatteryC
                   className="text-sm sm:text-base font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:underline transition-colors text-left block truncate"
                   title={battery.serial_number}
                 >
-                  🔋 {battery.serial_number}
+                  {battery.serial_number}
                 </button>
                 <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1 truncate font-medium">
                   {battery.model_name || 'N/A'}

@@ -307,13 +307,17 @@ export const useBilling = () => {
 
   const generateMonthlyRents = async () => {
     try {
-      const { error } = await supabase.rpc('generate_monthly_rent_charges');
+      const { data, error } = await supabase.rpc('generate_monthly_rent_charges');
       if (error) throw error;
+      
+      const processedCount = data?.length || 0;
       
       toast({
         title: "Monthly rents generated",
-        description: "Monthly rent charges have been generated for all rental customers.",
+        description: `Monthly rent charges have been generated for ${processedCount} rental customers with due date on 5th.`,
       });
+
+      return { success: true, processedCount, data };
     } catch (error: any) {
       console.error('Error generating monthly rents:', error);
       toast({
@@ -321,6 +325,7 @@ export const useBilling = () => {
         description: error.message,
         variant: "destructive",
       });
+      return { success: false, error };
     }
   };
 
@@ -353,10 +358,52 @@ export const useBilling = () => {
 
   const updateOverdueStatus = async () => {
     try {
-      const { error } = await supabase.rpc('update_overdue_status');
+      const { data, error } = await supabase.rpc('update_overdue_status');
       if (error) throw error;
+      
+      const result = data?.[0] || { overdue_rents_count: 0, overdue_emis_count: 0, affected_customers_count: 0 };
+      
+      toast({
+        title: "Overdue status updated",
+        description: `Marked ${result.overdue_rents_count} rents and ${result.overdue_emis_count} EMIs as overdue for ${result.affected_customers_count} customers.`,
+      });
+
+      return { success: true, ...result };
     } catch (error: any) {
       console.error('Error updating overdue status:', error);
+      toast({
+        title: "Error updating overdue status",
+        description: error.message,
+        variant: "destructive",
+      });
+      return { success: false, error };
+    }
+  };
+
+  const getPaymentSummary = async (targetMonth?: Date) => {
+    try {
+      let data, error;
+      
+      if (targetMonth) {
+        // Call with parameter
+        const result = await supabase.rpc('get_monthly_payment_summary', {
+          target_month: targetMonth.toISOString().split('T')[0]
+        });
+        data = result.data;
+        error = result.error;
+      } else {
+        // Call without parameter (uses current date)
+        const result = await supabase.rpc('get_monthly_payment_summary');
+        data = result.data;
+        error = result.error;
+      }
+      
+      if (error) throw error;
+      
+      return { success: true, data: data?.[0] || null };
+    } catch (error: any) {
+      console.error('Error getting payment summary:', error);
+      return { success: false, error };
     }
   };
 
@@ -366,6 +413,7 @@ export const useBilling = () => {
     generateMonthlyRents,
     generateProRatedRent,
     updateOverdueStatus,
+    getPaymentSummary,
     clearBillingCache
   };
 };

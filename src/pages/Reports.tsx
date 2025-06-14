@@ -38,10 +38,10 @@ const Reports = () => {
     <div className="space-y-6 p-4 lg:p-6 bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
       <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center space-y-4 lg:space-y-0">
         <div>
-          <h2 className="text-3xl lg:text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-2">
+          <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
             Reports & Analytics
           </h2>
-          <p className="text-base lg:text-lg text-gray-600">
+          <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
             Generate comprehensive reports and insights for your business
           </p>
         </div>

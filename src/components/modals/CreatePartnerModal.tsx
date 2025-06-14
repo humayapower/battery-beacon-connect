@@ -107,7 +107,7 @@ const CreatePartnerModal = ({ onPartnerCreated }: CreatePartnerModalProps) => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300">
+        <Button className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300" data-add-partner-trigger>
           <Plus className="w-4 h-4 mr-2" />
           Create Partner
         </Button>

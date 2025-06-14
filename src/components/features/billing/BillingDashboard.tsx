@@ -98,8 +98,8 @@ const BillingDashboard = () => {
     <div className="space-y-4 lg:space-y-6">
       <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-4 px-4 sm:px-0">
         <div>
-          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">Billing Dashboard</h1>
-          <p className="text-sm lg:text-base text-gray-600">Overview of payments and billing activities</p>
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-gray-100">Billing Dashboard</h1>
+          <p className="text-sm lg:text-base text-gray-600 dark:text-gray-400">Overview of payments and billing activities</p>
         </div>
         <div className="flex flex-col sm:flex-row gap-2">
           {userRole === 'admin' && (

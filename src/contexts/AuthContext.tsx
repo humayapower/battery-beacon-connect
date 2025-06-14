@@ -1,6 +1,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User } from '@/types';
+import { supabase } from '@/integrations/supabase/client';
 
 interface AuthContextType {
   user: User | null;
@@ -22,11 +23,24 @@ export const useAuth = () => {
 
 // Simple hash function for passwords (in production, use bcrypt or similar)
 const hashPassword = async (password: string): Promise<string> => {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(password);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  try {
+    // Check if crypto.subtle is available (required for HTTPS or localhost)
+    if (!crypto?.subtle) {
+      console.warn('crypto.subtle not available, falling back to simple encoding');
+      // Fallback for non-HTTPS environments
+      return btoa(password).replace(/[^a-zA-Z0-9]/g, '');
+    }
+    
+    const encoder = new TextEncoder();
+    const data = encoder.encode(password);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  } catch (error) {
+    console.error('Error hashing password:', error);
+    // Fallback for any crypto errors
+    return btoa(password).replace(/[^a-zA-Z0-9]/g, '');
+  }
 };
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -55,29 +69,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const hashedPassword = await hashPassword(password);
       console.log('Password hash generated:', hashedPassword);
       
-      // Use the new authenticate_user function with the users table
-      const response = await fetch('https://mloblwqwsefhossgwvzt.supabase.co/rest/v1/rpc/authenticate_user', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1sb2Jsd3F3c2VmaG9zc2d3dnp0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg4OTc2NDIsImV4cCI6MjA2NDQ3MzY0Mn0.pjKLodHDjHsQw_a_n7m9qGU_DkxQ4LWGQLTgt4eCYJ0',
-          'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1sb2Jsd3F3c2VmaG9zc2d3dnp0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg4OTc2NDIsImV4cCI6MjA2NDQ3MzY0Mn0.pjKLodHDjHsQw_a_n7m9qGU_DkxQ4LWGQLTgt4eCYJ0'
-        },
-        body: JSON.stringify({
-          p_username: username,
-          p_password_hash: hashedPassword
-        })
+      // For debugging: log the expected hash for admin123
+      if (username === 'admin' && password === 'admin123') {
+        console.log('Expected hash for admin123:', 'ef2d127de37b942baad06145e54b0c619a1f22327b2ebbcfbec78f5564afe39d');
+        console.log('Generated hash matches expected:', hashedPassword === 'ef2d127de37b942baad06145e54b0c619a1f22327b2ebbcfbec78f5564afe39d');
+      }
+      
+      // Use Supabase client for better error handling and CORS compatibility
+      const { data, error } = await supabase.rpc('authenticate_user', {
+        p_username: username,
+        p_password_hash: hashedPassword
       });
 
-      console.log('Response status:', response.status);
+      console.log('Authentication response:', { data, error });
 
-      if (!response.ok) {
-        console.error('Response not ok:', response.status, response.statusText);
-        return { error: { message: 'Authentication failed' } };
+      if (error) {
+        console.error('Authentication error:', error);
+        return { error: { message: 'Authentication failed. Please check your credentials.' } };
       }
-
-      const data = await response.json();
-      console.log('Authentication response:', data);
 
       if (!data || data.length === 0) {
         return { error: { message: 'Invalid username or password' } };

@@ -367,10 +367,10 @@ const Settings = () => {
       <div className="flex items-center space-x-3 mb-6">
         <SettingsIcon className="w-8 h-8 text-blue-600" />
         <div>
-          <h2 className="text-3xl lg:text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+          <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-gray-100">
             Settings
           </h2>
-          <p className="text-base lg:text-lg text-gray-600">
+          <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
             Configure your system preferences and account settings
           </p>
         </div>

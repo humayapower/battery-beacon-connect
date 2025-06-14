@@ -58,8 +58,8 @@ const TransactionTable = ({ isAdmin }: TransactionTableProps) => {
     <div className="space-y-4 lg:space-y-6">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 px-4 sm:px-0">
         <div>
-          <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">{isAdmin ? 'All Transactions' : 'My Transactions'}</h2>
-          <p className="text-sm lg:text-base text-gray-600">
+          <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-gray-100">{isAdmin ? 'All Transactions' : 'My Transactions'}</h2>
+          <p className="text-sm lg:text-base text-gray-600 dark:text-gray-400">
             {isAdmin ? 'View all payment transactions across partners' : 'Track your customer payments and billing'}
           </p>
         </div>

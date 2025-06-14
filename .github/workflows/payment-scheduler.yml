@@ -1,0 +1,117 @@
+name: Automated Payment Scheduler
+
+on:
+  schedule:
+    # Monthly rent generation: 9 AM on 1st of every month (UTC)
+    - cron: '0 9 1 * *'
+    # Overdue status update: 10 AM daily (UTC)
+    - cron: '0 10 * * *'
+  
+  # Allow manual trigger for testing
+  workflow_dispatch:
+    inputs:
+      function_name:
+        description: 'Function to run'
+        required: true
+        default: 'both'
+        type: choice
+        options:
+        - monthly-rent-scheduler
+        - overdue-payment-processor
+        - both
+
+jobs:
+  monthly-rent-generation:
+    # Run on 1st of month or manual trigger
+    if: |
+      github.event.schedule == '0 9 1 * *' || 
+      (github.event_name == 'workflow_dispatch' && 
+       (github.event.inputs.function_name == 'monthly-rent-scheduler' || 
+        github.event.inputs.function_name == 'both'))
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Generate Monthly Rents
+        run: |
+          echo "🚀 Triggering monthly rent generation..."
+          
+          response=$(curl -s -w "HTTPSTATUS:%{http_code}" \
+            -X POST \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
+            -H "Content-Type: application/json" \
+            "${{ secrets.SUPABASE_URL }}/functions/v1/monthly-rent-scheduler")
+          
+          http_code=$(echo $response | tr -d '\n' | sed -e 's/.*HTTPSTATUS://')
+          body=$(echo $response | sed -e 's/HTTPSTATUS:.*//g')
+          
+          echo "HTTP Status: $http_code"
+          echo "Response: $body"
+          
+          if [ $http_code -ne 200 ]; then
+            echo "❌ Monthly rent generation failed with status $http_code"
+            echo "Response: $body"
+            exit 1
+          else
+            echo "✅ Monthly rent generation completed successfully"
+          fi
+
+  overdue-payment-processing:
+    # Run daily or manual trigger
+    if: |
+      github.event.schedule == '0 10 * * *' || 
+      (github.event_name == 'workflow_dispatch' && 
+       (github.event.inputs.function_name == 'overdue-payment-processor' || 
+        github.event.inputs.function_name == 'both'))
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Process Overdue Payments
+        run: |
+          echo "⏰ Triggering overdue payment processing..."
+          
+          response=$(curl -s -w "HTTPSTATUS:%{http_code}" \
+            -X POST \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
+            -H "Content-Type: application/json" \
+            "${{ secrets.SUPABASE_URL }}/functions/v1/overdue-payment-processor")
+          
+          http_code=$(echo $response | tr -d '\n' | sed -e 's/.*HTTPSTATUS://')
+          body=$(echo $response | sed -e 's/HTTPSTATUS:.*//g')
+          
+          echo "HTTP Status: $http_code"
+          echo "Response: $body"
+          
+          if [ $http_code -ne 200 ]; then
+            echo "❌ Overdue payment processing failed with status $http_code"
+            echo "Response: $body"
+            exit 1
+          else
+            echo "✅ Overdue payment processing completed successfully"
+          fi
+
+  notification:
+    needs: [monthly-rent-generation, overdue-payment-processing]
+    if: always()
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Notify Results
+        run: |
+          echo "📊 Payment Scheduler Summary:"
+          echo "Monthly Rent Generation: ${{ needs.monthly-rent-generation.result }}"
+          echo "Overdue Payment Processing: ${{ needs.overdue-payment-processing.result }}"
+          
+          # You can add notification integrations here:
+          # - Slack webhook
+          # - Discord webhook
+          # - Email notification
+          # - SMS via Twilio
+          
+          if [[ "${{ needs.monthly-rent-generation.result }}" == "failure" ]] || 
+             [[ "${{ needs.overdue-payment-processing.result }}" == "failure" ]]; then
+            echo "⚠️ Some jobs failed. Check the logs above."
+            # Send failure notification here
+          else
+            echo "✅ All payment scheduler jobs completed successfully"
+            # Send success notification here
+          fi

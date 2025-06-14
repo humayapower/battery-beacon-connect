@@ -3,16 +3,17 @@ import { useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Edit, Trash2 } from 'lucide-react';
-import { Battery } from '@/types';
+import { Eye, Edit, Trash2 } from 'lucide-react';
+import { Battery } from '@/hooks/useBatteries';
 import DeleteBatteryModal from '@/components/modals/DeleteBatteryModal';
 
 interface BatteryTableProps {
   batteries: Battery[];
+  onViewDetails?: (batteryId: string) => void;
   onEdit?: (battery: Battery) => void;
 }
 
-const BatteryTable = ({ batteries, onEdit }: BatteryTableProps) => {
+const BatteryTable = ({ batteries, onViewDetails, onEdit }: BatteryTableProps) => {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [selectedBattery, setSelectedBattery] = useState<Battery | null>(null);
 
@@ -20,9 +21,7 @@ const BatteryTable = ({ batteries, onEdit }: BatteryTableProps) => {
     switch (status) {
       case 'available': return 'bg-green-100 text-green-800';
       case 'assigned': return 'bg-blue-100 text-blue-800';
-      case 'maintenance': return 'bg-yellow-100 text-yellow-800';
-      case 'faulty': return 'bg-red-100 text-red-800';
-      case 'returned': return 'bg-gray-100 text-gray-800';
+      case 'maintenance': return 'bg-orange-100 text-orange-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -46,7 +45,6 @@ const BatteryTable = ({ batteries, onEdit }: BatteryTableProps) => {
               <TableHead>Model</TableHead>
               <TableHead>Capacity</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead>Partner</TableHead>
               <TableHead>Location</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
@@ -55,17 +53,25 @@ const BatteryTable = ({ batteries, onEdit }: BatteryTableProps) => {
             {batteries.map((battery) => (
               <TableRow key={battery.id}>
                 <TableCell className="font-medium">{battery.serial_number}</TableCell>
-                <TableCell>{battery.model}</TableCell>
+                <TableCell>{battery.model_name || battery.model}</TableCell>
                 <TableCell>{battery.capacity}</TableCell>
                 <TableCell>
                   <Badge className={getStatusColor(battery.status)}>
                     {battery.status}
                   </Badge>
                 </TableCell>
-                <TableCell>{battery.partner?.name || 'Unassigned'}</TableCell>
                 <TableCell>{battery.location || 'N/A'}</TableCell>
                 <TableCell>
                   <div className="flex space-x-2">
+                    {onViewDetails && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => onViewDetails(battery.id)}
+                      >
+                        <Eye className="w-4 h-4" />
+                      </Button>
+                    )}
                     {onEdit && (
                       <Button
                         variant="outline"

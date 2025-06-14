@@ -1,12 +1,12 @@
+
 import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { getStatusColor, getStatusLabel } from '@/utils/statusColors';
+import { getBatteryStatusColor } from '@/utils/statusColors';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Battery, Users, Plus } from 'lucide-react';
 import AddBatteryModal from '../../modals/AddBatteryModal';
-import BatteryDetailsModal from '../../modals/BatteryDetailsModal';
 import BatteryProfile from './BatteryProfile';
 import ResponsiveBatteryCards from './ResponsiveBatteryCards';
 import { SearchAndFilters } from '../../shared/SearchAndFilters';
@@ -23,7 +23,6 @@ const BatteryTable = ({ isAdmin }: BatteryTableProps) => {
   const { batteries, loading } = useBatteries();
   const { userRole } = useAuth();
   const [selectedBatteryId, setSelectedBatteryId] = useState<string | null>(null);
-  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [filters, setFilters] = useState<Record<string, string>>({});
@@ -33,11 +32,11 @@ const BatteryTable = ({ isAdmin }: BatteryTableProps) => {
       key: "status",
       label: "Status",
       options: [
-        { value: "active", label: "Active" },
-        { value: "inactive", label: "Inactive" },
-        { value: "in_repair", label: "In Repair" },
-        { value: "lost", label: "Lost" },
-        { value: "decommissioned", label: "Decommissioned" },
+        { value: "available", label: "Available" },
+        { value: "assigned", label: "Assigned" },
+        { value: "maintenance", label: "Maintenance" },
+        { value: "faulty", label: "Faulty" },
+        { value: "returned", label: "Returned" },
       ]
     }
   ];
@@ -69,13 +68,30 @@ const BatteryTable = ({ isAdmin }: BatteryTableProps) => {
     return battery.partner?.name || 'Unknown Partner';
   };
 
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'available':
+        return 'Available';
+      case 'assigned':
+        return 'Assigned';
+      case 'maintenance':
+        return 'Maintenance';
+      case 'faulty':
+        return 'Faulty';
+      case 'returned':
+        return 'Returned';
+      default:
+        return status;
+    }
+  };
+
   const batteryStats = useMemo(() => ({
     total: filteredBatteries.length,
-    active: filteredBatteries.filter(b => b.status === 'active').length,
-    inactive: filteredBatteries.filter(b => b.status === 'inactive').length,
-    inRepair: filteredBatteries.filter(b => b.status === 'in_repair').length,
-    lost: filteredBatteries.filter(b => b.status === 'lost').length,
-    decommissioned: filteredBatteries.filter(b => b.status === 'decommissioned').length,
+    available: filteredBatteries.filter(b => b.status === 'available').length,
+    assigned: filteredBatteries.filter(b => b.status === 'assigned').length,
+    maintenance: filteredBatteries.filter(b => b.status === 'maintenance').length,
+    faulty: filteredBatteries.filter(b => b.status === 'faulty').length,
+    returned: filteredBatteries.filter(b => b.status === 'returned').length,
   }), [filteredBatteries]);
 
   if (loading) {
@@ -131,8 +147,8 @@ const BatteryTable = ({ isAdmin }: BatteryTableProps) => {
             <div className="w-8 h-8 lg:w-12 lg:h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl lg:rounded-2xl flex items-center justify-center mx-auto mb-2 lg:mb-3">
               <Battery className="w-4 h-4 lg:w-6 lg:h-6 text-white" />
             </div>
-            <div className="text-lg sm:text-xl lg:text-3xl font-bold text-gray-900 dark:text-gray-100 mb-1">{batteryStats.active}</div>
-            <div className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide">Active</div>
+            <div className="text-lg sm:text-xl lg:text-3xl font-bold text-gray-900 dark:text-gray-100 mb-1">{batteryStats.available}</div>
+            <div className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide">Available</div>
           </CardContent>
         </Card>
         <Card className="stat-card glass-card hover:shadow-2xl transition-all duration-300 border-0">
@@ -140,8 +156,8 @@ const BatteryTable = ({ isAdmin }: BatteryTableProps) => {
             <div className="w-8 h-8 lg:w-12 lg:h-12 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-xl lg:rounded-2xl flex items-center justify-center mx-auto mb-2 lg:mb-3">
               <Battery className="w-4 h-4 lg:w-6 lg:h-6 text-white" />
             </div>
-            <div className="text-lg sm:text-xl lg:text-3xl font-bold text-gray-900 dark:text-gray-100 mb-1">{batteryStats.inRepair}</div>
-            <div className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide">In Repair</div>
+            <div className="text-lg sm:text-xl lg:text-3xl font-bold text-gray-900 dark:text-gray-100 mb-1">{batteryStats.maintenance}</div>
+            <div className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide">Maintenance</div>
           </CardContent>
         </Card>
       </div>
@@ -189,16 +205,16 @@ const BatteryTable = ({ isAdmin }: BatteryTableProps) => {
                             <TableCell className="font-medium">{battery.model}</TableCell>
                             <TableCell>
                               <Badge 
-                                className={getStatusColor(battery.status)}
+                                className={getBatteryStatusColor(battery.status)}
                                 variant="outline"
                               >
                                 {getStatusLabel(battery.status)}
                               </Badge>
                             </TableCell>
                             <TableCell>
-                              {battery.customer ? (
+                              {battery.customer_id ? (
                                 <span className="font-medium text-gray-900 dark:text-gray-100">
-                                  {battery.customer.name}
+                                  Customer Assigned
                                 </span>
                               ) : (
                                 <span className="text-gray-500 dark:text-gray-400 italic">

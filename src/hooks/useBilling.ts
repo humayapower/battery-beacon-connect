@@ -1,419 +1,120 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { EMI, MonthlyRent, CustomerCredit, Payment, BillingDetails } from '@/types/billing';
-import { BillingService } from '@/services/billingService';
+
+interface MonthlyPaymentSummary {
+  total_rent_this_month: number;
+  total_emi_this_month: number;
+  total_amount_collected: number;
+  pending_amount: number;
+}
+
+interface TransactionSummary {
+  total_transactions: number;
+  total_amount: number;
+  pending_amount: number;
+  completed_amount: number;
+}
 
 export const useBilling = () => {
+  const [monthlyPaymentSummary, setMonthlyPaymentSummary] = useState<MonthlyPaymentSummary | null>(null);
+  const [transactionSummary, setTransactionSummary] = useState<TransactionSummary | null>({
+    total_transactions: 0,
+    total_amount: 0,
+    pending_amount: 0,
+    completed_amount: 0
+  });
+  const [loading, setLoading] = useState(true);
   const { toast } = useToast();
-  const cacheRef = useRef<Map<string, { data: BillingDetails; timestamp: number }>>(new Map());
-  const pendingRequestsRef = useRef<Map<string, Promise<BillingDetails | null>>>(new Map());
 
-  const getBillingDetails = useCallback(async (customerId: string): Promise<BillingDetails | null> => {
-    console.log('Fetching billing details for customer:', customerId);
-    
-    // Check if there's a pending request for this customer
-    const pendingRequest = pendingRequestsRef.current.get(customerId);
-    if (pendingRequest) {
-      console.log('Using pending request for customer:', customerId);
-      return pendingRequest;
-    }
-
-    // Check cache first (cache for 5 minutes)
-    const cached = cacheRef.current.get(customerId);
-    if (cached && Date.now() - cached.timestamp < 300000) {
-      console.log('Using cached data for customer:', customerId);
-      return cached.data;
-    }
-
-    // Create a new request promise
-    const requestPromise = (async (): Promise<BillingDetails | null> => {
-      try {
-        // First get customer details to check payment type
-        const { data: customerData, error: customerError } = await supabase
-          .from('customers')
-          .select('payment_type')
-          .eq('id', customerId)
-          .single();
-
-        if (customerError) {
-          console.error('Error fetching customer:', customerError);
-          throw customerError;
-        }
-
-        // For one-time purchase customers, return minimal billing details
-        if (customerData.payment_type === 'one_time_purchase') {
-          const result = {
-            emis: [],
-            rents: [],
-            credits: { id: '', customer_id: customerId, credit_balance: 0, updated_at: '' },
-            transactions: [],
-            ledger: [],
-            totalPaid: 0,
-            totalDue: 0,
-            nextDueDate: null,
-            overdueAmount: 0,
-            emiProgress: undefined
-          };
-          
-          // Cache the result
-          cacheRef.current.set(customerId, { data: result, timestamp: Date.now() });
-          console.log('Returned minimal billing details for one-time purchase customer');
-          return result;
-        }
-
-        // For EMI and rental customers, fetch full billing details
-        const fetchPromises = [];
-
-        // Fetch EMIs if EMI customer
-        if (customerData.payment_type === 'emi') {
-          fetchPromises.push(
-            supabase
-              .from('emis')
-              .select('*')
-              .eq('customer_id', customerId)
-              .order('emi_number')
-          );
-        } else {
-          fetchPromises.push(Promise.resolve({ data: [], error: null }));
-        }
-
-        // Fetch Monthly Rents if rental customer
-        if (customerData.payment_type === 'monthly_rent') {
-          fetchPromises.push(
-            supabase
-              .from('monthly_rents')
-              .select('*')
-              .eq('customer_id', customerId)
-              .order('rent_month', { ascending: false })
-          );
-        } else {
-          fetchPromises.push(Promise.resolve({ data: [], error: null }));
-        }
-
-        // Fetch Customer Credits
-        fetchPromises.push(
-          supabase
-            .from('customer_credits')
-            .select('*')
-            .eq('customer_id', customerId)
-            .single()
-        );
-
-        // Fetch Transactions
-        fetchPromises.push(
-          supabase
-            .from('transactions')
-            .select(`
-              *,
-              emis:emi_id (emi_number, amount),
-              monthly_rents:monthly_rent_id (rent_month, amount)
-            `)
-            .eq('customer_id', customerId)
-            .order('transaction_date', { ascending: false })
-        );
-
-        const [emisResult, rentsResult, creditsResult, transactionsResult] = await Promise.all(fetchPromises);
-
-        // Handle errors for critical data
-        if (emisResult.error && emisResult.error.code !== 'PGRST116') {
-          console.error('Error fetching EMIs:', emisResult.error);
-          throw emisResult.error;
-        }
-
-        if (rentsResult.error && rentsResult.error.code !== 'PGRST116') {
-          console.error('Error fetching rents:', rentsResult.error);
-          throw rentsResult.error;
-        }
-
-        if (creditsResult.error && creditsResult.error.code !== 'PGRST116') {
-          console.error('Error fetching credits:', creditsResult.error);
-        }
-
-        if (transactionsResult.error && transactionsResult.error.code !== 'PGRST116') {
-          console.error('Error fetching transactions:', transactionsResult.error);
-          throw transactionsResult.error;
-        }
-
-        // Type cast the data to ensure proper typing
-        const emis: EMI[] = (emisResult.data || []).map(emi => ({
-          ...emi,
-          payment_status: emi.payment_status as 'due' | 'paid' | 'partial' | 'overdue'
-        }));
-
-        const rents: MonthlyRent[] = (rentsResult.data || []).map(rent => ({
-          ...rent,
-          payment_status: rent.payment_status as 'due' | 'paid' | 'partial' | 'overdue'
-        }));
-
-        // Calculate totals
-        const totalPaid = transactionsResult.data?.reduce((sum, t) => sum + t.amount, 0) || 0;
-        
-        const totalEmisDue = emis?.filter(e => e.payment_status !== 'paid')
-          .reduce((sum, e) => sum + e.remaining_amount, 0) || 0;
-        
-        const totalRentsDue = rents?.filter(r => r.payment_status !== 'paid')
-          .reduce((sum, r) => sum + r.remaining_amount, 0) || 0;
-        
-        const totalDue = totalEmisDue + totalRentsDue;
-
-        // Find next due date
-        const nextEmiDue = emis?.find(e => e.payment_status !== 'paid')?.due_date;
-        const nextRentDue = rents?.find(r => r.payment_status !== 'paid')?.due_date;
-        
-        let nextDueDate = null;
-        if (nextEmiDue && nextRentDue) {
-          nextDueDate = new Date(nextEmiDue) < new Date(nextRentDue) ? nextEmiDue : nextRentDue;
-        } else {
-          nextDueDate = nextEmiDue || nextRentDue || null;
-        }
-
-        // Calculate EMI progress
-        let emiProgress = undefined;
-        if (emis && emis.length > 0) {
-          const paidEmis = emis.filter(e => e.payment_status === 'paid').length;
-          const totalEmis = emis.length;
-          emiProgress = {
-            paid: paidEmis,
-            total: totalEmis,
-            percentage: Math.round((paidEmis / totalEmis) * 100)
-          };
-        }
-
-        // Calculate overdue amount
-        const today = new Date();
-        const overdueEmis = emis.filter(emi => {
-          const dueDate = new Date(emi.due_date);
-          const daysDiff = Math.floor((today.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24));
-          return daysDiff > 5 && emi.remaining_amount > 0;
-        });
-
-        const overdueRents = rents.filter(rent => {
-          const dueDate = new Date(rent.due_date);
-          const daysDiff = Math.floor((today.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24));
-          return daysDiff > 10 && rent.remaining_amount > 0;
-        });
-
-        const overdueAmount = overdueEmis.reduce((sum, emi) => sum + emi.remaining_amount, 0) +
-                             overdueRents.reduce((sum, rent) => sum + rent.remaining_amount, 0);
-
-        const result = {
-          emis,
-          rents,
-          credits: creditsResult.data || { id: '', customer_id: customerId, credit_balance: 0, updated_at: '' },
-          transactions: transactionsResult.data || [],
-          ledger: [], // Using empty array since payment_ledger table doesn't exist
-          totalPaid,
-          totalDue,
-          nextDueDate,
-          overdueAmount,
-          emiProgress
-        };
-
-        // Cache the result
-        cacheRef.current.set(customerId, { data: result, timestamp: Date.now() });
-        
-        console.log('Successfully fetched billing details');
-        return result;
-      } catch (error: any) {
-        console.error('Error fetching billing details:', error);
-        
-        // Don't show toast for network errors to prevent spam
-        if (!error.message?.includes('Load failed')) {
-          toast({
-            title: "Error fetching billing details",
-            description: error.message,
-            variant: "destructive",
-          });
-        }
-        
-        // Return empty structure instead of null to prevent flickering
-        return {
-          emis: [],
-          rents: [],
-          credits: { id: '', customer_id: customerId, credit_balance: 0, updated_at: '' },
-          transactions: [],
-          ledger: [],
-          totalPaid: 0,
-          totalDue: 0,
-          nextDueDate: null,
-          overdueAmount: 0,
-          emiProgress: undefined
-        };
-      } finally {
-        // Remove from pending requests
-        pendingRequestsRef.current.delete(customerId);
-      }
-    })();
-
-    // Store the pending request
-    pendingRequestsRef.current.set(customerId, requestPromise);
-    
-    return requestPromise;
-  }, [toast]);
-
-  const processPayment = async (
-    customerId: string, 
-    payment: Payment,
-    targetType: 'emi' | 'rent' | 'auto',
-    targetId?: string
-  ) => {
+  const fetchMonthlyPaymentSummary = async (month: string, year: string) => {
     try {
-      const result = await BillingService.processPayment(
-        customerId,
-        payment.amount,
-        targetType,
-        payment.payment_mode,
-        payment.remarks,
-        payment.payment_date
-      );
+      setLoading(true);
+      console.log('Fetching monthly payment summary for:', { month, year });
+      
+      const { data, error } = await supabase.rpc('get_monthly_payment_summary', {
+        target_month: month,
+        target_year: parseInt(year)
+      });
 
-      if (result.success) {
-        // Clear cache for this customer to force refresh
-        cacheRef.current.delete(customerId);
-        
-        toast({
-          title: "Payment processed successfully",
-          description: `Payment of ₹${payment.amount} has been recorded and distributed.`,
-        });
-      } else {
-        toast({
-          title: "Error processing payment",
-          description: result.error?.message || "Unknown error occurred",
-          variant: "destructive",
-        });
+      console.log('Monthly payment summary response:', { data, error });
+
+      if (error) {
+        console.error('Error fetching monthly payment summary:', error);
+        throw error;
       }
 
-      return result;
+      if (data && data.length > 0) {
+        setMonthlyPaymentSummary(data[0]);
+      } else {
+        setMonthlyPaymentSummary(null);
+      }
     } catch (error: any) {
-      console.error('Error processing payment:', error);
+      console.error('Error in fetchMonthlyPaymentSummary:', error);
       toast({
-        title: "Error processing payment",
+        title: "Error fetching monthly summary",
         description: error.message,
         variant: "destructive",
       });
-      return { success: false, error };
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Add cache clearing function
-  const clearBillingCache = useCallback((customerId?: string) => {
-    if (customerId) {
-      cacheRef.current.delete(customerId);
-    } else {
-      cacheRef.current.clear();
-    }
-  }, []);
-
-  const generateMonthlyRents = async () => {
+  const fetchTransactionSummary = async () => {
     try {
-      const { data, error } = await supabase.rpc('generate_monthly_rent_charges');
+      setLoading(true);
+      
+      const { data, error } = await supabase.rpc('get_transaction_summary');
+
       if (error) throw error;
       
-      const processedCount = data?.length || 0;
-      
-      toast({
-        title: "Monthly rents generated",
-        description: `Monthly rent charges have been generated for ${processedCount} rental customers with due date on 5th.`,
-      });
-
-      return { success: true, processedCount, data };
-    } catch (error: any) {
-      console.error('Error generating monthly rents:', error);
-      toast({
-        title: "Error generating monthly rents",
-        description: error.message,
-        variant: "destructive",
-      });
-      return { success: false, error };
-    }
-  };
-
-  const generateProRatedRent = async (customerId: string) => {
-    try {
-      const result = await BillingService.generateProRatedRent(customerId);
-      if (result.success) {
-        toast({
-          title: "Pro-rated rent generated",
-          description: "Initial pro-rated rent has been calculated and added.",
-        });
+      if (data && data.length > 0) {
+        setTransactionSummary(data[0]);
       } else {
-        toast({
-          title: "Error generating pro-rated rent",
-          description: result.error?.message || "Unknown error occurred",
-          variant: "destructive",
+        setTransactionSummary({
+          total_transactions: 0,
+          total_amount: 0,
+          pending_amount: 0,
+          completed_amount: 0
         });
       }
-      return result;
     } catch (error: any) {
-      console.error('Error generating pro-rated rent:', error);
       toast({
-        title: "Error generating pro-rated rent",
+        title: "Error fetching transaction summary",
         description: error.message,
         variant: "destructive",
       });
-      return { success: false, error };
+    } finally {
+      setLoading(false);
     }
   };
 
-  const updateOverdueStatus = async () => {
+  const getPaymentSummary = async (customerId: string) => {
     try {
-      const { data, error } = await supabase.rpc('update_overdue_status');
-      if (error) throw error;
-      
-      const result = data?.[0] || { overdue_rents_count: 0, overdue_emis_count: 0, affected_customers_count: 0 };
-      
-      toast({
-        title: "Overdue status updated",
-        description: `Marked ${result.overdue_rents_count} rents and ${result.overdue_emis_count} EMIs as overdue for ${result.affected_customers_count} customers.`,
+      const { data, error } = await supabase.rpc('get_payment_summary', {
+        customer_id: customerId
       });
 
-      return { success: true, ...result };
+      if (error) throw error;
+      return data || [];
     } catch (error: any) {
-      console.error('Error updating overdue status:', error);
+      console.error('Error fetching payment summary:', error);
       toast({
-        title: "Error updating overdue status",
+        title: "Error fetching payment summary",
         description: error.message,
         variant: "destructive",
       });
-      return { success: false, error };
-    }
-  };
-
-  const getPaymentSummary = async (targetMonth?: Date) => {
-    try {
-      let data, error;
-      
-      if (targetMonth) {
-        // Call with parameter - using any type to bypass TypeScript restrictions
-        const result = await (supabase as any).rpc('get_monthly_payment_summary', {
-          target_month: targetMonth.toISOString().split('T')[0]
-        });
-        data = result.data;
-        error = result.error;
-      } else {
-        // Call without parameter (uses current date) - using any type to bypass TypeScript restrictions
-        const result = await (supabase as any).rpc('get_monthly_payment_summary');
-        data = result.data;
-        error = result.error;
-      }
-      
-      if (error) throw error;
-      
-      return { success: true, data: data?.[0] || null };
-    } catch (error: any) {
-      console.error('Error getting payment summary:', error);
-      return { success: false, error };
+      return [];
     }
   };
 
   return {
-    getBillingDetails,
-    processPayment,
-    generateMonthlyRents,
-    generateProRatedRent,
-    updateOverdueStatus,
-    getPaymentSummary,
-    clearBillingCache
+    monthlyPaymentSummary,
+    transactionSummary,
+    loading,
+    fetchMonthlyPaymentSummary,
+    fetchTransactionSummary,
+		getPaymentSummary
   };
 };

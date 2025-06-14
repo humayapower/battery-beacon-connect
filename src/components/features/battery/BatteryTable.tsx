@@ -1,4 +1,3 @@
-
 import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -137,7 +136,7 @@ const BatteryTable = ({ isAdmin }: BatteryTableProps) => {
       />
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 px-4 sm:px-0">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 px-4 sm:px-0">
         <Card>
           <CardContent className="p-4 text-center">
             <div className="text-lg sm:text-2xl font-bold text-blue-600">{formatNumber(batteryStats.total)}</div>
@@ -164,6 +163,7 @@ const BatteryTable = ({ isAdmin }: BatteryTableProps) => {
         </Card>
       </div>
 
+      {/* AnimatedCard with table and empty state */}
       <AnimatedCard className="glass-card border-0 shadow-xl mx-4 sm:mx-0" hoverable={false}>
         <CardHeader className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 border-b border-gray-200 dark:border-gray-600">
           <CardTitle className="text-lg font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">

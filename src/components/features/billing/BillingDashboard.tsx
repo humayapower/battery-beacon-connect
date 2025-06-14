@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -122,7 +123,7 @@ const BillingDashboard = () => {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 px-4 sm:px-0">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 px-4 sm:px-0">
         <Card>
           <CardContent className="p-4 text-center">
             <div className="text-lg sm:text-2xl font-bold text-green-600">{formatCurrency(totalRevenue)}</div>

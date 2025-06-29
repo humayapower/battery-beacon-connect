@@ -47,15 +47,8 @@ export const useTransactions = () => {
       
       if (error) throw error;
       
-      // Map the data to include the expected properties
-      const mappedData = (data || []).map(transaction => ({
-        ...transaction,
-        transaction_id: transaction.id,
-        type: transaction.transaction_type,
-        status: transaction.payment_status
-      })) as TransactionWithRelations[];
-      
-      setTransactions(mappedData);
+      // Fixed: Removed redundant property mapping
+      setTransactions((data || []) as TransactionWithRelations[]);
     } catch (error: any) {
       toast({
         title: "Error fetching transactions",

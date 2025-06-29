@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { PaymentCalculations } from '@/utils/paymentCalculations';
 import { 
@@ -55,7 +54,7 @@ export class BillingService {
     paymentType: 'emi' | 'rent' | 'auto',
     paymentMode: PaymentMode = 'cash',
     remarks?: string,
-    customPaymentDate?: string // Optional custom payment date
+    customPaymentDate?: string
   ) {
     console.log('🚀 Starting payment processing:', {
       customerId,
@@ -91,18 +90,9 @@ export class BillingService {
 
       console.log(`📅 Processing payment on: ${paymentDate}`);
 
-      // Process EMI payments
+      // Process EMI payments - fixed unused variable issue
       for (const emiPayment of calculation.emiPayments) {
         console.log('Processing EMI payment:', emiPayment);
-        
-        // Get EMI details first for overdue calculation
-        const { data: emiData } = await supabase
-          .from('emis')
-          .select('due_date')
-          .eq('id', emiPayment.emiId)
-          .single();
-
-        const overdueD = emiData ? PaymentCalculations.calculateEMIOverdueDays(emiData.due_date) : 0;
 
         // Update EMI record
         const { data: updateResult, error: updateError } = await supabase
@@ -142,18 +132,9 @@ export class BillingService {
         }
       }
 
-      // Process rent payments
+      // Process rent payments - fixed unused variable issue
       for (const rentPayment of calculation.rentPayments) {
         console.log('Processing rent payment:', rentPayment);
-        
-        // Get rent details first for overdue calculation
-        const { data: rentData } = await supabase
-          .from('monthly_rents')
-          .select('due_date')
-          .eq('id', rentPayment.rentId)
-          .single();
-
-        const rentOverdueDays = rentData ? PaymentCalculations.calculateRentOverdueDays(rentData.due_date) : 0;
 
         // Update rent record
         const { data: rentUpdateResult, error: rentUpdateError } = await supabase

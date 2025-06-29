@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -22,7 +22,8 @@ export const useCustomers = () => {
   const { userRole, user } = useAuth();
   const { toast } = useToast();
 
-  const fetchCustomers = async () => {
+  // Memoized fetch function to prevent unnecessary re-renders
+  const fetchCustomers = useCallback(async () => {
     try {
       setLoading(true);
       let query = supabase
@@ -63,9 +64,9 @@ export const useCustomers = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [userRole, user?.id, toast]);
 
-  const addCustomer = async (customerData: Omit<CustomerWithBattery, 'id' | 'created_at' | 'updated_at' | 'batteries'>) => {
+  const addCustomer = useCallback(async (customerData: Omit<CustomerWithBattery, 'id' | 'created_at' | 'updated_at' | 'batteries'>) => {
     try {
       const customerToInsert = { ...customerData };
       delete customerToInsert.battery_id;
@@ -110,9 +111,9 @@ export const useCustomers = () => {
       });
       return { success: false, error };
     }
-  };
+  }, [fetchCustomers, toast]);
 
-  const updateCustomer = async (id: string, updates: Partial<Customer>) => {
+  const updateCustomer = useCallback(async (id: string, updates: Partial<Customer>) => {
     try {
       const { data, error } = await supabase
         .from('customers')
@@ -138,9 +139,9 @@ export const useCustomers = () => {
       });
       return { success: false, error };
     }
-  };
+  }, [fetchCustomers, toast]);
 
-  const getCustomerById = async (id: string) => {
+  const getCustomerById = useCallback(async (id: string) => {
     try {
       const { data, error } = await supabase
         .from('customers')
@@ -167,13 +168,13 @@ export const useCustomers = () => {
       });
       return { success: false, error };
     }
-  };
+  }, [toast]);
 
   useEffect(() => {
     if (user) {
       fetchCustomers();
     }
-  }, [user, userRole]);
+  }, [user, fetchCustomers]);
 
   return {
     customers,

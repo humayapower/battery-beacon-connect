@@ -2,9 +2,8 @@ import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-// import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarTrigger, SidebarInset, useSidebar } from "@/components/ui/sidebar";
-import { Battery, Users, User, CreditCard, Home, Settings, LogOut, Calendar, FileText, AlertTriangle, Clock } from 'lucide-react';
+import { Battery, Users, User, CreditCard, Home, Settings, LogOut, Calendar, FileText, AlertTriangle } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useBatteries } from '@/hooks/useBatteries';
 import { useCustomers } from '@/hooks/useCustomers';
@@ -35,7 +34,7 @@ const AdminDashboard = () => {
     { title: "Settings", icon: Settings, key: "settings" },
   ];
 
-  // Optimized stats calculation with memoization
+  // Optimized stats calculation with memoization - fixed duplicate calculation
   const stats = useMemo(() => {
     const now = new Date();
     const overdueTransactions = transactions?.filter(t => 
@@ -43,9 +42,8 @@ const AdminDashboard = () => {
       (t.payment_status === 'due' && t.due_date && new Date(t.due_date) < now)
     ) || [];
     
-    // Calculate unique customers with overdue payments
+    // Calculate unique customers with overdue payments (fixed duplicate)
     const overdueCustomerIds = new Set(overdueTransactions.map(t => t.customer_id));
-    const overdueCustomersCount = overdueCustomerIds.size;
     
     const recentPayments = transactions
       ?.filter(t => t.payment_status === 'paid')
@@ -60,28 +58,28 @@ const AdminDashboard = () => {
       totalCustomers: customers?.length || 0,
       totalPartners: partners?.length || 0,
       totalBatteries: batteries?.length || 0,
-      overdueCount: overdueCustomersCount,
+      overdueCount: overdueCustomerIds.size,
       overdueTransactions,
       recentPayments,
       recentCustomers,
     };
   }, [customers, partners, batteries, transactions]);
 
-  const formatCurrency = (amount: number) => `₹${amount.toLocaleString('en-IN')}`;
-  const formatDate = (dateString: string) => {
+  // Memoized formatters for better performance
+  const formatCurrency = useMemo(() => (amount: number) => `₹${amount.toLocaleString('en-IN')}`, []);
+  const formatDate = useMemo(() => (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-IN', {
       day: 'numeric',
       month: 'short',
       year: 'numeric'
     });
-  };
+  }, []);
 
   const AppSidebar = () => {
     const { setOpenMobile, isMobile } = useSidebar();
 
     const handleMenuItemClick = (key: string) => {
       setActiveSection(key);
-      // Close mobile sidebar when a menu item is clicked
       if (isMobile) {
         setOpenMobile(false);
       }

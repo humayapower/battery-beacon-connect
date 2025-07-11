@@ -8,6 +8,7 @@ import { Transaction } from '@/types';
 interface TransactionWithRelations extends Transaction {
   customers?: {
     name: string;
+    email: string;
   };
   batteries?: {
     serial_number: string;
@@ -29,7 +30,8 @@ export const useTransactions = () => {
         .select(`
           *,
           customers:customer_id (
-            name
+            name,
+            email
           ),
           batteries:battery_id (
             serial_number,

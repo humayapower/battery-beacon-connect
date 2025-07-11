@@ -17,6 +17,7 @@ import { Customer } from '@/types';
 interface CustomerFormData {
   name: string;
   phone: string;
+  email: string;
   address: string;
   paymentType: 'emi' | 'monthly_rent' | 'one_time_purchase';
   partnerId: string;
@@ -29,6 +30,7 @@ const AddCustomerModal = () => {
   const [formData, setFormData] = useState<CustomerFormData>({
     name: '',
     phone: '',
+    email: '',
     address: '',
     paymentType: 'emi',
     partnerId: 'none',
@@ -201,6 +203,7 @@ const AddCustomerModal = () => {
       const customerData: Omit<Customer, 'id' | 'created_at' | 'updated_at'> = {
         name: formData.name,
         phone: formData.phone,
+        email: formData.email || undefined,
         address: formData.address || undefined,
         payment_type: formData.paymentType,
         partner_id: formData.partnerId === 'none' ? null : formData.partnerId,
@@ -307,6 +310,7 @@ const AddCustomerModal = () => {
     setFormData({
       name: '',
       phone: '',
+      email: '',
       address: '',
       paymentType: 'emi',
       partnerId: 'none',
@@ -328,9 +332,6 @@ const AddCustomerModal = () => {
       aadhaarBack: null,
     });
   };
-
-  // Check if payment section should be shown
-  const showPaymentSection = formData.batteryId !== 'none';
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -384,7 +385,18 @@ const AddCustomerModal = () => {
                 />
               </div>
 
-              <div className="md:col-span-2">
+              <div>
+                <Label htmlFor="email" className="font-medium">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                  placeholder="Enter email address"
+                />
+              </div>
+
+              <div>
                 <Label htmlFor="joinDate" className="font-medium">Join Date *</Label>
                 <Input
                   id="joinDate"
@@ -543,132 +555,130 @@ const AddCustomerModal = () => {
             </div>
           </div>
 
-          {/* Enhanced Payment Information - Only show when battery is selected */}
-          {showPaymentSection && (
-            <div className="space-y-4 p-6 glass-card border-0 shadow-lg rounded-2xl">
-              <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-                <div className="p-1.5 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg">
-                  <CreditCard className="w-4 h-4 text-white" />
-                </div>
-                Payment Information
-              </h3>
-              
-              <div>
-                <Label htmlFor="paymentType" className="font-medium">Payment Type *</Label>
-                <Select value={formData.paymentType} onValueChange={(value: 'emi' | 'monthly_rent' | 'one_time_purchase') => setFormData(prev => ({ ...prev, paymentType: value }))}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select payment type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="emi">EMI</SelectItem>
-                    <SelectItem value="monthly_rent">Subscription/Rent</SelectItem>
-                    <SelectItem value="one_time_purchase">Full Purchase</SelectItem>
-                  </SelectContent>
-                </Select>
+          {/* Enhanced Payment Information */}
+          <div className="space-y-4 p-6 glass-card border-0 shadow-lg rounded-2xl">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+              <div className="p-1.5 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg">
+                <CreditCard className="w-4 h-4 text-white" />
               </div>
-
-              {/* Payment Plan Details */}
-              {formData.paymentType === 'emi' && (
-                <div className="grid grid-cols-2 gap-4 p-4 border rounded-lg bg-muted/30">
-                  <h4 className="col-span-2 font-semibold">EMI Plan Details</h4>
-                  <div>
-                    <Label htmlFor="totalAmount" className="font-medium">Total Amount (₹) *</Label>
-                    <Input
-                      id="totalAmount"
-                      type="number"
-                      step="0.01"
-                      value={paymentPlan.totalAmount}
-                      onChange={(e) => setPaymentPlan(prev => ({ ...prev, totalAmount: e.target.value }))}
-                      placeholder="Enter total amount"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="downPayment" className="font-medium">Down Payment (₹)</Label>
-                    <Input
-                      id="downPayment"
-                      type="number"
-                      step="0.01"
-                      value={paymentPlan.downPayment}
-                      onChange={(e) => setPaymentPlan(prev => ({ ...prev, downPayment: e.target.value }))}
-                      placeholder="Enter down payment"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="emiCount" className="font-medium">EMI Count (months) *</Label>
-                    <Input
-                      id="emiCount"
-                      type="number"
-                      min="1"
-                      value={paymentPlan.emiCount}
-                      onChange={(e) => setPaymentPlan(prev => ({ ...prev, emiCount: e.target.value }))}
-                      placeholder="Number of EMIs"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="emiAmount" className="font-medium">EMI Amount (₹)</Label>
-                    <Input
-                      id="emiAmount"
-                      type="number"
-                      step="0.01"
-                      value={paymentPlan.emiAmount}
-                      readOnly
-                      placeholder="Auto-calculated"
-                      className="bg-muted"
-                    />
-                  </div>
-                </div>
-              )}
-
-              {formData.paymentType === 'monthly_rent' && (
-                <div className="grid grid-cols-2 gap-4 p-4 border rounded-lg bg-muted/30">
-                  <h4 className="col-span-2 font-semibold">Monthly Rent Plan Details</h4>
-                  <div>
-                    <Label htmlFor="monthlyRent" className="font-medium">Monthly Rent Amount (₹) *</Label>
-                    <Input
-                      id="monthlyRent"
-                      type="number"
-                      step="0.01"
-                      value={paymentPlan.monthlyRent}
-                      onChange={(e) => setPaymentPlan(prev => ({ ...prev, monthlyRent: e.target.value }))}
-                      placeholder="Monthly rent amount"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="securityDeposit" className="font-medium">Security Deposit (₹)</Label>
-                    <Input
-                      id="securityDeposit"
-                      type="number"
-                      step="0.01"
-                      value={paymentPlan.securityDeposit}
-                      onChange={(e) => setPaymentPlan(prev => ({ ...prev, securityDeposit: e.target.value }))}
-                      placeholder="Security deposit"
-                    />
-                  </div>
-                </div>
-              )}
-
-              {formData.paymentType === 'one_time_purchase' && (
-                <div className="p-4 border rounded-lg bg-muted/30">
-                  <h4 className="font-semibold mb-2">Purchase Details</h4>
-                  <div>
-                    <Label htmlFor="purchaseAmount" className="font-medium">Purchase Amount (₹) *</Label>
-                    <Input
-                      id="purchaseAmount"
-                      type="number"
-                      step="0.01"
-                      value={paymentPlan.purchaseAmount}
-                      onChange={(e) => setPaymentPlan(prev => ({ ...prev, purchaseAmount: e.target.value }))}
-                      placeholder="Full purchase amount"
-                      required
-                    />
-                  </div>
-                </div>
-              )}
+              Payment Information
+            </h3>
+            
+            <div>
+              <Label htmlFor="paymentType" className="font-medium">Payment Type *</Label>
+              <Select value={formData.paymentType} onValueChange={(value: 'emi' | 'monthly_rent' | 'one_time_purchase') => setFormData(prev => ({ ...prev, paymentType: value }))}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select payment type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="emi">EMI</SelectItem>
+                  <SelectItem value="monthly_rent">Subscription/Rent</SelectItem>
+                  <SelectItem value="one_time_purchase">Full Purchase</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-          )}
+
+            {/* Payment Plan Details */}
+            {formData.paymentType === 'emi' && (
+              <div className="grid grid-cols-2 gap-4 p-4 border rounded-lg bg-muted/30">
+                <h4 className="col-span-2 font-semibold">EMI Plan Details</h4>
+                <div>
+                  <Label htmlFor="totalAmount" className="font-medium">Total Amount (₹) *</Label>
+                  <Input
+                    id="totalAmount"
+                    type="number"
+                    step="0.01"
+                    value={paymentPlan.totalAmount}
+                    onChange={(e) => setPaymentPlan(prev => ({ ...prev, totalAmount: e.target.value }))}
+                    placeholder="Enter total amount"
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="downPayment" className="font-medium">Down Payment (₹)</Label>
+                  <Input
+                    id="downPayment"
+                    type="number"
+                    step="0.01"
+                    value={paymentPlan.downPayment}
+                    onChange={(e) => setPaymentPlan(prev => ({ ...prev, downPayment: e.target.value }))}
+                    placeholder="Enter down payment"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="emiCount" className="font-medium">EMI Count (months) *</Label>
+                  <Input
+                    id="emiCount"
+                    type="number"
+                    min="1"
+                    value={paymentPlan.emiCount}
+                    onChange={(e) => setPaymentPlan(prev => ({ ...prev, emiCount: e.target.value }))}
+                    placeholder="Number of EMIs"
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="emiAmount" className="font-medium">EMI Amount (₹)</Label>
+                  <Input
+                    id="emiAmount"
+                    type="number"
+                    step="0.01"
+                    value={paymentPlan.emiAmount}
+                    readOnly
+                    placeholder="Auto-calculated"
+                    className="bg-muted"
+                  />
+                </div>
+              </div>
+            )}
+
+            {formData.paymentType === 'monthly_rent' && (
+              <div className="grid grid-cols-2 gap-4 p-4 border rounded-lg bg-muted/30">
+                <h4 className="col-span-2 font-semibold">Monthly Rent Plan Details</h4>
+                <div>
+                  <Label htmlFor="monthlyRent" className="font-medium">Monthly Rent Amount (₹) *</Label>
+                  <Input
+                    id="monthlyRent"
+                    type="number"
+                    step="0.01"
+                    value={paymentPlan.monthlyRent}
+                    onChange={(e) => setPaymentPlan(prev => ({ ...prev, monthlyRent: e.target.value }))}
+                    placeholder="Monthly rent amount"
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="securityDeposit" className="font-medium">Security Deposit (₹)</Label>
+                  <Input
+                    id="securityDeposit"
+                    type="number"
+                    step="0.01"
+                    value={paymentPlan.securityDeposit}
+                    onChange={(e) => setPaymentPlan(prev => ({ ...prev, securityDeposit: e.target.value }))}
+                    placeholder="Security deposit"
+                  />
+                </div>
+              </div>
+            )}
+
+            {formData.paymentType === 'one_time_purchase' && (
+              <div className="p-4 border rounded-lg bg-muted/30">
+                <h4 className="font-semibold mb-2">Purchase Details</h4>
+                <div>
+                  <Label htmlFor="purchaseAmount" className="font-medium">Purchase Amount (₹) *</Label>
+                  <Input
+                    id="purchaseAmount"
+                    type="number"
+                    step="0.01"
+                    value={paymentPlan.purchaseAmount}
+                    onChange={(e) => setPaymentPlan(prev => ({ ...prev, purchaseAmount: e.target.value }))}
+                    placeholder="Full purchase amount"
+                    required
+                  />
+                </div>
+              </div>
+            )}
+          </div>
 
           <div className="flex gap-3 pt-6 border-t border-gray-200 dark:border-gray-700">
             <Button type="submit" disabled={loading || uploading} className="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300">

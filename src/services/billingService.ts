@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { PaymentCalculations } from '@/utils/paymentCalculations';
 import { 
@@ -437,7 +438,7 @@ export class BillingService {
       const totalPaid = PaymentCalculations.calculateTotalPaid(typedEmis, typedRents);
       const totalDue = PaymentCalculations.calculateTotalOutstanding(typedEmis, typedRents);
       const overdueAmount = PaymentCalculations.calculateOverdueAmount(typedEmis, typedRents);
-      const nextDueDate = PaymentCalculations.calculateNextDueDate(typedEmis, typedRents);
+      const nextDueDate = PaymentCalculations.calculateNextDueDateFromSchedule(typedEmis, typedRents);
 
       const emiProgress = typedEmis.length > 0 ? {
         paid: typedEmis.filter(e => e.payment_status === 'paid').length,

@@ -91,7 +91,14 @@ const AddCustomerModal = () => {
       const { data: batteriesData, error: batteriesError } = await batteriesQuery;
 
       if (batteriesError) throw batteriesError;
-      setBatteries(batteriesData || []);
+      
+      // Cast the status to the correct type
+      const typedBatteries: BatteryType[] = (batteriesData || []).map(battery => ({
+        ...battery,
+        status: battery.status as BatteryType['status']
+      }));
+      
+      setBatteries(typedBatteries);
     } catch (error: any) {
       toast({
         title: "Error fetching data",
@@ -198,10 +205,10 @@ const AddCustomerModal = () => {
     setActiveTab('personal');
   };
 
-  const handleFileUpload = (field: string) => (url: string) => {
+  const handleFileUpload = (field: string) => (url: string | null) => {
     setFormData(prev => ({
       ...prev,
-      [field]: url
+      [field]: url || ''
     }));
   };
 
@@ -378,13 +385,12 @@ const AddCustomerModal = () => {
                   <CardContent className="space-y-6">
                     {/* Customer Photo */}
                     <div>
-                      <Label className="text-sm font-medium mb-2 block">Customer Photo</Label>
                       <FileUpload
-                        bucketName="customer-documents"
-                        onUpload={handleFileUpload('customer_photo_url')}
+                        label="Customer Photo"
+                        value={formData.customer_photo_url}
+                        onChange={handleFileUpload('customer_photo_url')}
                         accept="image/*"
-                        label="Upload Customer Photo"
-                        currentFile={formData.customer_photo_url}
+                        bucketName="customer-documents"
                       />
                       {formData.customer_photo_url && (
                         <div className="mt-2 flex items-center gap-2">
@@ -404,13 +410,12 @@ const AddCustomerModal = () => {
                     {/* Aadhaar Documents */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <Label className="text-sm font-medium mb-2 block">Aadhaar Front</Label>
                         <FileUpload
-                          bucketName="customer-documents"
-                          onUpload={handleFileUpload('aadhaar_front_url')}
+                          label="Aadhaar Front"
+                          value={formData.aadhaar_front_url}
+                          onChange={handleFileUpload('aadhaar_front_url')}
                           accept="image/*,.pdf"
-                          label="Upload Aadhaar Front"
-                          currentFile={formData.aadhaar_front_url}
+                          bucketName="customer-documents"
                         />
                         {formData.aadhaar_front_url && (
                           <div className="mt-2 flex items-center gap-2">
@@ -428,13 +433,12 @@ const AddCustomerModal = () => {
                       </div>
 
                       <div>
-                        <Label className="text-sm font-medium mb-2 block">Aadhaar Back</Label>
                         <FileUpload
-                          bucketName="customer-documents"
-                          onUpload={handleFileUpload('aadhaar_back_url')}
+                          label="Aadhaar Back"
+                          value={formData.aadhaar_back_url}
+                          onChange={handleFileUpload('aadhaar_back_url')}
                           accept="image/*,.pdf"
-                          label="Upload Aadhaar Back"
-                          currentFile={formData.aadhaar_back_url}
+                          bucketName="customer-documents"
                         />
                         {formData.aadhaar_back_url && (
                           <div className="mt-2 flex items-center gap-2">
@@ -454,13 +458,12 @@ const AddCustomerModal = () => {
 
                     {/* PAN Card */}
                     <div>
-                      <Label className="text-sm font-medium mb-2 block">PAN Card</Label>
                       <FileUpload
-                        bucketName="customer-documents"
-                        onUpload={handleFileUpload('pan_card_url')}
+                        label="PAN Card"
+                        value={formData.pan_card_url}
+                        onChange={handleFileUpload('pan_card_url')}
                         accept="image/*,.pdf"
-                        label="Upload PAN Card"
-                        currentFile={formData.pan_card_url}
+                        bucketName="customer-documents"
                       />
                       {formData.pan_card_url && (
                         <div className="mt-2 flex items-center gap-2">

@@ -19,7 +19,7 @@ export class AutoSchedulingService {
       const emiAmount = (totalAmount - downPayment) / emiCount;
       const emiSchedule = [];
       
-      // Generate EMI schedule
+      // Generate EMI schedule starting from joining date
       for (let i = 1; i <= emiCount; i++) {
         const dueDate = new Date(joinDateObj);
         dueDate.setMonth(dueDate.getMonth() + i);

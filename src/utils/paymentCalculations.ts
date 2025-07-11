@@ -3,28 +3,6 @@ import { EMI, MonthlyRent, PaymentStatus, PaymentCalculationResult } from '@/typ
 export class PaymentCalculations {
   
   /**
-   * Calculate next due date based on joining date and current date
-   */
-  static calculateNextDueDate(joinDate: string): string {
-    const join = new Date(joinDate);
-    const today = new Date();
-    
-    const joinDay = join.getDate();
-    const currentMonth = today.getMonth();
-    const currentYear = today.getFullYear();
-    
-    // Create a date with join day in current month
-    let nextDue = new Date(currentYear, currentMonth, joinDay);
-    
-    // If the date has already passed this month, move to next month
-    if (nextDue <= today) {
-      nextDue.setMonth(nextDue.getMonth() + 1);
-    }
-    
-    return nextDue.toISOString().split('T')[0];
-  }
-  
-  /**
    * EMI Logic Implementation
    */
   static calculateEMIStatus(emi: EMI): PaymentStatus {
@@ -55,16 +33,16 @@ export class PaymentCalculations {
     totalAmount: number,
     downPayment: number,
     emiCount: number,
-    joinDate: string
+    assignmentDate: string
   ): Omit<EMI, 'id' | 'created_at' | 'updated_at'>[] {
     const remainingAmount = totalAmount - downPayment;
     const emiAmount = Math.round(remainingAmount / emiCount);
     const schedule: Omit<EMI, 'id' | 'created_at' | 'updated_at'>[] = [];
 
-    const joinDateObj = new Date(joinDate);
+    const startDate = new Date(assignmentDate);
 
     for (let i = 1; i <= emiCount; i++) {
-      const dueDate = new Date(joinDateObj);
+      const dueDate = new Date(startDate);
       dueDate.setMonth(dueDate.getMonth() + i);
 
       // Adjust for last EMI to handle rounding differences
@@ -200,7 +178,7 @@ export class PaymentCalculations {
       .sort((a, b) => {
         // Overdue and partial payments first
         const aIsUrgent = a.payment_status === 'overdue' || a.payment_status === 'partial';
-        const bIsUrgent = b.payment_status === 'overdue' || a.payment_status === 'partial';
+        const bIsUrgent = b.payment_status === 'overdue' || b.payment_status === 'partial';
         
         if (aIsUrgent && !bIsUrgent) return -1;
         if (!aIsUrgent && bIsUrgent) return 1;
@@ -214,7 +192,7 @@ export class PaymentCalculations {
       .sort((a, b) => {
         // Overdue and partial payments first
         const aIsUrgent = a.payment_status === 'overdue' || a.payment_status === 'partial';
-        const bIsUrgent = b.payment_status === 'overdue' || a.payment_status === 'partial';
+        const bIsUrgent = b.payment_status === 'overdue' || b.payment_status === 'partial';
         
         if (aIsUrgent && !bIsUrgent) return -1;
         if (!aIsUrgent && bIsUrgent) return 1;
@@ -298,7 +276,7 @@ export class PaymentCalculations {
   /**
    * Utility functions
    */
-  static calculateNextDueDateFromSchedule(emis: EMI[], rents: MonthlyRent[]): string | null {
+  static calculateNextDueDate(emis: EMI[], rents: MonthlyRent[]): string | null {
     const allDueDates: string[] = [];
 
     // Get due dates from unpaid EMIs

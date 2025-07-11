@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { PaymentCalculations } from '@/utils/paymentCalculations';
 import { 
@@ -319,7 +318,10 @@ export class BillingService {
           due_date: dueDate.toISOString().split('T')[0],
           payment_status: 'due',
           paid_amount: 0,
-          remaining_amount: proRatedData.amount
+          remaining_amount: proRatedData.amount,
+          is_prorated: true,
+          prorated_days: proRatedData.days,
+          daily_rate: proRatedData.dailyRate
         })
         .select()
         .single();
@@ -438,7 +440,7 @@ export class BillingService {
       const totalPaid = PaymentCalculations.calculateTotalPaid(typedEmis, typedRents);
       const totalDue = PaymentCalculations.calculateTotalOutstanding(typedEmis, typedRents);
       const overdueAmount = PaymentCalculations.calculateOverdueAmount(typedEmis, typedRents);
-      const nextDueDate = PaymentCalculations.calculateNextDueDateFromSchedule(typedEmis, typedRents);
+      const nextDueDate = PaymentCalculations.calculateNextDueDate(typedEmis, typedRents);
 
       const emiProgress = typedEmis.length > 0 ? {
         paid: typedEmis.filter(e => e.payment_status === 'paid').length,

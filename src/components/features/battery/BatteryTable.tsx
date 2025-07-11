@@ -10,20 +10,21 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Battery } from '@/types';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePhoneCall } from '@/hooks/usePhoneCall';
-import { statusColors } from '@/utils/statusColors';
+import { getBatteryStatusColor } from '@/utils/statusColors';
 import AddBatteryModal from '@/components/modals/AddBatteryModal';
 import AssignBatteryToPartnerModal from '@/components/modals/AssignBatteryToPartnerModal';
 
 interface BatteryTableProps {
   batteries: Battery[];
   onBatteryClick: (battery: Battery) => void;
+  isAdmin?: boolean;
 }
 
-const BatteryTable = ({ batteries, onBatteryClick }: BatteryTableProps) => {
+const BatteryTable = ({ batteries, onBatteryClick, isAdmin = false }: BatteryTableProps) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const { userRole } = useAuth();
-  const { initiateCall } = usePhoneCall();
+  const initiateCall = usePhoneCall();
 
   const filteredBatteries = batteries.filter(battery => {
     const matchesSearch = 
@@ -121,7 +122,7 @@ const BatteryTable = ({ batteries, onBatteryClick }: BatteryTableProps) => {
                   <TableCell>
                     <Badge 
                       variant="secondary" 
-                      className={`${statusColors[battery.status]} text-white border-0`}
+                      className={`${getBatteryStatusColor(battery.status)} text-white border-0`}
                     >
                       {battery.status.charAt(0).toUpperCase() + battery.status.slice(1)}
                     </Badge>

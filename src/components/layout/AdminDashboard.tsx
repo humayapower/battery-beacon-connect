@@ -395,7 +395,7 @@ const AdminDashboard = () => {
           </div>
         );
       case 'batteries':
-        return <BatteryTable isAdmin={true} />;
+        return <BatteryTable batteries={batteries || []} onBatteryClick={() => {}} />;
       case 'partners':
         return <PartnerTable />;
       case 'customers':

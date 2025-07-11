@@ -1,356 +1,301 @@
 
-import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import React, { useState, useEffect } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Plus, Battery as BatteryIcon } from 'lucide-react';
+import { Plus, Battery } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 import { useBatteries } from '@/hooks/useBatteries';
-import { Battery } from '@/types';
 import { useAuth } from '@/contexts/AuthContext';
-
-type ModelName = 'MAXCHARGE' | 'FLUXON' | 'EXTRAGRID';
-type BatteryStatus = 'available' | 'assigned' | 'maintenance' | 'faulty' | 'returned';
-
-interface BatteryFormData {
-  serial_number: string;
-  model_name: ModelName | '';
-  model_number: string;
-  manufacturing_date: string;
-  voltage: string;
-  capacity: string;
-  imei_number: string;
-  sim_number: string;
-  warranty_period: string;
-}
+import { supabase } from '@/integrations/supabase/client';
 
 const AddBatteryModal = () => {
-  const [open, setOpen] = useState(false);
-  const [formData, setFormData] = useState<BatteryFormData>({
-    serial_number: '',
-    model_name: '',
-    model_number: '',
-    manufacturing_date: '',
-    voltage: '',
+  const [isOpen, setIsOpen] = useState(false);
+  const [formData, setFormData] = useState({
+    serialNumber: '',
+    model: '',
+    modelName: '',
     capacity: '',
-    imei_number: '',
-    sim_number: '',
-    warranty_period: '',
+    voltage: '',
+    manufacturingDate: '',
+    purchaseDate: '',
+    location: '',
+    partnerId: 'none',
+    imeiNumber: '',
+    simNumber: ''
   });
-  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [partners, setPartners] = useState<{ id: string; name: string; }[]>([]);
+  const { toast } = useToast();
   const { addBattery } = useBatteries();
-  const { userRole } = useAuth();
+  const { userRole, user } = useAuth();
 
-  // Only show for admin users
-  if (userRole !== 'admin') {
-    return null;
-  }
+  useEffect(() => {
+    const fetchPartners = async () => {
+      if (userRole === 'admin') {
+        try {
+          const { data, error } = await supabase
+            .from('users')
+            .select('id, name')
+            .eq('role', 'partner');
 
-  const resetForm = () => {
-    setFormData({
-      serial_number: '',
-      model_name: '',
-      model_number: '',
-      manufacturing_date: '',
-      voltage: '',
-      capacity: '',
-      imei_number: '',
-      sim_number: '',
-      warranty_period: '',
-    });
-    setError('');
-  };
+          if (error) throw error;
+          setPartners(data || []);
+        } catch (error: any) {
+          console.error('Error fetching partners:', error);
+          toast({
+            title: "Error fetching partners",
+            description: error.message,
+            variant: "destructive",
+          });
+        }
+      }
+    };
 
-  const calculateWarrantyExpiry = (startDate: string, period: string) => {
-    if (!startDate || !period) return null;
-    const start = new Date(startDate);
-    const months = parseInt(period);
-    const expiry = new Date(start);
-    expiry.setMonth(expiry.getMonth() + months);
-    return expiry.toISOString().split('T')[0];
-  };
+    fetchPartners();
+  }, [userRole, toast]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
     setLoading(true);
 
-    // Validation
-    if (!formData.serial_number.trim()) {
-      setError('Serial number is required');
-      setLoading(false);
-      return;
-    }
+    const batteryData = {
+      serial_number: formData.serialNumber,
+      model: formData.model,
+      model_name: formData.modelName || undefined,
+      capacity: formData.capacity,
+      voltage: formData.voltage ? parseFloat(formData.voltage) : undefined,
+      manufacturing_date: formData.manufacturingDate || undefined,
+      purchase_date: formData.purchaseDate || undefined,
+      location: formData.location || undefined,
+      partner_id: userRole === 'partner' ? user?.id : (formData.partnerId === 'none' ? null : formData.partnerId),
+      imei_number: formData.imeiNumber || undefined,
+      sim_number: formData.simNumber || undefined,
+      status: 'available' as const
+    };
 
-    if (!formData.model_name) {
-      setError('Model name is required');
-      setLoading(false);
-      return;
-    }
-
-    if (!formData.model_number.trim()) {
-      setError('Model number is required');
-      setLoading(false);
-      return;
-    }
-
-    if (!formData.manufacturing_date) {
-      setError('Manufacturing date is required');
-      setLoading(false);
-      return;
-    }
-
-    if (!formData.voltage.trim()) {
-      setError('Voltage is required');
-      setLoading(false);
-      return;
-    }
-
-    if (!formData.capacity.trim()) {
-      setError('Capacity is required');
-      setLoading(false);
-      return;
-    }
-
-    try {
-      // Use manufacturing date as warranty start date
-      const warrantyExpiry = calculateWarrantyExpiry(formData.manufacturing_date, formData.warranty_period);
-      
-      const batteryData: Omit<Battery, 'id' | 'created_at' | 'updated_at'> = {
-        serial_number: formData.serial_number.trim(),
-        model: formData.model_number.trim(),
-        model_name: formData.model_name,
-        manufacturing_date: formData.manufacturing_date,
-        voltage: parseFloat(formData.voltage),
-        capacity: formData.capacity.trim(),
-        imei_number: formData.imei_number.trim() || undefined,
-        sim_number: formData.sim_number.trim() || undefined,
-        status: 'available', // Default status
-        partner_id: null,
-        customer_id: null,
-        warranty_period: formData.warranty_period ? parseInt(formData.warranty_period) : undefined,
-        warranty_expiry: warrantyExpiry,
-        purchase_date: formData.manufacturing_date || null,
-        location: null, // Default location
-        last_maintenance: null,
-      };
-
-      const result = await addBattery(batteryData);
-      
-      if (result.success) {
-        setOpen(false);
-        resetForm();
-      }
-    } catch (err: any) {
-      setError(err.message || 'Failed to add battery');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleOpenChange = (isOpen: boolean) => {
-    setOpen(isOpen);
-    if (!isOpen) {
+    const result = await addBattery(batteryData);
+    
+    if (result?.success) {
+      setIsOpen(false);
       resetForm();
     }
+    
+    setLoading(false);
+  };
+
+  const resetForm = () => {
+    setFormData({
+      serialNumber: '',
+      model: '',
+      modelName: '',
+      capacity: '',
+      voltage: '',
+      manufacturingDate: '',
+      purchaseDate: '',
+      location: '',
+      partnerId: 'none',
+      imeiNumber: '',
+      simNumber: ''
+    });
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button className="bg-blue-600 hover:bg-blue-700" data-add-battery-trigger>
+        <Button className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300">
           <Plus className="w-4 h-4 mr-2" />
           Add Battery
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center space-x-2">
-            <BatteryIcon className="w-5 h-5" />
-            <span>Add New Battery</span>
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto glass-card border-0 shadow-2xl">
+        <DialogHeader className="bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 p-6 -m-6 mb-6 rounded-t-2xl">
+          <DialogTitle className="text-2xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-3">
+            <div className="p-2 bg-gradient-to-br from-green-500 to-green-600 rounded-xl">
+              <Plus className="w-6 h-6 text-white" />
+            </div>
+            Add New Battery
           </DialogTitle>
-          <DialogDescription>
-            Create a new battery with complete specifications and warranty information.
-          </DialogDescription>
         </DialogHeader>
-        
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Basic Information */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900">Basic Information</h3>
+          <div className="space-y-4 p-6 glass-card border-0 shadow-lg rounded-2xl">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+              <div className="p-1.5 bg-gradient-to-br from-green-500 to-green-600 rounded-lg">
+                <Battery className="w-4 h-4 text-white" />
+              </div>
+              Basic Information
+            </h3>
+            
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="serial_number">Serial Number *</Label>
+              <div>
+                <Label htmlFor="serialNumber" className="font-medium">Serial Number *</Label>
                 <Input
-                  id="serial_number"
+                  id="serialNumber"
                   type="text"
-                  placeholder="e.g., SN-BAT-001"
-                  value={formData.serial_number}
-                  onChange={(e) => setFormData(prev => ({ ...prev, serial_number: e.target.value }))}
+                  value={formData.serialNumber}
+                  onChange={(e) => setFormData(prev => ({ ...prev, serialNumber: e.target.value }))}
+                  placeholder="Enter serial number"
                   required
                 />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="model_name">Model Name *</Label>
-                <Select
-                  value={formData.model_name}
-                  onValueChange={(value: ModelName) => 
-                    setFormData(prev => ({ ...prev, model_name: value }))
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select model name" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="MAXCHARGE">MAXCHARGE</SelectItem>
-                    <SelectItem value="FLUXON">FLUXON</SelectItem>
-                    <SelectItem value="EXTRAGRID">EXTRAGRID</SelectItem>
-                  </SelectContent>
-                </Select>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="model_number">Model Number *</Label>
+              <div>
+                <Label htmlFor="model" className="font-medium">Model *</Label>
                 <Input
-                  id="model_number"
+                  id="model"
                   type="text"
-                  placeholder="e.g., MX-2024-Pro"
-                  value={formData.model_number}
-                  onChange={(e) => setFormData(prev => ({ ...prev, model_number: e.target.value }))}
+                  value={formData.model}
+                  onChange={(e) => setFormData(prev => ({ ...prev, model: e.target.value }))}
+                  placeholder="Enter model"
                   required
                 />
               </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="manufacturing_date">Manufacturing Date *</Label>
-                <Input
-                  id="manufacturing_date"
-                  type="date"
-                  value={formData.manufacturing_date}
-                  onChange={(e) => setFormData(prev => ({ ...prev, manufacturing_date: e.target.value }))}
-                  required
-                />
-              </div>
-            </div>
-          </div>
 
-          {/* Technical Specifications */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900">Technical Specifications</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="voltage">Voltage (V) *</Label>
+              <div>
+                <Label htmlFor="modelName" className="font-medium">Model Name</Label>
+                <Input
+                  id="modelName"
+                  type="text"
+                  value={formData.modelName}
+                  onChange={(e) => setFormData(prev => ({ ...prev, modelName: e.target.value }))}
+                  placeholder="Enter model name"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="capacity" className="font-medium">Capacity *</Label>
+                <Input
+                  id="capacity"
+                  type="text"
+                  value={formData.capacity}
+                  onChange={(e) => setFormData(prev => ({ ...prev, capacity: e.target.value }))}
+                  placeholder="e.g., 150Ah"
+                  required
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="voltage" className="font-medium">Voltage (V)</Label>
                 <Input
                   id="voltage"
                   type="number"
                   step="0.1"
-                  placeholder="e.g., 12"
                   value={formData.voltage}
                   onChange={(e) => setFormData(prev => ({ ...prev, voltage: e.target.value }))}
-                  required
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="capacity">Capacity (Ah) *</Label>
-                <Input
-                  id="capacity"
-                  type="text"
-                  placeholder="e.g., 100Ah"
-                  value={formData.capacity}
-                  onChange={(e) => setFormData(prev => ({ ...prev, capacity: e.target.value }))}
-                  required
+                  placeholder="e.g., 12"
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="imei_number">IMEI Number</Label>
+              <div>
+                <Label htmlFor="location" className="font-medium">Location</Label>
                 <Input
-                  id="imei_number"
+                  id="location"
                   type="text"
-                  placeholder="e.g., 123456789012345"
-                  value={formData.imei_number}
-                  onChange={(e) => setFormData(prev => ({ ...prev, imei_number: e.target.value }))}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="sim_number">SIM Number</Label>
-                <Input
-                  id="sim_number"
-                  type="text"
-                  placeholder="e.g., 89012345678901234567"
-                  value={formData.sim_number}
-                  onChange={(e) => setFormData(prev => ({ ...prev, sim_number: e.target.value }))}
+                  value={formData.location}
+                  onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
+                  placeholder="Enter location"
                 />
               </div>
             </div>
           </div>
 
-          {/* Warranty Information */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900">Warranty Information</h3>
+          {/* Dates */}
+          <div className="space-y-4 p-6 glass-card border-0 shadow-lg rounded-2xl">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">Dates</h3>
+            
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="warranty_period">Warranty Period (months)</Label>
+              <div>
+                <Label htmlFor="manufacturingDate" className="font-medium">Manufacturing Date</Label>
                 <Input
-                  id="warranty_period"
-                  type="number"
-                  placeholder="e.g., 24"
-                  value={formData.warranty_period}
-                  onChange={(e) => setFormData(prev => ({ ...prev, warranty_period: e.target.value }))}
+                  id="manufacturingDate"
+                  type="date"
+                  value={formData.manufacturingDate}
+                  onChange={(e) => setFormData(prev => ({ ...prev, manufacturingDate: e.target.value }))}
                 />
               </div>
 
-              {formData.manufacturing_date && formData.warranty_period && (
-                <div>
-                  <Label>Warranty End Date</Label>
-                  <p className="text-sm text-gray-600 bg-gray-50 p-2 rounded">
-                    {calculateWarrantyExpiry(formData.manufacturing_date, formData.warranty_period) 
-                      ? new Date(calculateWarrantyExpiry(formData.manufacturing_date, formData.warranty_period)!).toLocaleDateString()
-                      : 'Invalid date/period'
-                    }
-                  </p>
-                </div>
-              )}
+              <div>
+                <Label htmlFor="purchaseDate" className="font-medium">Purchase Date</Label>
+                <Input
+                  id="purchaseDate"
+                  type="date"
+                  value={formData.purchaseDate}
+                  onChange={(e) => setFormData(prev => ({ ...prev, purchaseDate: e.target.value }))}
+                />
+              </div>
             </div>
           </div>
 
-          {error && (
-            <Alert variant="destructive">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
+          {/* Connectivity */}
+          <div className="space-y-4 p-6 glass-card border-0 shadow-lg rounded-2xl">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">Connectivity</h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="imeiNumber" className="font-medium">IMEI Number</Label>
+                <Input
+                  id="imeiNumber"
+                  type="text"
+                  value={formData.imeiNumber}
+                  onChange={(e) => setFormData(prev => ({ ...prev, imeiNumber: e.target.value }))}
+                  placeholder="Enter IMEI number"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="simNumber" className="font-medium">SIM Number</Label>
+                <Input
+                  id="simNumber"
+                  type="text"
+                  value={formData.simNumber}
+                  onChange={(e) => setFormData(prev => ({ ...prev, simNumber: e.target.value }))}
+                  placeholder="Enter SIM number"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Assignment */}
+          {userRole === 'admin' && (
+            <div className="space-y-4 p-6 glass-card border-0 shadow-lg rounded-2xl">
+              <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">Assignment</h3>
+              
+              <div>
+                <Label htmlFor="partner" className="font-medium">Assign to Partner</Label>
+                <Select value={formData.partnerId} onValueChange={(value) => setFormData(prev => ({ ...prev, partnerId: value }))}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select partner (optional)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">No Partner</SelectItem>
+                    {partners.map((partner) => (
+                      <SelectItem key={partner.id} value={partner.id}>{partner.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
           )}
 
-          <div className="flex justify-end space-x-2 pt-4 border-t">
-            <Button 
-              type="button" 
-              variant="outline" 
-              onClick={() => setOpen(false)}
-              disabled={loading}
-            >
-              Cancel
-            </Button>
-            <Button 
-              type="submit" 
-              disabled={loading}
-              className="bg-blue-600 hover:bg-blue-700"
-            >
+          <div className="flex gap-3 pt-6 border-t border-gray-200 dark:border-gray-700">
+            <Button type="submit" disabled={loading} className="flex-1 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300">
               {loading ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  Creating...
+                  Adding Battery...
                 </>
               ) : (
                 <>
                   <Plus className="w-4 h-4 mr-2" />
-                  Create Battery
+                  Add Battery
                 </>
               )}
+            </Button>
+            <Button type="button" variant="outline" onClick={() => {setIsOpen(false); resetForm();}} className="glass-card border-0 shadow-sm hover:shadow-md transition-all duration-200">
+              Cancel
             </Button>
           </div>
         </form>

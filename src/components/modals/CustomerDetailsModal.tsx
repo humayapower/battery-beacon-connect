@@ -1,11 +1,12 @@
+
 import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-// import { Badge } from "@/components/ui/badge";
 import { User, Phone, Mail, MapPin, Calendar, Battery, CreditCard, Edit, Trash2 } from 'lucide-react';
 import { useCustomers, CustomerWithBattery } from '@/hooks/useCustomers';
 import CustomerBillingPage from '../features/customer/CustomerBillingPage';
+import ChangeBatteryModal from './ChangeBatteryModal';
 
 interface CustomerDetailsModalProps {
   customerId: string | null;
@@ -39,6 +40,10 @@ const CustomerDetailsModal = ({ customerId, isOpen, onClose }: CustomerDetailsMo
 
   const handleViewBilling = () => {
     setShowBilling(true);
+  };
+
+  const handleBatteryChanged = () => {
+    fetchCustomer(); // Refresh customer data after battery change
   };
 
   if (showBilling && customer) {
@@ -214,16 +219,6 @@ const CustomerDetailsModal = ({ customerId, isOpen, onClose }: CustomerDetailsMo
                   </p>
                 </div>
                 <div>
-                  <span className="text-sm font-medium text-gray-500">Email:</span>
-                  <p className="text-lg font-semibold">
-                    {customer.email ? (
-                      <a href={`mailto:${customer.email}`} className="text-blue-600 hover:underline">
-                        {customer.email}
-                      </a>
-                    ) : 'N/A'}
-                  </p>
-                </div>
-                <div>
                   <span className="text-sm font-medium text-gray-500">Address:</span>
                   <p className="text-lg font-semibold">{customer.address || 'N/A'}</p>
                 </div>
@@ -241,9 +236,17 @@ const CustomerDetailsModal = ({ customerId, isOpen, onClose }: CustomerDetailsMo
           {customer.batteries && (
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Battery className="w-5 h-5 mr-2" />
-                  Battery Information
+                <CardTitle className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <Battery className="w-5 h-5 mr-2" />
+                    Battery Information
+                  </div>
+                  <ChangeBatteryModal 
+                    customerId={customer.id}
+                    currentBatteryId={customer.battery_id || undefined}
+                    partnerId={customer.partner_id || undefined}
+                    onBatteryChanged={handleBatteryChanged}
+                  />
                 </CardTitle>
               </CardHeader>
               <CardContent>

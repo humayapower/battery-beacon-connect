@@ -82,7 +82,14 @@ const AddCustomerModal = () => {
         .is('customer_id', null);
 
       if (error) throw error;
-      setAvailableBatteries(data || []);
+      
+      // Type cast the status to match our Battery interface
+      const typedBatteries: BatteryType[] = (data || []).map(battery => ({
+        ...battery,
+        status: battery.status as BatteryType['status']
+      }));
+      
+      setAvailableBatteries(typedBatteries);
     } catch (error: any) {
       toast({
         title: "Error loading batteries",
@@ -376,11 +383,11 @@ const AddCustomerModal = () => {
                 <div>
                   <Label>Customer Photo</Label>
                   <FileUpload
-                    bucket="customer-documents"
-                    onUpload={(url) => setFormData({ ...formData, customer_photo_url: url })}
-                    accept="image/*"
                     label="Upload Customer Photo"
-                    currentFile={formData.customer_photo_url}
+                    value={formData.customer_photo_url}
+                    onChange={(url) => setFormData({ ...formData, customer_photo_url: url || '' })}
+                    accept="image/*"
+                    bucketName="customer-documents"
                   />
                 </div>
 
@@ -406,21 +413,21 @@ const AddCustomerModal = () => {
                     <div>
                       <Label>Aadhaar Front</Label>
                       <FileUpload
-                        bucket="customer-documents"
-                        onUpload={(url) => setFormData({ ...formData, aadhaar_front_url: url })}
-                        accept="image/*"
                         label="Upload Aadhaar Front"
-                        currentFile={formData.aadhaar_front_url}
+                        value={formData.aadhaar_front_url}
+                        onChange={(url) => setFormData({ ...formData, aadhaar_front_url: url || '' })}
+                        accept="image/*"
+                        bucketName="customer-documents"
                       />
                     </div>
                     <div>
                       <Label>Aadhaar Back</Label>
                       <FileUpload
-                        bucket="customer-documents"
-                        onUpload={(url) => setFormData({ ...formData, aadhaar_back_url: url })}
-                        accept="image/*"
                         label="Upload Aadhaar Back"
-                        currentFile={formData.aadhaar_back_url}
+                        value={formData.aadhaar_back_url}
+                        onChange={(url) => setFormData({ ...formData, aadhaar_back_url: url || '' })}
+                        accept="image/*"
+                        bucketName="customer-documents"
                       />
                     </div>
                   </div>
@@ -430,11 +437,11 @@ const AddCustomerModal = () => {
                 <div>
                   <Label>PAN Card (Optional)</Label>
                   <FileUpload
-                    bucket="customer-documents"
-                    onUpload={(url) => setFormData({ ...formData, pan_card_url: url })}
-                    accept="image/*"
                     label="Upload PAN Card"
-                    currentFile={formData.pan_card_url}
+                    value={formData.pan_card_url}
+                    onChange={(url) => setFormData({ ...formData, pan_card_url: url || '' })}
+                    accept="image/*"
+                    bucketName="customer-documents"
                   />
                 </div>
               </CardContent>

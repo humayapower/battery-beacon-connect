@@ -318,10 +318,7 @@ export class BillingService {
           due_date: dueDate.toISOString().split('T')[0],
           payment_status: 'due',
           paid_amount: 0,
-          remaining_amount: proRatedData.amount,
-          is_prorated: true,
-          prorated_days: proRatedData.days,
-          daily_rate: proRatedData.dailyRate
+          remaining_amount: proRatedData.amount
         })
         .select()
         .single();

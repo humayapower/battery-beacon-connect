@@ -8,7 +8,7 @@ import { Transaction } from '@/types';
 interface TransactionWithRelations extends Transaction {
   customers?: {
     name: string;
-    email: string;
+    phone: string;
   };
   batteries?: {
     serial_number: string;
@@ -31,7 +31,7 @@ export const useTransactions = () => {
           *,
           customers:customer_id (
             name,
-            email
+            phone
           ),
           batteries:battery_id (
             serial_number,

@@ -9,9 +9,14 @@
 - **[TECHNOLOGY_STACK.md](./TECHNOLOGY_STACK.md)** - Complete technology stack reference
 - **[DATABASE_SCHEMA.md](./DATABASE_SCHEMA.md)** - Database structure and schema reference
 
-### 🔧 Additional Documentation
-- **[PROJECT_STRUCTURE.md](./PROJECT_STRUCTURE.md)** - Codebase organization
-- **[API_DOCUMENTATION.md](./API_DOCUMENTATION.md)** - API endpoints and usage
+### 🔧 Development & Operations
+- **[PROJECT_STRUCTURE.md](./PROJECT_STRUCTURE.md)** - Codebase organization and architecture
+- **[API_DOCUMENTATION.md](./API_DOCUMENTATION.md)** - API endpoints and database schema
+- **[DEVELOPMENT_WORKFLOW.md](./DEVELOPMENT_WORKFLOW.md)** - Complete development guide with best practices
+- **[SECURITY_BEST_PRACTICES.md](./SECURITY_BEST_PRACTICES.md)** - Security implementation and guidelines
+- **[TROUBLESHOOTING_GUIDE.md](./TROUBLESHOOTING_GUIDE.md)** - Common issues and solutions
+
+### ⚙️ Automation & Deployment
 - **[AUTO_SCHEDULING_README.md](./AUTO_SCHEDULING_README.md)** - Automated job scheduling
 - **[PAYMENT_SCHEDULER_SETUP.md](./PAYMENT_SCHEDULER_SETUP.md)** - Payment automation setup
 - **[DEPLOY_EDGE_FUNCTIONS.md](./DEPLOY_EDGE_FUNCTIONS.md)** - Edge function deployment

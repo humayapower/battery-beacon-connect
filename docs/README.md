@@ -7,7 +7,10 @@
 - **[USER_ROLES_AND_PERMISSIONS.md](./USER_ROLES_AND_PERMISSIONS.md)** - Detailed guide to user roles, permissions, and access control
 - **[PAYMENT_SYSTEM.md](./PAYMENT_SYSTEM.md)** - Comprehensive payment processing, EMI/rent management, and billing workflows
 - **[TECHNOLOGY_STACK.md](./TECHNOLOGY_STACK.md)** - Complete technology stack reference
+- **[TECHNOLOGY_STACK_DETAILED.md](./TECHNOLOGY_STACK_DETAILED.md)** - In-depth technical details for every technology used
 - **[DATABASE_SCHEMA.md](./DATABASE_SCHEMA.md)** - Database structure and schema reference
+- **[WORKFLOW_DIAGRAMS.md](./WORKFLOW_DIAGRAMS.md)** - Visual Mermaid diagrams for all system workflows
+- **[CODE_PATTERNS.md](./CODE_PATTERNS.md)** - Practical code examples and implementation patterns
 
 ### 🔧 Development & Operations
 - **[PROJECT_STRUCTURE.md](./PROJECT_STRUCTURE.md)** - Codebase organization and architecture

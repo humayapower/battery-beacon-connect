@@ -11,8 +11,10 @@
 - **[DATABASE_SCHEMA.md](./DATABASE_SCHEMA.md)** - Database structure and schema reference
 - **[WORKFLOW_DIAGRAMS.md](./WORKFLOW_DIAGRAMS.md)** - Visual Mermaid diagrams for all system workflows
 - **[CODE_PATTERNS.md](./CODE_PATTERNS.md)** - Practical code examples and implementation patterns
+- **[LEDGER_SYSTEM.md](./LEDGER_SYSTEM.md)** - Payment ledger tracking and reconciliation
 
 ### 🔧 Development & Operations
+- **[DEPLOYMENT_OPERATIONS.md](./DEPLOYMENT_OPERATIONS.md)** - Deployment, monitoring, and maintenance procedures
 - **[PROJECT_STRUCTURE.md](./PROJECT_STRUCTURE.md)** - Codebase organization and architecture
 - **[API_DOCUMENTATION.md](./API_DOCUMENTATION.md)** - API endpoints and database schema
 - **[DEVELOPMENT_WORKFLOW.md](./DEVELOPMENT_WORKFLOW.md)** - Complete development guide with best practices

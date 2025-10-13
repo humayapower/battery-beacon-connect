@@ -329,6 +329,113 @@ export type Database = {
           },
         ]
       }
+      payment_ledger: {
+        Row: {
+          amount_paid: number
+          bank_name: string | null
+          battery_id: string | null
+          cheque_number: string | null
+          created_at: string
+          customer_id: string
+          emi_id: string | null
+          id: string
+          new_balance: number
+          payment_date: string
+          payment_mode: string
+          payment_type: string
+          previous_balance: number
+          reconciled: boolean | null
+          reconciliation_date: string | null
+          reconciliation_notes: string | null
+          recorded_by: string | null
+          reference_number: string | null
+          remarks: string | null
+          rent_id: string | null
+          transaction_id: string | null
+          updated_at: string
+          upi_transaction_id: string | null
+        }
+        Insert: {
+          amount_paid: number
+          bank_name?: string | null
+          battery_id?: string | null
+          cheque_number?: string | null
+          created_at?: string
+          customer_id: string
+          emi_id?: string | null
+          id?: string
+          new_balance?: number
+          payment_date?: string
+          payment_mode: string
+          payment_type: string
+          previous_balance?: number
+          reconciled?: boolean | null
+          reconciliation_date?: string | null
+          reconciliation_notes?: string | null
+          recorded_by?: string | null
+          reference_number?: string | null
+          remarks?: string | null
+          rent_id?: string | null
+          transaction_id?: string | null
+          updated_at?: string
+          upi_transaction_id?: string | null
+        }
+        Update: {
+          amount_paid?: number
+          bank_name?: string | null
+          battery_id?: string | null
+          cheque_number?: string | null
+          created_at?: string
+          customer_id?: string
+          emi_id?: string | null
+          id?: string
+          new_balance?: number
+          payment_date?: string
+          payment_mode?: string
+          payment_type?: string
+          previous_balance?: number
+          reconciled?: boolean | null
+          reconciliation_date?: string | null
+          reconciliation_notes?: string | null
+          recorded_by?: string | null
+          reference_number?: string | null
+          remarks?: string | null
+          rent_id?: string | null
+          transaction_id?: string | null
+          updated_at?: string
+          upi_transaction_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_ledger_battery_id_fkey"
+            columns: ["battery_id"]
+            isOneToOne: false
+            referencedRelation: "batteries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_ledger_emi_id_fkey"
+            columns: ["emi_id"]
+            isOneToOne: false
+            referencedRelation: "emis"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_ledger_rent_id_fkey"
+            columns: ["rent_id"]
+            isOneToOne: false
+            referencedRelation: "monthly_rents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_ledger_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       transactions: {
         Row: {
           amount: number
@@ -474,6 +581,10 @@ export type Database = {
           username: string
         }[]
       }
+      calculate_customer_balance: {
+        Args: { p_customer_id: string }
+        Returns: number
+      }
       create_user: {
         Args: {
           p_address?: string
@@ -488,6 +599,19 @@ export type Database = {
       generate_monthly_rent_charges: {
         Args: Record<PropertyKey, never>
         Returns: undefined
+      }
+      get_customer_ledger_with_balance: {
+        Args: { p_customer_id: string }
+        Returns: {
+          amount_paid: number
+          id: string
+          payment_date: string
+          payment_mode: string
+          payment_type: string
+          reference_number: string
+          remarks: string
+          running_balance: number
+        }[]
       }
       get_partner_id: {
         Args: { user_id: string }

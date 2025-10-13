@@ -224,11 +224,57 @@ export class BillingService {
     }
   }
 
-  // Ledger Management - simplified since payment_ledger table doesn't exist
+  // Ledger Management
   static async getCustomerLedger(customerId: string): Promise<PaymentLedger[]> {
-    // Since payment_ledger table doesn't exist, return empty array
-    // This can be extended later if the table is created
-    return [];
+    try {
+      const { data, error } = await supabase
+        .rpc('get_customer_ledger_with_balance', { p_customer_id: customerId });
+
+      if (error) throw error;
+
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching customer ledger:', error);
+      return [];
+    }
+  }
+
+  static async createLedgerEntry(entry: {
+    customerId: string;
+    transactionId: string;
+    amountPaid: number;
+    paymentMode: PaymentMode;
+    paymentType: 'emi' | 'rent' | 'purchase' | 'deposit' | 'refund' | 'adjustment';
+    previousBalance: number;
+    newBalance: number;
+    emiId?: string;
+    rentId?: string;
+    batteryId?: string;
+    referenceNumber?: string;
+    remarks?: string;
+    recordedBy?: string;
+  }) {
+    const { data, error } = await supabase
+      .from('payment_ledger')
+      .insert({
+        customer_id: entry.customerId,
+        transaction_id: entry.transactionId,
+        amount_paid: entry.amountPaid,
+        payment_mode: entry.paymentMode,
+        payment_type: entry.paymentType,
+        previous_balance: entry.previousBalance,
+        new_balance: entry.newBalance,
+        emi_id: entry.emiId,
+        rent_id: entry.rentId,
+        battery_id: entry.batteryId,
+        reference_number: entry.referenceNumber,
+        remarks: entry.remarks,
+        recorded_by: entry.recordedBy
+      })
+      .select()
+      .single();
+
+    return { data, error };
   }
 
   // EMI Management

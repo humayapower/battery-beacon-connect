@@ -765,24 +765,20 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({
                         </div>
                         <div className="flex-1">
                           <div className="font-medium text-slate-900 dark:text-slate-100">{formatDate(entry.payment_date)}</div>
-                          <div className="text-sm text-slate-600 dark:text-slate-400">
-                            {entry.emi_number ? `EMI ${entry.emi_number}` : entry.applicable_month ? `Rent - ${entry.applicable_month}` : 'Credit'}
+                          <div className="text-sm text-slate-600 dark:text-slate-400 capitalize">
+                            {entry.payment_type} {entry.remarks && `- ${entry.remarks}`}
                           </div>
                           <div className="text-xs text-slate-500 dark:text-slate-500 capitalize">
-                            {entry.payment_mode} • {entry.payment_status}
+                            {entry.payment_mode}
+                            {entry.reference_number && ` • Ref: ${entry.reference_number}`}
                           </div>
                         </div>
                       </div>
                       <div className="text-right">
                         <div className="font-bold text-slate-900 dark:text-slate-100">{formatCurrency(entry.amount_paid)}</div>
-                        {entry.remaining_balance > 0 && (
-                          <div className="text-xs text-red-600 dark:text-red-400">
-                            Balance: {formatCurrency(entry.remaining_balance)}
-                          </div>
-                        )}
-                        <Badge className={`${getStatusColor(entry.payment_status)} text-xs rounded-full mt-1`}>
-                          {entry.payment_status}
-                        </Badge>
+                        <div className="text-xs text-slate-600 dark:text-slate-400">
+                          Balance: {formatCurrency(entry.running_balance)}
+                        </div>
                       </div>
                     </div>
                   ))}

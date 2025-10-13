@@ -37,19 +37,13 @@ export interface MonthlyRent {
 
 export interface PaymentLedger {
   id: string;
-  customer_id: string;
-  transaction_id: string;
   payment_date: string;
   amount_paid: number;
-  payment_mode: PaymentMode;
-  payment_status: PaymentStatus;
-  remaining_balance: number;
-  applicable_month?: string; // For rent payments
-  emi_number?: number; // For EMI payments
-  emi_id?: string;
-  rent_id?: string;
-  remarks?: string;
-  created_at: string;
+  payment_mode: string;
+  payment_type: string;
+  running_balance: number;
+  reference_number: string;
+  remarks: string;
 }
 
 export interface CustomerCredit {

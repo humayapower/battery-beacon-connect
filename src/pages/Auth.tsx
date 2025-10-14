@@ -10,12 +10,16 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
 const Auth = () => {
-  const [username, setUsername] = useState('');
+  const [isSignUp, setIsSignUp] = useState(false);
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [address, setAddress] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { signIn, user } = useAuth();
+  const { signIn, signUp, user } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -29,8 +33,8 @@ const Auth = () => {
     setError('');
     setLoading(true);
 
-    if (!username.trim()) {
-      setError('Username is required');
+    if (!email.trim()) {
+      setError('Email is required');
       setLoading(false);
       return;
     }
@@ -41,25 +45,36 @@ const Auth = () => {
       return;
     }
 
+    if (isSignUp && !name.trim()) {
+      setError('Name is required');
+      setLoading(false);
+      return;
+    }
+
+    if (isSignUp && !phone.trim()) {
+      setError('Phone is required');
+      setLoading(false);
+      return;
+    }
+
     try {
-      console.log('Form submitted with:', { username: username.trim() });
-      
-      // Check if we're in a secure context (required for crypto.subtle)
-      if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
-        console.warn('Not in secure context, some features may not work properly');
-      }
-      
-      const result = await signIn(username.trim(), password);
-      console.log('SignIn result:', result);
+      const result = isSignUp 
+        ? await signUp(email.trim(), password, name.trim(), phone.trim(), address.trim() || undefined)
+        : await signIn(email.trim(), password);
       
       if (result.error) {
-        console.error('Login failed:', result.error);
         setError(result.error.message);
-      } else {
-        console.log('Login successful, redirecting...');
+      } else if (isSignUp) {
+        setError('');
+        setEmail('');
+        setPassword('');
+        setName('');
+        setPhone('');
+        setAddress('');
+        setIsSignUp(false);
       }
     } catch (err) {
-      console.error('Unexpected error during login:', err);
+      console.error('Unexpected error:', err);
       setError('An unexpected error occurred. Please try again.');
     } finally {
       setLoading(false);
@@ -79,10 +94,10 @@ const Auth = () => {
             />
           </div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 dark:from-gray-100 dark:to-gray-300 bg-clip-text text-transparent mb-3">
-            Welcome Back
+            {isSignUp ? 'Create Account' : 'Welcome Back'}
           </h1>
           <p className="text-gray-600 dark:text-gray-400 text-base font-medium">
-            Sign in to your dashboard to continue
+            {isSignUp ? 'Sign up to get started' : 'Sign in to your dashboard to continue'}
           </p>
         </div>
 
@@ -90,26 +105,77 @@ const Auth = () => {
         <Card className="glass-card border-0 shadow-2xl backdrop-blur-xl">
           <CardContent className="p-6">
             <form onSubmit={handleSubmit} className="space-y-5">
-              {/* Username Field */}
-              <div className="space-y-2">
-                <Label htmlFor="username" className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                  Username
-                </Label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <User className="h-4 w-4 text-slate-400" />
-                  </div>
+              {/* Name Field (Sign Up Only) */}
+              {isSignUp && (
+                <div className="space-y-2">
+                  <Label htmlFor="name" className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                    Full Name
+                  </Label>
                   <Input
-                    id="username"
+                    id="name"
                     type="text"
-                    placeholder="Enter username"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    required
+                    placeholder="Enter your full name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    required={isSignUp}
                     disabled={loading}
-                    className="pl-10 h-11 border-slate-200 dark:border-slate-600 focus:border-slate-400 focus:ring-slate-400 dark:bg-slate-700 dark:text-slate-100"
+                    className="h-11 border-slate-200 dark:border-slate-600 focus:border-slate-400 focus:ring-slate-400 dark:bg-slate-700 dark:text-slate-100"
                   />
                 </div>
+              )}
+
+              {/* Phone Field (Sign Up Only) */}
+              {isSignUp && (
+                <div className="space-y-2">
+                  <Label htmlFor="phone" className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                    Phone Number
+                  </Label>
+                  <Input
+                    id="phone"
+                    type="tel"
+                    placeholder="Enter your phone number"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    required={isSignUp}
+                    disabled={loading}
+                    className="h-11 border-slate-200 dark:border-slate-600 focus:border-slate-400 focus:ring-slate-400 dark:bg-slate-700 dark:text-slate-100"
+                  />
+                </div>
+              )}
+
+              {/* Address Field (Sign Up Only) */}
+              {isSignUp && (
+                <div className="space-y-2">
+                  <Label htmlFor="address" className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                    Address (Optional)
+                  </Label>
+                  <Input
+                    id="address"
+                    type="text"
+                    placeholder="Enter your address"
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                    disabled={loading}
+                    className="h-11 border-slate-200 dark:border-slate-600 focus:border-slate-400 focus:ring-slate-400 dark:bg-slate-700 dark:text-slate-100"
+                  />
+                </div>
+              )}
+
+              {/* Email Field */}
+              <div className="space-y-2">
+                <Label htmlFor="email" className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                  Email
+                </Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="Enter your email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  disabled={loading}
+                  className="h-11 border-slate-200 dark:border-slate-600 focus:border-slate-400 focus:ring-slate-400 dark:bg-slate-700 dark:text-slate-100"
+                />
               </div>
               
               {/* Password Field */}
@@ -163,32 +229,25 @@ const Auth = () => {
                 {loading ? (
                   <div className="flex items-center justify-center space-x-2">
                     <div className="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent"></div>
-                    <span>Signing In...</span>
+                    <span>{isSignUp ? 'Creating Account...' : 'Signing In...'}</span>
                   </div>
                 ) : (
-                  'Sign In'
+                  isSignUp ? 'Sign Up' : 'Sign In'
                 )}
               </Button>
 
-              {/* Demo Credentials */}
-              <div className="pt-4 border-t border-slate-200 dark:border-slate-700">
-                <p className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-2">Demo Credentials:</p>
-                <div className="text-xs text-slate-500 dark:text-slate-500 space-y-1">
-                  <p><span className="font-medium">Username:</span> admin</p>
-                  <p><span className="font-medium">Password:</span> admin123</p>
-                </div>
-                <Button 
+              {/* Toggle Sign In/Sign Up */}
+              <div className="text-center pt-4">
+                <button
                   type="button"
-                  variant="outline"
-                  size="sm"
-                  className="w-full mt-3 text-xs"
                   onClick={() => {
-                    setUsername('admin');
-                    setPassword('admin123');
+                    setIsSignUp(!isSignUp);
+                    setError('');
                   }}
+                  className="text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 font-medium"
                 >
-                  Use Demo Credentials
-                </Button>
+                  {isSignUp ? 'Already have an account? Sign In' : "Don't have an account? Sign Up"}
+                </button>
               </div>
             </form>
           </CardContent>

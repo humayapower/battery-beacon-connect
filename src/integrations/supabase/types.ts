@@ -436,6 +436,33 @@ export type Database = {
           },
         ]
       }
+      profiles: {
+        Row: {
+          address: string | null
+          created_at: string | null
+          id: string
+          name: string
+          phone: string
+          updated_at: string | null
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string | null
+          id: string
+          name: string
+          phone: string
+          updated_at?: string | null
+        }
+        Update: {
+          address?: string | null
+          created_at?: string | null
+          id?: string
+          name?: string
+          phone?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       transactions: {
         Row: {
           amount: number
@@ -528,6 +555,27 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_roles: {
+        Row: {
+          created_at: string | null
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
       }
       users: {
         Row: {
@@ -633,7 +681,7 @@ export type Database = {
       }
       has_role: {
         Args: {
-          _role: Database["public"]["Enums"]["user_role"]
+          _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
         Returns: boolean
@@ -652,6 +700,7 @@ export type Database = {
       }
     }
     Enums: {
+      app_role: "admin" | "partner"
       user_role: "admin" | "partner"
     }
     CompositeTypes: {
@@ -780,6 +829,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: ["admin", "partner"],
       user_role: ["admin", "partner"],
     },
   },

@@ -435,7 +435,7 @@ const AdminDashboard = () => {
                 <ThemeToggle />
                 <div className="flex items-center space-x-2 sm:space-x-3">
                   <div className="status-indicator status-online">
-                    <span className="text-sm sm:text-base font-medium truncate">Welcome, {user?.name || user?.username}</span>
+                    <span className="text-sm sm:text-base font-medium truncate">Welcome, {user?.name}</span>
                   </div>
                   <Badge className="text-xs bg-gradient-to-r from-blue-500 to-purple-600 text-white border-0">
                     Admin User

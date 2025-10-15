@@ -676,7 +676,6 @@ export type Database = {
           name: string
           phone: string
           updated_at: string
-          username: string
         }[]
       }
       has_role: {

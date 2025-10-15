@@ -35,7 +35,7 @@ export const useCustomers = () => {
             model,
             capacity
           ),
-          users!customers_partner_id_fkey (
+          profiles!customers_partner_id_fkey (
             name
           )
         `);
@@ -50,8 +50,8 @@ export const useCustomers = () => {
       
       const transformedData = (data || []).map(customer => ({
         ...customer,
-        partner: customer.users ? { name: customer.users.name } : null,
-        users: undefined
+        partner: customer.profiles ? { name: customer.profiles.name } : null,
+        profiles: undefined
       }));
       
       setCustomers(transformedData as CustomerWithBattery[]);

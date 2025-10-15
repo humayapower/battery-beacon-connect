@@ -34,7 +34,7 @@ export const useBatteries = () => {
         sim_number,
         created_at,
         updated_at,
-        partner:users!batteries_partner_id_fkey (
+        partner:profiles!batteries_partner_id_fkey (
           name
         )
       `);
@@ -83,7 +83,7 @@ export const useBatteries = () => {
           sim_number,
           created_at,
           updated_at,
-          partner:users!batteries_partner_id_fkey (
+          partner:profiles!batteries_partner_id_fkey (
             name
           )
         `)
@@ -134,7 +134,7 @@ export const useBatteries = () => {
           sim_number,
           created_at,
           updated_at,
-          partner:users!batteries_partner_id_fkey (
+          partner:profiles!batteries_partner_id_fkey (
             name
           )
         `)

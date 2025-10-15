@@ -26,10 +26,11 @@ export const useOptimizedPartners = () => {
         throw error;
       }
 
-      // Add default status to partners since it's missing from the RPC result
+      // Transform data to match Partner interface
       const partnersWithStatus: Partner[] = (data || []).map(partner => ({
         ...partner,
-        status: 'active' // Default status since it's not in the database
+        username: partner.phone, // Use phone as username fallback
+        status: 'active' as const
       }));
 
       setPartners(partnersWithStatus);
@@ -47,10 +48,8 @@ export const useOptimizedPartners = () => {
 
   const deletePartner = async (partnerId: string) => {
     try {
-      const { error } = await supabase
-        .from('users')
-        .delete()
-        .eq('id', partnerId);
+      // Deleting from auth will cascade to profiles and user_roles
+      const { error } = await supabase.auth.admin.deleteUser(partnerId);
 
       if (error) {
         throw error;
@@ -58,7 +57,7 @@ export const useOptimizedPartners = () => {
 
       toast({
         title: "Partner deleted successfully",
-        description: "The partner and their associated data have been updated.",
+        description: "The partner has been removed.",
       });
 
       await fetchPartners();

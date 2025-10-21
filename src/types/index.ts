@@ -92,6 +92,7 @@ export interface User {
   id: string;
   name: string;
   phone: string;
-  address: string | null;
+  username: string;
+  address?: string;
   role: 'admin' | 'partner';
 }

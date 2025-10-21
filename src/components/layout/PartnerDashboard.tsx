@@ -212,7 +212,7 @@ const PartnerDashboard = () => {
               <SidebarTrigger className="lg:hidden" />
               <div className="flex items-center space-x-2 sm:space-x-3 lg:space-x-4 ml-auto">
                 <div className="status-indicator status-online">
-                  <span className="text-sm sm:text-base font-medium text-gray-600 dark:text-gray-300 truncate">Welcome, {user?.name}</span>
+                  <span className="text-sm sm:text-base font-medium text-gray-600 dark:text-gray-300 truncate">Welcome, {user?.name || user?.username}</span>
                 </div>
                 <Badge className="text-xs bg-gradient-to-r from-green-500 to-emerald-600 text-white border-0">
                   Partner
